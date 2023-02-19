@@ -6,6 +6,8 @@
 
 using namespace Eigen;
 
+// YET TO BE TESTED
+
 void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, Matrix4d X, Matrix4d Y, Matrix4d Z, Matrix4d& A, Matrix4d& B, Matrix4d& C) {
 
     int len = length;
