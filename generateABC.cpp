@@ -128,8 +128,58 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
         }
         
         C.slice(m) = Y.llt().solve(A.slice(m) * X * B_initial) / Z;
+        }   
+    }
+
+    Eigen::MatrixXd B = B_initial;
+
+if (optFix == 3) { // Fix C, randomize A and B
+    // This is only physically achievable on multi-robot hand-eye calibration
+    Eigen::MatrixXd A(len, 4, 4);
+    Eigen::MatrixXd B(len, 4, 4);
+    Eigen::MatrixXd C(len, 4, 4);
+
+    for (int m = 0; m < len; m++) {
+        if (optPDF == 1) {
+            B(m) = Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1));
+            B(m) *= B_initial;
+        }
+        else if (optPDF == 2) {
+            B(m) = B_initial * (Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1)));
+        }
+        else if (optPDF == 3) {
+            Eigen::VectorXd gmean(6);
+            gmean << 0, 0, 0, 0, 0, 0;
+            B(m) = sensorNoise(B_initial, gmean, Sig(0), 1);
+        }
+
+        A(m) = (Y * C_initial * Z / B(m)) / X;
+        C(m) = C_initial;
+    }
+
+    // Update B with the randomized values
+    B_initial = B(len-1);
+    }
+
+    else if (optFix == 4) {
+        // This is for testing tranditional AXBYCZ solver that demands the
+        // correspondence between the data pairs {A_i, B_i, C_i}
+        Eigen::MatrixXd A(len, 4, 4);
+        Eigen::MatrixXd B(len, 4, 4);
+        Eigen::MatrixXd C(len, 4, 4);
+
+        for (int m = 0; m < len; m++) {
+            A(m) = Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1));
+            A(m) *= A_initial;
+
+            C(m) = Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1));
+            C(m) *= C_initial;
+
+            B(m) = X.lu().solve(A(m).lu().solve(Y * C(m) * Z));
+        }
     }
 }
+
 
 
 
