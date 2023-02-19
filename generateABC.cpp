@@ -17,10 +17,11 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
     Matrix4d A_initial, B_initial, C_initial;
 
     if (dataGenMode == 1) {
-
-        // Instantiate puma object (time-consuming)
-        std::cout << "Error: Puma object not instantiated. Exiting program." << std::endl;
-        exit(1);
+        
+        abb_irb120;                                // include in the abbirb120 parameters from "rvctools" toolbox
+        A_initial = irb120.fkine(qz1);
+        B_initial = irb120.fkine(qz2);
+        C_initial = irb120.fkine(qz3);
 
     } else if (dataGenMode == 2) {
 
@@ -58,5 +59,78 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
         C_initial = Matrix4d::Identity();
         C_initial.topLeftCorner<3, 3>() = AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
     }
+
+    if (optFix == 1) { // Fix A, randomize B and C
+    // This can be applied to both serial-parallel and dual-robot arm
+    // calibrations
+
+    Eigen::MatrixXd B_initial(4, 4);
+    B_initial << 1, 0, 0, 0,
+                 0, 1, 0, 0,
+                 0, 0, 1, 0,
+                 0, 0, 0, 1;
+
+    Eigen::MatrixXd C_initial(4, 4);
+    C_initial << 1, 0, 0, 0,
+                 0, 1, 0, 0,
+                 0, 0, 1, 0,
+                 0, 0, 0, 1;
+
+    Eigen::MatrixXd X(4, 4);
+    Eigen::MatrixXd Y(4, 4);
+    Eigen::MatrixXd Z(4, 4);
+
+    Eigen::MatrixXd B(4, 4, len);
+    Eigen::MatrixXd C(4, 4, len);
+    Eigen::MatrixXd A(4, 4, len);
+
+    for (int m = 0; m < len; m++) {
+
+        if (optPDF == 1) {
+            Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
+            Eigen::MatrixXd expm_vec = se3_vec(randn_vec);
+            B.block<4, 4>(0, 0, 4, 4) = expm(expm_vec) * B_initial;
+        }
+        else if (optPDF == 2) {
+            Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
+            Eigen::MatrixXd expm_vec = se3_vec(randn_vec);
+            B.block<4, 4>(0, 0, 4, 4) = B_initial * expm(expm_vec);
+        }
+        else if (optPDF == 3) {
+            Eigen::VectorXd gmean(6);
+            gmean << 0, 0, 0, 0, 0, 0;
+            double sigma = Sig(0, 0);
+            B.block<4, 4>(0, 0, 4, 4) = sensorNoise(B_initial, gmean, sigma, 1);
+        }
+
+        C.block<4, 4>(0, 0, 4, 4) = Y.inverse() * (A_initial * X * B.block<4, 4>(0, 0, 4, 4) / Z);
+        A.block<4, 4>(0, 0, 4, 4) = A_initial;
+        }
+    }
+
+    if (optFix == 2) { // Fix B, randomize A and C
+    // This can be applied to both serial-parallel and dual-robot arm calibrations
+    Eigen::MatrixXd A(4, 4, len);
+    Eigen::MatrixXd C(4, 4, len);
+
+    for (int m = 0; m < len; m++) {
+        if (optPDF == 1) {
+            Eigen::VectorXd random_vector = mvg(M, Sig, 1);
+            Eigen::MatrixXd matrix = se3_vec(random_vector);
+            A.slice(m) = matrix.exp() * A_initial;
+        } else if (optPDF == 2) {
+            Eigen::VectorXd random_vector = mvg(M, Sig, 1);
+            Eigen::MatrixXd matrix = se3_vec(random_vector);
+            A.slice(m) = A_initial * matrix.exp();
+        } else if (optPDF == 3) {
+            Eigen::VectorXd gmean = Eigen::VectorXd::Zero(6);
+            A.slice(m) = sensorNoise(A_initial, gmean, Sig(0), 1);
+        }
+        
+        C.slice(m) = Y.llt().solve(A.slice(m) * X * B_initial) / Z;
+    }
+}
+
+
 
        
