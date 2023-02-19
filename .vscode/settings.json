@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "random": "cpp",
+        "geometry": "cpp",
+        "dense": "cpp"
+    }
+}

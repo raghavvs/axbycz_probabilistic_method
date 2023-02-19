@@ -1,6 +1,6 @@
 #include <iostream>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Geometry>
 #include <random>
 
 using namespace Eigen;
