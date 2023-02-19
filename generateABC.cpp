@@ -13,6 +13,8 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
     double qz1[6] = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
     double qz2[6] = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
     double qz3[6] = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
+    Matrix<double, 6, 1> a, b, c;
+    Matrix4d A_initial, B_initial, C_initial;
 
     if (dataGenMode == 1) {
 
@@ -37,17 +39,24 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
 
     } else if (dataGenMode == 3) {
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::normal_distribution<double> dist(0.0, 1.0);
+        std::default_random_engine generator;
+        std::normal_distribution<double> distribution(0.0, 1.0);
+        auto randn = [&] { return distribution(generator); };
 
-        VectorXd a(6);
-        a << dist(gen), dist(gen), dist(gen), dist(gen), dist(gen), dist(gen);
-        a = a / a.norm();
-        A = Matrix4d::Identity();
-        A.block<3,3>(0,0) = AngleAxisd(a.tail(3).norm(), a.tail(3).normalized()).toRotationMatrix();
-        A.block<3,1>(0,3) = a.head(3);
+        a << randn(), randn(), randn(), randn(), randn(), randn();
+        a.normalize();
+        A_initial = Matrix4d::Identity();
+        A_initial.topLeftCorner<3, 3>() = AngleAxisd(a.norm(), a.normalized()).toRotationMatrix();
 
-        VectorXd b(6);
-        b << dist(gen), dist(gen), dist(gen), dist(gen), dist(gen), dist(gen);
+        b << randn(), randn(), randn(), randn(), randn(), randn();
+        b.normalize();
+        B_initial = Matrix4d::Identity();
+        B_initial.topLeftCorner<3, 3>() = AngleAxisd(b.norm(), b.normalized()).toRotationMatrix();
+
+        c << randn(), randn(), randn(), randn(), randn(), randn();
+        c.normalize();
+        C_initial = Matrix4d::Identity();
+        C_initial.topLeftCorner<3, 3>() = AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
+    }
+
        
