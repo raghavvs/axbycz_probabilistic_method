@@ -181,8 +181,3 @@ if (optFix == 3) { // Fix C, randomize A and B
         }
     }
 }
-
-
-
-
-       
