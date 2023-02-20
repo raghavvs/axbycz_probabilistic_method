@@ -8,7 +8,7 @@ Generate partially permuted data triples [A1_perm, B1_perm, C1_perm]
  Output:
        M_perm in 4 x 4 x n (n copies of M)
        N_perm in 4 x 4 x n (permuated N)
-      P_perm in 4 x 4 x n (samme as P)
+       P_perm in 4 x 4 x n (samme as P)
 */
 
 #include <iostream>
