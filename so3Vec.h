@@ -1,6 +1,6 @@
 #include <eigen3/Eigen/Core>
 
-Eigen::Matrix3d so3_vec(const Eigen::Vector3d& X) {
+Eigen::Matrix3d so3Vec(const Eigen::Vector3d& X) {
   Eigen::Matrix3d g;
   if (X.size() == 3) { // If input is skew-sym change to vector
     g << 0, -X(2), X(1),
