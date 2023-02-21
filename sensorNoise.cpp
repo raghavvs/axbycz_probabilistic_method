@@ -2,7 +2,7 @@
 #include <eigen3/Eigen/Dense>
 #include <cmath>
 #include <random>
-#include "se3_vec.h" // assuming that the se3_vec() function has been implemented in a separate file
+#include "se3Vec.h" // assuming that the se3_vec() function has been implemented in a separate file
 
 using namespace std;
 
