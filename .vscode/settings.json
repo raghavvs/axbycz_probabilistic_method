@@ -75,6 +75,9 @@
         "vertexarraystate": "cpp",
         "buffered_value": "cpp",
         "fast_back_stack": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "*.expression": "cpp",
+        "alignedvector3": "cpp",
+        "fft": "cpp"
     }
 }
