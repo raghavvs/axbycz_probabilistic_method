@@ -74,6 +74,7 @@
         "texture": "cpp",
         "vertexarraystate": "cpp",
         "buffered_value": "cpp",
-        "fast_back_stack": "cpp"
+        "fast_back_stack": "cpp",
+        "core": "cpp"
     }
 }
