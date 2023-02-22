@@ -1,8 +1,11 @@
 #include <iostream>
-#include <cmath
+#include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
 #include <random>
+#include <se3Vec.h>
+#include <mvg.h>
+#include <expm.h>
 
 using namespace Eigen;
 
@@ -90,12 +93,12 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
 
         if (optPDF == 1) {
             Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
-            Eigen::MatrixXd expm_vec = se3_vec(randn_vec);
+            Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
             B.block<4, 4>(0, 0, 4, 4) = expm(expm_vec) * B_initial;
         }
         else if (optPDF == 2) {
             Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
-            Eigen::MatrixXd expm_vec = se3_vec(randn_vec);
+            Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
             B.block<4, 4>(0, 0, 4, 4) = B_initial * expm(expm_vec);
         }
         else if (optPDF == 3) {
@@ -118,11 +121,11 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
     for (int m = 0; m < len; m++) {
         if (optPDF == 1) {
             Eigen::VectorXd random_vector = mvg(M, Sig, 1);
-            Eigen::MatrixXd matrix = se3_vec(random_vector);
+            Eigen::MatrixXd matrix = se3Vec(random_vector);
             A.slice(m) = matrix.exp() * A_initial;
         } else if (optPDF == 2) {
             Eigen::VectorXd random_vector = mvg(M, Sig, 1);
-            Eigen::MatrixXd matrix = se3_vec(random_vector);
+            Eigen::MatrixXd matrix = se3Vec(random_vector);
             A.slice(m) = A_initial * matrix.exp();
         } else if (optPDF == 3) {
             Eigen::VectorXd gmean = Eigen::VectorXd::Zero(6);
@@ -143,11 +146,11 @@ if (optFix == 3) { // Fix C, randomize A and B
 
     for (int m = 0; m < len; m++) {
         if (optPDF == 1) {
-            B(m) = Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1));
+            B(m) = Eigen::Matrix4d::Identity() + se3Vec(mvg(M, Sig, 1));
             B(m) *= B_initial;
         }
         else if (optPDF == 2) {
-            B(m) = B_initial * (Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1)));
+            B(m) = B_initial * (Eigen::Matrix4d::Identity() + se3Vec(mvg(M, Sig, 1)));
         }
         else if (optPDF == 3) {
             Eigen::VectorXd gmean(6);
@@ -171,10 +174,10 @@ if (optFix == 3) { // Fix C, randomize A and B
         Eigen::MatrixXd C(len, 4, 4);
 
         for (int m = 0; m < len; m++) {
-            A(m) = Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1));
+            A(m) = Eigen::Matrix4d::Identity() + se3Vec(mvg(M, Sig, 1));
             A(m) *= A_initial;
 
-            C(m) = Eigen::Matrix4d::Identity() + se3_vec(mvg(M, Sig, 1));
+            C(m) = Eigen::Matrix4d::Identity() + se3Vec(mvg(M, Sig, 1));
             C(m) *= C_initial;
 
             B(m) = X.lu().solve(A(m).lu().solve(Y * C(m) * Z));
