@@ -1,5 +1,15 @@
 {
     "files.associations": {
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "hash_map": "cpp",
+        "valarray": "cpp",
+        "mixinvector": "cpp",
+        "vertexarraystate": "cpp",
+        "buffered_value": "cpp"
     }
 }
