@@ -13,6 +13,10 @@ g_noise: output SE(3) matrices with added noise
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
+#include <expm.h>
+#include <se3Vec.h>
+
+
 using namespace Eigen;
 
 std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd &gmean, const double &std, const int &model)
@@ -34,7 +38,7 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
                 VectorXd noise_old2 = gmean + VectorXd::Zero(6);
                 noise_old2.head(3) = std * (temp / temp.norm());
                 
-                MatrixXd g_temp = g[i] * expm(se3_vec(noise_old1)) * expm(se3_vec(noise_old2));
+                MatrixXd g_temp = g[i] * expm(se3Vec(noise_old1)) * expm(se3Vec(noise_old2));
                 g_noise[i] = g_temp;
             }
             break;
@@ -62,7 +66,7 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
 
             for (int i = 0; i < g.size(); i++)
             {
-                MatrixXd g_temp = g[i] * expm(se3_vec(noise_new.segment(i * 6, 6)));
+                MatrixXd g_temp = g[i] * expm(se3Vec(noise_new.segment(i * 6, 6)));
                 g_noise[i] = g_temp;
             }
             break;
@@ -77,5 +81,5 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
             for (int i = 0; i < g.size(); i++)
             {
                 noise_new.col(i).head(6) = noise_old.leftCols(i + 1).rowwise().sum() / sqrt(i + 1);
-                MatrixXd g_temp = g[i] * expm(se3_vec
+                MatrixXd g_temp = g[i] * expm(se3Vec
 
