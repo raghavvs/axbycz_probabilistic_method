@@ -12,6 +12,7 @@ g_noise: output SE(3) matrices with added noise
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
+#include <random>
 #include <expm.h>
 #include <se3Vec.h>
 #include <so3Vec.h>s
@@ -91,8 +92,8 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
 
                 Eigen::Matrix3d Ng, Ng2;
                 Eigen::Vector3d pg, pg2, n, u;
-                double thetag, thetag2, dg, dg2;
-
+                double thetag, thetag2, dg, dg2; 
+                
                 param_extract(g.col(i), thetag, Ng, dg, pg);
                 thetag2 = thetag + std*randn();
                 Ng2 = so3Vec(so3Vec(Ng) + (Eigen::Vector3d() << std*randn(), std*randn(), std*randn()).finished().normalized()*std);
