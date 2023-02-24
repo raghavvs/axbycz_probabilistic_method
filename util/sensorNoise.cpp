@@ -5,6 +5,20 @@ g: input SE(3) matrices to add noise to
 gmean: mean value of the noise
 std: standard deviation of the noise
 g_noise: output SE(3) matrices with added noise
+
+This code includes a C++ function called sensorNoise which takes four input arguments: 
+a vector of matrices g, a matrix gmean, a double std, and an integer model. 
+The output is a vector of matrices g_noise.
+
+The function applies different noise models to the input matrices g based on 
+the value of the input integer model. If model is 1, then the function applies 
+independent Gaussian noise to each matrix. If model is 2, then the function 
+applies a coupling matrix to introduce correlation between the noise applied 
+to each matrix. If model is 3, then the function applies Wiener process noise 
+to each matrix. If model is 4, then the function applies Plücker nudge noise 
+to each matrix.
+
+The function returns the input matrices with the applied noise as a vector of matrices.
 */
 
 #include <iostream>
@@ -94,11 +108,11 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
                 Vector3d pg, pg2, n, u;
                 double thetag, thetag2, dg, dg2; 
 
-                double param_extract(g.col(i), thetag, Ng, dg, pg);
+                double param_extract(g[i].col(i), thetag, Ng, dg, pg);
 
                 thetag2 = thetag + std*randn();
                 Ng2 = so3Vec(so3Vec(Ng) + (Vector3d() << std*randn(), std*randn(), std*randn()).finished().normalized()*std);
-                Matrix4d Rg2 = (Matrix4d() << expm(thetag2*Ng2), Vector3d::Zero(), 1).finished();
+                Matrix4d Rg2 = (Matrix4d() << expm(thetag2*Ng2), Vector3d::Zero(), 0, 0, 0, 1).finished();
                 Vector3d tg2 = g[0](0, 4 * i) + (Vector3d() << std*randn(), std*randn(), std*randn()).finished();
                 dg2 = tg2.dot(so3Vec(Ng2));
 
@@ -112,8 +126,7 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
                 g_noise_i << expm(thetag2*Ng2), (Matrix3d::Identity() - expm(thetag2*Ng2))*pg2 + dg2*so3Vec(Ng2), 0, 0, 0, 1;
                 g_noise[i] = g_noise_i;
             }
-        }
-
+        }    
 
         case 5:
         {
@@ -140,7 +153,3 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
             std::cout<<"Error"<<std::endl;
     }
 }
-
-
-
-
