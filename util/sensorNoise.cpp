@@ -7,14 +7,14 @@ std: standard deviation of the noise
 g_noise: output SE(3) matrices with added noise
 */
 
-// INCOMPLETE
-
+#include <iostream>
 #include <cmath>
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 #include <expm.h>
 #include <se3Vec.h>
+#include <so3Vec.h>s
 
 using namespace Eigen;
 
@@ -80,5 +80,68 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
             for (int i = 0; i < g.size(); i++)
             {
                 noise_new.col(i).head(6) = noise_old.leftCols(i + 1).rowwise().sum() / sqrt(i + 1);
-                MatrixXd g_temp = g[i] * expm(se3Vec
+                MatrixXd g_temp = g[i] * expm(se3Vec(noise_new.col(i).head(6)));
+            }
+        }
+
+        case 4:
+        {   
+            //-----------plucker nudge------------------------------------
+            for (int i = 0; i < g.size(2); i++) {
+
+                Eigen::Matrix3d Ng, Ng2;
+                Eigen::Vector3d pg, pg2, n, u;
+                double thetag, thetag2, dg, dg2;
+
+                param_extract(g.col(i), thetag, Ng, dg, pg);
+                thetag2 = thetag + std*randn();
+                Ng2 = so3Vec(so3Vec(Ng) + (Eigen::Vector3d() << std*randn(), std*randn(), std*randn()).finished().normalized()*std);
+                Eigen::Matrix4d Rg2 = (Eigen::Matrix4d() << expm(thetag2*Ng2), Eigen::Vector3d::Zero(), 1).finished();
+                Eigen::Vector3d tg2 = g.block<3, 1>(0, 4 * i) + (Eigen::Vector3d() << std*randn(), std*randn(), std*randn()).finished();
+                dg2 = tg2.dot(so3Vec(Ng2));
+
+                n = so3Vec(Ng2);
+                u = (Eigen::Vector3d() << -n(1), n(0), 0).finished().normalized();
+                Eigen::Vector2d c = (Eigen::Vector2d() << std::cos(thetag2) - 1, std::sin(thetag2)).finished().inverse() * (Eigen::Vector2d() << tg2.dot(u), tg2.dot(n.cross(u))).finished();
+
+                pg2 = c(0)*u + c(1)*n.cross(u);
+
+                g_noise.block<3, 4>(0, 4 * i) = (Eigen::Matrix4d() << expm(thetag2*Ng2), (Eigen::Matrix3d::Identity() - expm(thetag2*Ng2))*pg2 + dg2*so3Vec(Ng2), 0, 0, 0, 1).finished();
+
+            }
+        }
+
+        case 5:
+        {
+            //-----------outlier noise-----------------------------------
+            for (int i = 0; i < g.size(2); i++) {
+
+                Eigen::Matrix4d noise_old1, noise_old2;
+
+                if ((i + 1) % 10 == 1) {
+
+                    Eigen::Vector3d temp = Eigen::Vector3d::Random();
+                    noise_old1 << Eigen::Matrix3d::Zero(), 0.1*Eigen::Matrix3d::Zero(), temp + gmean, Eigen::Vector4d::UnitW();
+                    noise_old2 << 0.01*(temp / temp.norm()), Eigen::Matrix3d::Zero(), gmean, Eigen::Vector4d::UnitW();
+                    g_noise.slice(i) = g.slice(i)*expm(se3Vec(noise_old1))*expm(se3Vec(noise_old2));
+
+                }
+                else {
+
+                    noise_old1 << std*Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Zero(), gmean, Eigen::Vector4d::UnitW();
+                    noise_old2 << Eigen::Matrix3d::Zero(), std*Eigen::Matrix3d::Identity(), gmean, Eigen::Vector4d::UnitW();
+                    g_noise.slice(i) = g.slice(i)*expm(se3Vec(noise_old1))*expm(se3Vec(noise_old2));
+
+                }
+            }
+        }
+
+        default
+
+        std::cout<<"Error"<<std::endl;
+    }
+}
+
+
+
 
