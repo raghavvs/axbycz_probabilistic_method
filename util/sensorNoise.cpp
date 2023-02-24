@@ -16,7 +16,6 @@ g_noise: output SE(3) matrices with added noise
 #include <expm.h>
 #include <se3Vec.h>
 
-
 using namespace Eigen;
 
 std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd &gmean, const double &std, const int &model)
