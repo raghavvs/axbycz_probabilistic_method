@@ -6,6 +6,7 @@
 #include <se3Vec.h>
 #include <mvg.h>
 #include <expm.h>
+#include <sensorNoise.h>
 
 using namespace Eigen;
 
