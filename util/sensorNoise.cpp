@@ -148,7 +148,6 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
             }
         }
 
-
         default:
             std::cout<<"Error"<<std::endl;
     }

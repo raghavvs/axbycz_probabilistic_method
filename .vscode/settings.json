@@ -10,6 +10,7 @@
         "valarray": "cpp",
         "mixinvector": "cpp",
         "vertexarraystate": "cpp",
-        "buffered_value": "cpp"
+        "buffered_value": "cpp",
+        "dense": "cpp"
     }
 }

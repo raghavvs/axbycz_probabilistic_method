@@ -25,6 +25,7 @@ SigB_13, which causes a compiler error, and using an ellipsis
 #include <iostream>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include <vector>
 #include <so3Vec.h>
 
 using namespace std;
@@ -53,36 +54,32 @@ void batchSolveXY(MatrixXd &A, MatrixXd &B, bool opt, double nstd_A, double nstd
     Matrix<double, 6, 6, RowMajor> &SigA, Matrix<double, 6, 6, RowMajor> &SigB,
     Matrix<double, 4, 4, RowMajor> *X, Matrix<double, 4, 4, RowMajor> *Y)
 {
-    Matrix<double, 4, 4, RowMajor> X_candidate[8];
-    Matrix<double, 4, 4, RowMajor> Y_candidate[8];
+    int n = A.size() / 16;
 
-    // Reshape A and B for matching the input sizes of mex functions
-    int a1 = A.rows();
-    int a2 = A.cols();
-    int a3 = A.size() / (a1 * a2);
+    X = MatrixXd::Zero(4, 4, 8);
+    Y = MatrixXd::Zero(4, 4, 8);
 
-    MatrixXd SigA_13 = SigA.block(0, 0, 3, 3);
-    SigA_13.resize(1, 9);
-    MatrixXd SigB_13 = SigA.block(0, 0, 3, 3);
-    SigB_13.resize(1, 9);
-
-    // [MeanA, SigA] = distibutionPropsMex(A_mex);
-    // [MeanB, SigB] = distibutionPropsMex(B_mex);
-    MeanA = distibutionPropsMex(A_mex);
-    MeanB = distibutionPropsMex(B_mex);
-    SigA.setZero();
-    SigB.setZero();
-    for (int i = 0; i < a3; i++)
-    {
-        MatrixXd A_i = A.block<4, 4>(0, 0, a1, a2).transpose();
-        MatrixXd B_i = B.block<4, 4>(0, 0, a1, a2).transpose();
-        MatrixXd A_i_centered = A_i.colwise() - MeanA.transpose();
-        MatrixXd B_i_centered = B_i.colwise() - MeanB.transpose();
-        SigA += (A_i_centered * A_i_centered.transpose()) / double(a3 - 1);
-        SigB += (B_i_centered * B_i_centered.transpose()) / double(a3 - 1);
+    // Reshape A and B for matching the input sizes
+    MatrixXf A_mex(4, 4*n);
+    MatrixXf B_mex(4, 4*n);
+    for (int i = 0; i < n; i++) {
+        A_mex.block(0, 4*i, 4, 4) = A.block(0, 0, 4, 4).transpose();
+        B_mex.block(0, 4*i, 4, 4) = B.block(0, 0, 4, 4).transpose();
     }
-    SigA /= double(a3);
-    SigB /= double(a3);
+
+    // non-mex function version
+    MeanA = A.mean();
+    MeanB = B.mean();
+    SigA = MatrixXf::Zero(6, 6);
+    SigB = MatrixXf::Zero(6, 6);
+    for (int i = 0; i < n; i++) {
+        MatrixXf A_i = A.block(0, 0, 4, 4).transpose() - MeanA;
+        MatrixXf B_i = B.block(0, 0, 4, 4).transpose() - MeanB;
+        SigA += A_i * A_i.transpose();
+        SigB += B_i * B_i.transpose();
+    }
+    SigA /= n;
+    SigB /= n;
 
     // update SigA and SigB if nstd_A and nstd_B are known
     if (opt) {

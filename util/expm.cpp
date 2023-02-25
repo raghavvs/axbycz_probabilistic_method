@@ -1,12 +1,12 @@
 /*
 A function to evaluate matrix exponential.
-It used the scaling and squaring method.
+It uses the scaling and squaring method.
 Process:
     Compute the scaling factor s such that ||A/s|| <= 1/2, where ||.|| is a matrix norm (e.g., the Frobenius norm).
     Compute the matrix B = A/s.
     Compute the matrix exponential of B using the power series expansion.
     Compute the matrix exponential of A as exp(A) = (exp(s) * exp(B))^2.
-nterms refers to number of terms in the power expansion.
+n term refers to number of terms in the power expansion.
 */
 
 
