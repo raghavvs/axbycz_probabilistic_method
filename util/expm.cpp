@@ -1,4 +1,6 @@
 /*
+DESCRIPTION:
+
 A function to evaluate matrix exponential.
 It uses the scaling and squaring method.
 Process:
@@ -11,7 +13,7 @@ n term refers to number of terms in the power expansion.
 
 
 #include <cmath>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 Eigen::Matrix4d expm(const Eigen::Matrix4d& A, int nterms = 20) {
     double s = 0.5;

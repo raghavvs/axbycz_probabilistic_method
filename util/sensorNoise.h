@@ -1,4 +1,6 @@
 /*
+DESCRIPTION:
+
 Function to add Gaussian noise to a g in SE(3)
 model = 1: Add noise independently from Normal Distribution
 g: input SE(3) matrices to add noise to
@@ -24,8 +26,8 @@ The function returns the input matrices with the applied noise as a vector of ma
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <random>
 #include <expm.h>
 #include <se3Vec.h>

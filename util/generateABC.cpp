@@ -2,12 +2,12 @@
 
 #include <iostream>
 #include <cmath>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <random>
+#include <expm.h>
 #include <se3Vec.h>
 #include <mvg.h>
-#include <expm.h>
 #include <sensorNoise.h>
 
 using namespace Eigen;

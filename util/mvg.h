@@ -1,5 +1,5 @@
 /*
-MVG    Multivariate Gaussian random number generator.
+MVG - Multivariate Gaussian random number generator.
 
    y = mvg(mu,Sigma,N), where mu is mx1 and Sigma is mxm and SPD, produces 
    an mxN matrix y whose columns are samples from the multivariate 
@@ -26,8 +26,8 @@ MVG    Multivariate Gaussian random number generator.
 */
 
 #include <iostream>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Cholesky>
+#include <Eigen/Dense>
+#include <Eigen/Cholesky>
 #include <random>
 
 using namespace Eigen;

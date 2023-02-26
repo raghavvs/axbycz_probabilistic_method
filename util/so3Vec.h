@@ -1,4 +1,4 @@
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 Eigen::Matrix3d so3Vec(const Eigen::Vector3d& X) {
   Eigen::Matrix3d g;

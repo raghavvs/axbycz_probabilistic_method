@@ -1,4 +1,4 @@
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 // Function to vectorize or hat an element of se(3)
 Eigen::Matrix<double, 6, 1> se3Vec(Eigen::Matrix4d X) {
