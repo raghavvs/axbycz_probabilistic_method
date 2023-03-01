@@ -1,4 +1,6 @@
 /*
+DESCRIPTION:
+
 A function to evaluate matrix exponential.
 It uses the scaling and squaring method.
 Process:
@@ -8,7 +10,6 @@ Process:
     Compute the matrix exponential of A as exp(A) = (exp(s) * exp(B))^2.
 n term refers to number of terms in the power expansion.
 */
-
 
 #include <cmath>
 #include <eigen3/Eigen/Dense>
