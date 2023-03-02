@@ -3,7 +3,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
-#include </usr/lib/python3/dist-packages/matplotlib> 
+#include <matplotlib> 
 
 namespace plt = matplotlibcpp;
 

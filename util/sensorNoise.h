@@ -101,7 +101,7 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
             }
         }
 
-        case 4:
+/*         case 4: Plucker Nudge - errors - needs debugging - at the moment - ignoring this case
         {   
             //-----------plucker nudge------------------------------------
             for (int i = 0; i < g.size(); i++) {
@@ -128,9 +128,9 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
                 g_noise_i << expm(thetag2*Ng2), (Matrix3d::Identity() - expm(thetag2*Ng2))*pg2 + dg2*so3Vec(Ng2), 0, 0, 0, 1;
                 g_noise[i] = g_noise_i;
             }
-        }    
+        }  */   
 
-        case 5:
+        case 4:
         {
             //-----------outlier noise-----------------------------------
             for (int i = 0; i < g_noise.size(); i++) {
@@ -149,7 +149,6 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
                 }
             }
         }
-
 
         default:
             std::cout<<"Error"<<std::endl;
