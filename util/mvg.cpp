@@ -74,7 +74,7 @@ void mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N, Eigen::
 
 // TEST CASE
 
-int main() {
+/* int main() {
     Eigen::VectorXd mu(3);
     mu << 1.0, 2.0, 3.0;
     Eigen::MatrixXd Sigma(3, 3);
@@ -86,5 +86,5 @@ int main() {
     std::cout << "y = " << std::endl << y << std::endl;
     std::cout << "R = " << std::endl << R << std::endl;
     return 0;
-}
+} */
 
