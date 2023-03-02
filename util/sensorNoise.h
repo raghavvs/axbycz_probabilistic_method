@@ -1,4 +1,6 @@
 /*
+DESCRIPTION:
+
 Function to add Gaussian noise to a g in SE(3)
 model = 1: Add noise independently from Normal Distribution
 g: input SE(3) matrices to add noise to

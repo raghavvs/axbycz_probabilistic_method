@@ -1,11 +1,26 @@
+/*
+This generates sets of three vectors, each consisting of a 
+constant and two free variables, namely A1, B1, C1, A2, B2, C2, 
+A3, B3, C3. The function takes as input the number of sets to 
+generate (Num), an option for the probability density function 
+(optPDF), a mean vector (Mean), a covariance matrix (Cov), and 
+actual X, Y, and Z vectors (XActual, YActual, ZActual). 
+
+The function uses the "generateABC"to generate the sets of ABC values. 
+The first set of vectors has a constant value for A1, the second 
+set has a constant value for C2, and the third set has a constant 
+value for B3. The free variables in each set are randomly generated 
+using the specified options and input parameters.
+*/
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <generateABC.h>
 
-using namespace Eigen;
-
-void generateSetsOfABC(int Num, int optPDF, Vector3d Mean, Matrix3d Cov, VectorXd XActual, VectorXd YActual, VectorXd ZActual, 
-                       VectorXd& A1, VectorXd& B1, VectorXd& C1, VectorXd& A2, VectorXd& B2, VectorXd& C2, VectorXd& A3, VectorXd& B3, VectorXd& C3) {
+void generateSetsOfABC(int Num, int optPDF, Eigen::Vector3d Mean, Eigen::Matrix3d Cov, 
+                        Eigen::VectorXd XActual, Eigen::VectorXd YActual, Eigen::VectorXd ZActual, 
+                        Eigen::Matrix4d& A1, Eigen::Matrix4d& B1, Eigen::Matrix4d& C1, Eigen::Matrix4d& A2, 
+                        Eigen::Matrix4d& B2, Eigen::Matrix4d& C2, Eigen::Matrix4d& A3, Eigen::Matrix4d& B3, Eigen::Matrix4d& C3) {
 
     // Generate constant A1, free B1 and C1
     int opt = 1;

@@ -1,3 +1,13 @@
+/*
+DESCRIPTION:
+
+The program defines a function skewLog that computes the matrix logarithm 
+of a 3x3 rotation matrix R. The function first computes the angle of rotation 
+theta using the trace of the matrix, then uses different cases depending on 
+the value of theta to compute the corresponding skew-symmetric matrix w_hat. 
+Finally, the computed w_hat matrix is returned. 
+*/
+
 #include <cmath>
 #include <iostream>
 #include <eigen3/Eigen/Dense>

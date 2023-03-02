@@ -31,7 +31,7 @@ double rotError(Eigen::Matrix4d X1, Eigen::Matrix4d X2)
     return aa.angle();
 }
 
-// TEST 
+// TEST CASE
 
 /*
 int main()
