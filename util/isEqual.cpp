@@ -1,15 +1,29 @@
-#include <cmath>
-
-bool isequalf(double a, double b, double thresh = std::numeric_limits<double>::epsilon() * 100) {
-    double diff = std::abs(a - b);
-    return diff <= thresh;
-}
-
 /*
-Note that the std::numeric_limits<double>::epsilon() method provides 
-the smallest possible difference that can be detected between 
-two floating-point numbers, which can be used as the default 
-value for the thresh parameter. The implementation simply checks 
-if the absolute difference between a and b is less than or equal 
-to the threshold.
+DESCRIPTION:
+
+The program defines a function named isequalf that takes two double precision 
+floating point numbers a and b as input arguments and returns a boolean value 
+indicating whether they are equal within a specified threshold thresh. The 
+function first checks if either of the input numbers is not a number (NaN) 
+and returns false if so. Otherwise, it calculates the absolute difference 
+between the two numbers, and checks if it is less than or equal to the specified 
+threshold thresh. If the difference is within the threshold, the function 
+returns true, otherwise it returns false. 
 */
+
+#include <iostream>
+#include <cmath>
+#include <limits>
+#include <algorithm>
+
+bool isequalf(double a, double b, double thresh = std::numeric_limits<double>::epsilon()*100)
+{
+    if (std::isnan(a) || std::isnan(b)) return false;
+
+    double m = std::max(std::abs(a-b), std::abs(b-a));
+
+    if (m > thresh)
+        return false;
+    else
+        return true;
+}
