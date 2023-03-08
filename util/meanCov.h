@@ -20,67 +20,67 @@ and the mean logarithm and computing their outer product.
 #include <expm.h>
 #include <iostream>
 
-using namespace Eigen;
-
-Matrix4d logm(Matrix4d A) {
-    SelfAdjointEigenSolver<Matrix4d> es(A);
-    Matrix4d D = es.eigenvalues().asDiagonal();
-    Matrix4d V = es.eigenvectors();
-    Matrix4d S = V * (D.array().log().matrix().asDiagonal()) * V.inverse();
+Eigen::Matrix4d logm(Eigen::Matrix4d A) {
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix4d> es(A);
+    Eigen::Matrix4d D = es.eigenvalues().asDiagonal();
+    Eigen::Matrix4d V = es.eigenvectors();
+    Eigen::Matrix4d S = V * (D.array().log().matrix().asDiagonal()) * V.inverse();
     return S;
 }
 
-VectorXd vex(Matrix3d S) {
-    VectorXd w(3);
+Eigen::VectorXd vex(Eigen::Matrix3d S) {
+    Eigen::VectorXd w(3);
     w(0) = S(2, 1);
     w(1) = S(0, 2);
     w(2) = S(1, 0);
     return w;
 }
 
-void meanCov(const MatrixXd& X, Matrix4d& Mean, MatrixXd& Cov)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> meanCov(const Eigen::MatrixXd& X, Eigen::VectorXd& Mean, Eigen::MatrixXd& Cov)
 {
     int N = X.size() / 16; // size of third dimension of X
-    Mean = Matrix4d::Identity();
-    Cov = MatrixXd::Zero(6, 6);
+    Mean = Eigen::Matrix4d::Identity();
+    Cov = Eigen::MatrixXd::Zero(6, 6);
 
     // Initial approximation of Mean
-    Matrix4d sum_se = Matrix4d::Zero();
+    Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
     for (int i = 0; i < N; i++)
     {
-        Matrix4d Xi = Map<const Matrix4d>(X.data() + i * 16, 4, 4);
+        Eigen::Matrix4d Xi = Eigen::Map<const Eigen::Matrix4d>(X.data() + i * 16, 4, 4);
         sum_se += logm(Xi);
     }
     Mean = expm(1.0 / N * sum_se);
 
     // Iterative process to calculate the true Mean
-    Matrix4d diff_se = Matrix4d::Ones();
+    Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
     int max_num = 100;
     double tol = 1e-5;
     int count = 1;
     while (diff_se.norm() >= tol && count <= max_num)
     {
-        diff_se = Matrix4d::Zero();
+        diff_se = Eigen::Matrix4d::Zero();
         for (int i = 0; i < N; i++)
         {
-            Matrix4d Xi = Map<const Matrix4d>(X.data() + i * 16, 4, 4);
+            Eigen::Matrix4d Xi = Eigen::Map<const Eigen::Matrix4d>(X.data() + i * 16, 4, 4);
             diff_se += logm(Mean.inverse() * Xi);
         }
         Mean *= expm(1.0 / N * diff_se);
         count++;
     }
 
-    VectorXd diff_vex;
-    
+    Eigen::VectorXd diff_vex;
+
     // Covariance
     for (int i = 0; i < N; i++)
     {
-        Matrix4d Xi = Map<const Matrix4d>(X.data() + i * 16, 4, 4);
-        Matrix4d diff_se = logm(Mean.inverse() * Xi);
+        Eigen::Matrix4d Xi = Eigen::Map<const Eigen::Matrix4d>(X.data() + i * 16, 4, 4);
+        Eigen::Matrix4d diff_se = logm(Mean.inverse() * Xi);
         diff_vex << vex(diff_se.block<3, 3>(0, 0)), diff_se.block<3, 1>(0, 3);
         Cov += diff_vex * diff_vex.transpose();
     }
     Cov /= N;
+
+    return std::make_pair(vex(logm(Mean)), Cov);
 }
 
 /*

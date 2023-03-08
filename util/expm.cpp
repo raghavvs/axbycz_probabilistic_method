@@ -14,15 +14,15 @@ n term refers to number of terms in the power expansion.
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 
-Eigen::Matrix4d expm(const Eigen::Matrix4d& A, int nterms = 20) {
+Eigen::MatrixXd expm(const Eigen::MatrixXd& A, int nterms = 20) {
     double s = 0.5;
     double normA = A.norm();
     while (normA / s > 1.0) {
         s *= 2.0;
     }
-    Eigen::Matrix4d B = A / s;
-    Eigen::Matrix4d X = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d C = Eigen::Matrix4d::Identity();
+    Eigen::MatrixXd B = A / s;
+    Eigen::MatrixXd X = Eigen::MatrixXd::Identity();
+    Eigen::MatrixXd C = Eigen::MatrixXd::Identity();
     for (int k = 1; k <= nterms; k++) {
         X *= B / k;
         C += X;

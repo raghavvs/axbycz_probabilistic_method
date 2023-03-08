@@ -54,7 +54,8 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
     Matrix3d A_mex = Map<Matrix3d>(A.data(), a1, a2 * a3);
     Matrix3d B_mex = Map<Matrix3d>(B.data(), a1, a2 * a3);
 
-    Matrix4d MeanA, SigA, MeanB, SigB;
+    VectorXd MeanA, MeanB;
+    MatrixXd SigA, SigB;
     MeanA.setZero(4, 1);
     SigA.setZero(6, 6);
     MeanB.setZero(4, 1);
@@ -62,9 +63,9 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
 
     meanCov(A_mex, MeanA, SigA);
     MeanA = meanCov(A_mex, MeanA, SigA).first;
-    SigA = meanCov(A_mex).second;
-    MeanB = meanCov(B_mex).first;
-    SigB = meanCov(B_mex).second;
+    SigA = meanCov(A_mex, MeanA, SigA).second;
+    MeanB = meanCov(B_mex, MeanA, SigA).first;
+    SigB = meanCov(B_mex, MeanA, SigA).second;
 
     if (opt) {
         SigA -= nstd_A * MatrixXd::Identity(6, 6);
