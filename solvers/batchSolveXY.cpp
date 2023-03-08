@@ -24,6 +24,7 @@ SigB_13, which causes a compiler error, and using an ellipsis
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <unsupported/Eigen/CXX11/Tensor>
 #include <vector>
 #include <meanCov.h>
 
@@ -38,20 +39,29 @@ std::vector<MatrixXd> eig(MatrixXd A) {
 }
 
 void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B, MatrixXd& X, MatrixXd& Y) {
-    X = MatrixXd::Zero(4, 4, 8);
-    Y = MatrixXd::Zero(4, 4, 8);
+    
+    //X = Matrix4d::Zero(4, 4, 8);
+    //Y = Matrix4d::Zero(4, 4, 8);
+
+    Tensor<double, 3> X(4, 4, 8);
+    X.setZero();
+    Tensor<double, 3> Y(4, 4, 8);
+    Y.setZero();
+
+    Matrix4d X_candidate, Y_candidate;
 
     int a1 = A.rows(), a2 = A.cols(), a3 = A.size() / (a1 * a2);
-    MatrixXd A_mex = A.reshape(a1, a2 * a3);
-    MatrixXd B_mex = B.reshape(a1, a2 * a3);
+    Matrix3d A_mex = Map<Matrix3d>(A.data(), a1, a2 * a3);
+    Matrix3d B_mex = Map<Matrix3d>(B.data(), a1, a2 * a3);
 
-    MatrixXd MeanA, SigA, MeanB, SigB;
+    Matrix4d MeanA, SigA, MeanB, SigB;
     MeanA.setZero(4, 1);
     SigA.setZero(6, 6);
     MeanB.setZero(4, 1);
     SigB.setZero(6, 6);
 
-    MeanA = meanCov(A_mex).first;
+    meanCov(A_mex, MeanA, SigA);
+    MeanA = meanCov(A_mex, MeanA, SigA).first;
     SigA = meanCov(A_mex).second;
     MeanB = meanCov(B_mex).first;
     SigB = meanCov(B_mex).second;
@@ -63,7 +73,7 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
 
     MatrixXd VA, VB;
     VA.setZero(3, 3);
-    VB.setZero(3, 3);
+    VB.setZero(3, 3);   
 
     std::vector<MatrixXd> VA_eig, VB_eig;
     VA_eig = eig(SigA.block<3, 3>(0, 0));
@@ -80,33 +90,36 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
     MatrixXd Rx_solved(3, 3, 8);
 
     // There are 8 possibilities of Rx
-    Rx_solved.slice(0) = VA * Q1 * VB.transpose();
-    Rx_solved.slice(1) = VA * Q2 * VB.transpose();
-    Rx_solved.slice(2) = VA * Q3 * VB.transpose();
-    Rx_solved.slice(3) = VA * Q4 * VB.transpose();
-    Rx_solved.slice(4) = VA * -Q1 * VB.transpose();
-    Rx_solved.slice(5) = VA * -Q2 * VB.transpose();
-    Rx_solved.slice(6) = VA * -Q3 * VB.transpose();
-    Rx_solved.slice(7) = VA * -Q4 * VB.transpose();
+    Rx_solved.block(0, 0, 3, 3) = VA * Q1 * VB.transpose();
+    Rx_solved.block(0, 3, 3, 3) = VA * Q2 * VB.transpose();
+    Rx_solved.block(3, 0, 3, 3) = VA * Q3 * VB.transpose();
+    Rx_solved.block(3, 3, 3, 3) = VA * Q4 * VB.transpose();
+    Rx_solved.block(6, 0, 3, 3) = VA * -Q1 * VB.transpose();
+    Rx_solved.block(6, 3, 3, 3) = VA * -Q2 * VB.transpose();
+    Rx_solved.block(9, 0, 3, 3) = VA * -Q3 * VB.transpose();
+    Rx_solved.block(9, 3, 3, 3) = VA * -Q4 * VB.transpose();
 
     for (int i = 0; i < 8; i++) {
         MatrixXd SigA_sub = SigA.block(0, 0, 3, 3);
         MatrixXd SigB_sub = SigB.block(0, 0, 3, 3);
 
-        VectorXd tx_temp_vec = (Rx_solved.slice(i).transpose() * SigA_sub * Rx_solved.slice(i)).inverse() * 
-                            (SigB_sub - Rx_solved.slice(i).transpose() * SigA.block(0, 3, 3, 3));
+        VectorXd tx_temp_vec = (Rx_solved.block<3, 3>(0, i).transpose() * SigA_sub * Rx_solved.block<3, 3>(0, i)).inverse() * 
+                            (SigB_sub - Rx_solved.block<3, 3>(0, i).transpose() * SigA.block(0, 3, 3, 3));
         Vector3d tx_temp(tx_temp_vec(0), tx_temp_vec(1), tx_temp_vec(2));
-        Vector3d tx = -Rx_solved.slice(i) * tx_temp;
+        Vector3d tx = -Rx_solved.block<3, 3>(0, i) * tx_temp;
 
-        Matrix4d X_candidate;
-        X_candidate.block(0, 0, 3, 3) = Rx_solved.slice(i);
+        X_candidate.block(0, 0, 3, 3) = Rx_solved.block<3, 3>(0, i);
         X_candidate.block(0, 3, 3, 1) = tx;
         X_candidate.block(3, 0, 1, 3) = MatrixXd::Zero(1, 3);
         X_candidate(3, 3) = 1;
 
-        Matrix4d Y_candidate = MeanA * X_candidate / MeanB;
+        Matrix4d Y_candidate = MeanA * X_candidate * MeanB.inverse();
 
-        X.slice(i) = X_candidate;
-        Y.slice(i) = Y_candidate;
+        X.block(0, 0, 4, 4) = X_candidate;
+        Y.block(0, 0, 4, 4) = Y_candidate;
     }
+
+    X = X_candidate;
+    Y = Y_candidate;
+
 }

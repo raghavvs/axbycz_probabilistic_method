@@ -14,13 +14,13 @@ the covariance by taking the vector of differences between each logarithm
 and the mean logarithm and computing their outer product.
 */
 
+#include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Eigenvalues>
-#include <iostream>
+#include <eigen3/Eigen/Geometry>
 #include <expm.h>
+#include <iostream>
 
 using namespace Eigen;
-using namespace std;
 
 Matrix4d logm(Matrix4d A) {
     SelfAdjointEigenSolver<Matrix4d> es(A);
@@ -38,39 +38,52 @@ VectorXd vex(Matrix3d S) {
     return w;
 }
 
-void meanCov(Matrix3d* X, int N, Matrix4d& Mean, MatrixXd& Cov) {
+void meanCov(const MatrixXd& X, Matrix4d& Mean, MatrixXd& Cov)
+{
+    int N = X.size() / 16; // size of third dimension of X
     Mean = Matrix4d::Identity();
+    Cov = MatrixXd::Zero(6, 6);
 
+    // Initial approximation of Mean
     Matrix4d sum_se = Matrix4d::Zero();
-    for (int i = 0; i < N; i++) {
-        sum_se += logm(X[i]);
+    for (int i = 0; i < N; i++)
+    {
+        Matrix4d Xi = Map<const Matrix4d>(X.data() + i * 16, 4, 4);
+        sum_se += logm(Xi);
     }
-    Mean = expm(1.0 / N * sum_se);                  
+    Mean = expm(1.0 / N * sum_se);
 
+    // Iterative process to calculate the true Mean
     Matrix4d diff_se = Matrix4d::Ones();
     int max_num = 100;
     double tol = 1e-5;
     int count = 1;
-    while (diff_se.norm() >= tol && count <= max_num) {
+    while (diff_se.norm() >= tol && count <= max_num)
+    {
         diff_se = Matrix4d::Zero();
-        for (int i = 0; i < N; i++) {
-            diff_se += logm(Mean.inverse() * X[i]);
+        for (int i = 0; i < N; i++)
+        {
+            Matrix4d Xi = Map<const Matrix4d>(X.data() + i * 16, 4, 4);
+            diff_se += logm(Mean.inverse() * Xi);
         }
-        Mean = Mean * expm(1.0 / N * diff_se);
+        Mean *= expm(1.0 / N * diff_se);
         count++;
     }
 
-    Cov = MatrixXd::Zero(6, 6);
-    for (int i = 0; i < N; i++) {
-        Matrix4d diff_se = logm(Mean.inverse() * X[i]);
-        VectorXd diff_vex = vex(diff_se.block<3, 3>(0, 0));
-        diff_vex.conservativeResize(6);
-        diff_vex.tail(3) = diff_se.block<3, 1>(0, 3);
+    VectorXd diff_vex;
+    
+    // Covariance
+    for (int i = 0; i < N; i++)
+    {
+        Matrix4d Xi = Map<const Matrix4d>(X.data() + i * 16, 4, 4);
+        Matrix4d diff_se = logm(Mean.inverse() * Xi);
+        diff_vex << vex(diff_se.block<3, 3>(0, 0)), diff_se.block<3, 1>(0, 3);
         Cov += diff_vex * diff_vex.transpose();
     }
     Cov /= N;
 }
 
 /*
-vex() is a function that takes a skew-symmetric matrix and returns its corresponding 3D vector.
+vex() is a function that takes a skew-symmetric matrix 
+and returns its corresponding 3D vector.
 */
