@@ -17,6 +17,8 @@
 /*
 DESCRIPTION:
 
+MVG - Multivariate Gaussian random number generator.
+
 The program generates a matrix of multivariate normal samples using the 
 Cholesky decomposition method. It takes as input a mean vector, a covariance 
 matrix, the number of samples to be generated, and two output matrices to 
@@ -27,6 +29,22 @@ that the number of samples requested is a positive integer. It then generates
 the requested number of samples by drawing from a standard normal distribution 
 and transforming them using the Cholesky decomposition of the covariance matrix. 
 The generated samples and the Cholesky factor are returned as output. 
+
+The function takes in four arguments:
+
+    mu: a vector of means of length m, where m is the dimension of the 
+        multivariate normal distribution.
+    Sigma: a square matrix of size m x m representing the covariance matrix.
+    N: an integer representing the number of samples to generate.
+    y: a matrix of size m x N where the generated samples will be stored.
+
+The function first checks that the input arguments meet certain requirements:
+
+    mu must have the same length as the number of rows in Sigma.
+    Sigma must be square.
+    Sigma must be symmetric.
+    Sigma must be positive definite.
+    N must be a positive intege
 */
 
 #include <iostream>
@@ -74,7 +92,7 @@ void mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N, Eigen::
 
 // TEST CASE
 
-int main() {
+/* int main() {
     Eigen::VectorXd mu(3);
     mu << 1.0, 2.0, 3.0;
     Eigen::MatrixXd Sigma(3, 3);
@@ -87,4 +105,4 @@ int main() {
     std::cout << "R = " << std::endl << R << std::endl;
     return 0;
 }
-
+ */
