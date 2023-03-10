@@ -32,7 +32,9 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 #add_executable(so3VecTEST test/so3VecTEST.cpp)
 #add_executable(se3VecTEST test/se3VecTEST.cpp)
 #add_executable(skewExpTEST test/skewExpTEST.cpp)
-add_executable(scrambleDataTEST test/scrambleDataTEST.cpp)
+#add_executable(scrambleDataTEST test/scrambleDataTEST.cpp)
+#add_executable(sensorNoiseTEST test/sensorNoiseTEST.cpp)
+add_executable(permFixABCTEST test/permFixABCTEST.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -57,4 +59,6 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(so3VecTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(se3VecTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(skewExpTEST ${LIBRARIES_TO_LINK})
-target_link_libraries(scrambleDataTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(scrambleDataTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(sensorNoiseTEST ${LIBRARIES_TO_LINK})
+target_link_libraries(permFixABCTEST ${LIBRARIES_TO_LINK})
