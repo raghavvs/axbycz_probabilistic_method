@@ -22,6 +22,7 @@ sensor noise modeling, respectively.
 #include <se3Vec.h>
 #include <mvg.h>
 #include <sensorNoise.h>
+#include <fKine.h>
 
 
 void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
@@ -37,21 +38,21 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     if (dataGenMode == 1) {
         
-        A_initial = forward_kinematics(qz1);
-        B_initial = forward_kinematics(qz2);
-        C_initial = forward_kinematics(qz3);
+        A_initial = fKine(qz1);
+        B_initial = fKine(qz2);
+        C_initial = fKine(qz3);
 
     } else if (dataGenMode == 2) {
 
-        A << 0.2294, -0.1951, -0.9536, -0.1038,
+        A_initial << 0.2294, -0.1951, -0.9536, -0.1038,
             0.7098,  0.7039,  0.0268, -0.2332,
             0.6660, -0.6830,  0.3000,  0.2818,
             0.0,     0.0,     0.0,     1.0;
-        B << 0.0268, -0.7039, -0.7098,  0.0714,
+        B_initial << 0.0268, -0.7039, -0.7098,  0.0714,
             -0.9536,  0.1951, -0.2294, -0.1764,
             0.3000,  0.6830, -0.6660,  0.2132,
             0.0,     0.0,     0.0,     1.0;
-        C << -0.0335, -0.4356, -0.8995, -0.0128,
+        C_initial << -0.0335, -0.4356, -0.8995, -0.0128,
             0.4665,  0.7891, -0.3995, -0.2250,
             0.8839, -0.4330,  0.1768,  0.1756,
             0.0,     0.0,     0.0,     1.0;
