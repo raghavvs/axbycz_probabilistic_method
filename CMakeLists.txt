@@ -28,7 +28,9 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 #add_executable(metric util/metric.cpp)
 #add_executable(metricTEST test/metricTEST.cpp)
 #add_executable(tranErrorTEST test/tranErrorTEST.cpp)
-add_executable(skewLogTEST test/skewLogTEST.cpp)
+#add_executable(skewLogTEST test/skewLogTEST.cpp)
+#add_executable(so3VecTEST test/so3VecTEST.cpp)
+add_executable(se3VecTEST test/se3VecTEST.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -49,4 +51,6 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(metric ${LIBRARIES_TO_LINK})
 #target_link_libraries(metricTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(tranErrorTEST ${LIBRARIES_TO_LINK})
-target_link_libraries(skewLogTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(skewLogTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(so3VecTEST ${LIBRARIES_TO_LINK})
+target_link_libraries(se3VecTEST ${LIBRARIES_TO_LINK})
