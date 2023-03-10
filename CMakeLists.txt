@@ -34,13 +34,15 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 #add_executable(skewExpTEST test/skewExpTEST.cpp)
 #add_executable(scrambleDataTEST test/scrambleDataTEST.cpp)
 #add_executable(sensorNoiseTEST test/sensorNoiseTEST.cpp)
-add_executable(permFixABCTEST test/permFixABCTEST.cpp)
+#add_executable(permFixABCTEST test/permFixABCTEST.cpp)
+add_executable(rotErrorTEST test/rotErrorTEST.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
   Eigen3::Eigen
   ${GTEST_LIBRARIES}
   pthread
+  matplotlib
 )
 
 # Link all the targets with the library list
@@ -61,4 +63,6 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(skewExpTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(scrambleDataTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(sensorNoiseTEST ${LIBRARIES_TO_LINK})
-target_link_libraries(permFixABCTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(permFixABCTEST ${LIBRARIES_TO_LINK})
+target_link_libraries(rotErrorTEST ${LIBRARIES_TO_LINK})
+
