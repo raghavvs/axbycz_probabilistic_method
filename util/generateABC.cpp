@@ -1,4 +1,17 @@
-// YET TO BE TESTED
+/*
+DESCRIPTION:
+
+The program generates three homogeneous transformation matrices 
+A, B, and C, each of which is represented as a 4x4 matrix. The 
+matrices are generated in a variety of ways depending on the values 
+of several input parameters. The matrices can be used to represent 
+the positions and orientations of robot arms, and the program includes 
+functions for fixing and randomizing the position and orientation 
+of the matrices. The program relies on several external libraries, 
+including Eigen, which is a library for linear algebra in C++, and 
+mvg and sensorNoise, which are libraries for computer vision and 
+sensor noise modeling, respectively.
+*/
 
 #include <iostream>
 #include <cmath>
@@ -10,21 +23,21 @@
 #include <expm.h>
 #include <sensorNoise.h>
 
-using namespace Eigen;
 
-void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, Matrix4d X, Matrix4d Y, Matrix4d Z, Matrix4d& A, Matrix4d& B, Matrix4d& C) {
-
+void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
+                Eigen::Matrix4d X, Eigen::Matrix4d Y, Eigen::Matrix4d Z, Eigen::Matrix4d& A, 
+                Eigen::Matrix4d& B, Eigen::Matrix4d& C) {
     int len = length;
     int dataGenMode = 3;
     double qz1[6] = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
     double qz2[6] = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
     double qz3[6] = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
-    Matrix<double, 6, 1> a, b, c;
-    Matrix4d A_initial, B_initial, C_initial;
+    Eigen::Matrix<double, 6, 1> a, b, c;
+    Eigen::Matrix4d A_initial, B_initial, C_initial;
 
     if (dataGenMode == 1) {
         
-        abb_irb120;                                // include in the abbirb120 parameters from "rvctools" toolbox
+        Eigen::abb_irb120;                            // include in the abbirb120 parameters from "rvctools" toolbox
         A_initial = irb120.fkine(qz1);
         B_initial = irb120.fkine(qz2);
         C_initial = irb120.fkine(qz3);
@@ -32,17 +45,17 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
     } else if (dataGenMode == 2) {
 
         A << 0.2294, -0.1951, -0.9536, -0.1038,
-             0.7098,  0.7039,  0.0268, -0.2332,
-             0.6660, -0.6830,  0.3000,  0.2818,
-             0.0,     0.0,     0.0,     1.0;
+            0.7098,  0.7039,  0.0268, -0.2332,
+            0.6660, -0.6830,  0.3000,  0.2818,
+            0.0,     0.0,     0.0,     1.0;
         B << 0.0268, -0.7039, -0.7098,  0.0714,
             -0.9536,  0.1951, -0.2294, -0.1764,
-             0.3000,  0.6830, -0.6660,  0.2132,
-             0.0,     0.0,     0.0,     1.0;
+            0.3000,  0.6830, -0.6660,  0.2132,
+            0.0,     0.0,     0.0,     1.0;
         C << -0.0335, -0.4356, -0.8995, -0.0128,
-             0.4665,  0.7891, -0.3995, -0.2250,
-             0.8839, -0.4330,  0.1768,  0.1756,
-             0.0,     0.0,     0.0,     1.0;
+            0.4665,  0.7891, -0.3995, -0.2250,
+            0.8839, -0.4330,  0.1768,  0.1756,
+            0.0,     0.0,     0.0,     1.0;
 
     } else if (dataGenMode == 3) {
 
@@ -52,20 +65,19 @@ void generateABC(int length, int optFix, int optPDF, VectorXd M, MatrixXd Sig, M
 
         a << randn(), randn(), randn(), randn(), randn(), randn();
         a.normalize();
-        A_initial = Matrix4d::Identity();
-        A_initial.topLeftCorner<3, 3>() = AngleAxisd(a.norm(), a.normalized()).toRotationMatrix();
+        A_initial = Eigen::Matrix4d::Identity();
+        A_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(a.norm(), a.normalized()).toRotationMatrix();
 
         b << randn(), randn(), randn(), randn(), randn(), randn();
         b.normalize();
         B_initial = Matrix4d::Identity();
-        B_initial.topLeftCorner<3, 3>() = AngleAxisd(b.norm(), b.normalized()).toRotationMatrix();
+        B_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(b.norm(), b.normalized()).toRotationMatrix();
 
         c << randn(), randn(), randn(), randn(), randn(), randn();
         c.normalize();
         C_initial = Matrix4d::Identity();
-        C_initial.topLeftCorner<3, 3>() = AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
+        C_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
     }
-
     if (optFix == 1) { // Fix A, randomize B and C
     // This can be applied to both serial-parallel and dual-robot arm
     // calibrations

@@ -16,7 +16,7 @@ returns true, otherwise it returns false.
 #include <limits>
 #include <algorithm>
 
-bool isequalf(double a, double b, double thresh = std::numeric_limits<double>::epsilon()*100)
+bool isEqualf(double a, double b, double thresh = std::numeric_limits<double>::epsilon()*100)
 {
     if (std::isnan(a) || std::isnan(b)) return false;
 
@@ -27,3 +27,9 @@ bool isequalf(double a, double b, double thresh = std::numeric_limits<double>::e
     else
         return true;
 }
+
+/* int main()
+{
+    std::cout << "Build successful" << std::endl;
+    return 0;
+} */

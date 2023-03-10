@@ -1,4 +1,6 @@
 /*
+DESCRIPTION:
+
 This generates sets of three vectors, each consisting of a 
 constant and two free variables, namely A1, B1, C1, A2, B2, C2, 
 A3, B3, C3. The function takes as input the number of sets to 

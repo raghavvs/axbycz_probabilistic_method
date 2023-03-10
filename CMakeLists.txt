@@ -21,16 +21,28 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 #add_executable(mvgTEST test/mvgTEST.cpp)
 #add_executable(getErrorAXBYCZTEST test/getErrorAXBYCZTEST.cpp)
 #add_executable(initializeXYZTEST test/initializeXYZTEST.cpp)
-add_executable(initializeXYZTEST test/initializeXYZTEST.cpp util/initializeXYZ.cpp)
+#add_executable(initializeXYZTEST test/initializeXYZTEST.cpp util/initializeXYZ.cpp)
+#add_executable(generateABC util/generateABC.cpp)
+#add_executable(isEqualf util/isEqualf.cpp)
+#add_executable(isEqualfTEST test/isEqualfTEST.cpp)
+#add_executable(metric util/metric.cpp)
+add_executable(metricTEST test/metricTEST.cpp)
 
-# Link with Eigen3 Library
-#target_link_libraries(meanCov1 Eigen3::Eigen)
-#target_link_libraries(meanCovTEST Eigen3::Eigen)
-#target_link_libraries(meanCovTEST ${GTEST_LIBRARIES} pthread)
-#target_link_libraries(mvg Eigen3::Eigen)
-#target_link_libraries(mvgTEST Eigen3::Eigen)
-#target_link_libraries(mvgTEST ${GTEST_LIBRARIES} pthread)
-#target_link_libraries(getErrorAXBYCZTEST Eigen3::Eigen)
-#target_link_libraries(getErrorAXBYCZTEST ${GTEST_LIBRARIES} pthread)
-target_link_libraries(initializeXYZTEST Eigen3::Eigen)
-target_link_libraries(initializeXYZTEST ${GTEST_LIBRARIES} pthread)
+# Create a list of libraries to link
+set(LIBRARIES_TO_LINK
+  Eigen3::Eigen
+  ${GTEST_LIBRARIES}
+  pthread
+)
+
+# Link all the targets with the library list
+#target_link_libraries(meanCov1 ${LIBRARIES_TO_LINK})
+#target_link_libraries(meanCovTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(mvg ${LIBRARIES_TO_LINK})
+#target_link_libraries(mvgTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(getErrorAXBYCZTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(initializeXYZTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(generateABC ${LIBRARIES_TO_LINK})
+#target_link_libraries(isEqualf ${LIBRARIES_TO_LINK})
+#target_link_libraries(metric ${LIBRARIES_TO_LINK})
+target_link_libraries(metricTEST ${LIBRARIES_TO_LINK})
