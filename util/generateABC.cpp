@@ -17,11 +17,12 @@ sensor noise modeling, respectively.
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
+#include <unsupported/Eigen/MatrixFunctions>
 #include <random>
 #include <se3Vec.h>
 #include <mvg.h>
-#include <expm.h>
 #include <sensorNoise.h>
+#include <fKine.h>
 
 
 void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
@@ -29,30 +30,29 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
                 Eigen::Matrix4d& B, Eigen::Matrix4d& C) {
     int len = length;
     int dataGenMode = 3;
-    double qz1[6] = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
-    double qz2[6] = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
-    double qz3[6] = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
-    Eigen::Matrix<double, 6, 1> a, b, c;
     Eigen::Matrix4d A_initial, B_initial, C_initial;
+    const Eigen::VectorXd qz1 = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
+    const Eigen::VectorXd qz2 = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
+    const Eigen::VectorXd qz3 = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
+    Eigen::Matrix<double, 6, 1> a, b, c;
 
     if (dataGenMode == 1) {
         
-        Eigen::abb_irb120;                            // include in the abbirb120 parameters from "rvctools" toolbox
-        A_initial = irb120.fkine(qz1);
-        B_initial = irb120.fkine(qz2);
-        C_initial = irb120.fkine(qz3);
+        A_initial = fKine(qz1);
+        B_initial = fKine(qz2);
+        C_initial = fKine(qz3);
 
     } else if (dataGenMode == 2) {
 
-        A << 0.2294, -0.1951, -0.9536, -0.1038,
+        A_initial << 0.2294, -0.1951, -0.9536, -0.1038,
             0.7098,  0.7039,  0.0268, -0.2332,
             0.6660, -0.6830,  0.3000,  0.2818,
             0.0,     0.0,     0.0,     1.0;
-        B << 0.0268, -0.7039, -0.7098,  0.0714,
+        B_initial << 0.0268, -0.7039, -0.7098,  0.0714,
             -0.9536,  0.1951, -0.2294, -0.1764,
             0.3000,  0.6830, -0.6660,  0.2132,
             0.0,     0.0,     0.0,     1.0;
-        C << -0.0335, -0.4356, -0.8995, -0.0128,
+        C_initial << -0.0335, -0.4356, -0.8995, -0.0128,
             0.4665,  0.7891, -0.3995, -0.2250,
             0.8839, -0.4330,  0.1768,  0.1756,
             0.0,     0.0,     0.0,     1.0;
@@ -107,12 +107,12 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
         if (optPDF == 1) {
             Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
             Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
-            B.block<4, 4>(0, 0, 4, 4) = expm(expm_vec) * B_initial;
+            B.block<4, 4>(0, 0, 4, 4) = (expm_vec).exp() * B_initial;
         }
         else if (optPDF == 2) {
             Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
             Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
-            B.block<4, 4>(0, 0, 4, 4) = B_initial * expm(expm_vec);
+            B.block<4, 4>(0, 0, 4, 4) = B_initial * (expm_vec).exp();
         }
         else if (optPDF == 3) {
             Eigen::VectorXd gmean(6);
