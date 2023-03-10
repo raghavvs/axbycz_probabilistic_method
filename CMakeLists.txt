@@ -26,7 +26,8 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 #add_executable(isEqualf util/isEqualf.cpp)
 #add_executable(isEqualfTEST test/isEqualfTEST.cpp)
 #add_executable(metric util/metric.cpp)
-add_executable(metricTEST test/metricTEST.cpp)
+#add_executable(metricTEST test/metricTEST.cpp)
+add_executable(tranErrorTEST test/tranErrorTEST.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -45,4 +46,5 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(generateABC ${LIBRARIES_TO_LINK})
 #target_link_libraries(isEqualf ${LIBRARIES_TO_LINK})
 #target_link_libraries(metric ${LIBRARIES_TO_LINK})
-target_link_libraries(metricTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(metricTEST ${LIBRARIES_TO_LINK})
+target_link_libraries(tranErrorTEST ${LIBRARIES_TO_LINK})
