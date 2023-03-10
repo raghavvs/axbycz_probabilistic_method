@@ -17,10 +17,10 @@ sensor noise modeling, respectively.
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
+#include <unsupported/Eigen/MatrixFunctions>
 #include <random>
 #include <se3Vec.h>
 #include <mvg.h>
-#include <expm.h>
 #include <sensorNoise.h>
 
 
@@ -29,18 +29,17 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
                 Eigen::Matrix4d& B, Eigen::Matrix4d& C) {
     int len = length;
     int dataGenMode = 3;
-    double qz1[6] = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
-    double qz2[6] = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
-    double qz3[6] = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
-    Eigen::Matrix<double, 6, 1> a, b, c;
     Eigen::Matrix4d A_initial, B_initial, C_initial;
+    const Eigen::VectorXd qz1 = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
+    const Eigen::VectorXd qz2 = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
+    const Eigen::VectorXd qz3 = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
+    Eigen::Matrix<double, 6, 1> a, b, c;
 
     if (dataGenMode == 1) {
         
-        Eigen::abb_irb120;                            // include in the abbirb120 parameters from "rvctools" toolbox
-        A_initial = irb120.fkine(qz1);
-        B_initial = irb120.fkine(qz2);
-        C_initial = irb120.fkine(qz3);
+        A_initial = forward_kinematics(qz1);
+        B_initial = forward_kinematics(qz2);
+        C_initial = forward_kinematics(qz3);
 
     } else if (dataGenMode == 2) {
 
@@ -107,12 +106,12 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
         if (optPDF == 1) {
             Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
             Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
-            B.block<4, 4>(0, 0, 4, 4) = expm(expm_vec) * B_initial;
+            B.block<4, 4>(0, 0, 4, 4) = (expm_vec).exp() * B_initial;
         }
         else if (optPDF == 2) {
             Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
             Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
-            B.block<4, 4>(0, 0, 4, 4) = B_initial * expm(expm_vec);
+            B.block<4, 4>(0, 0, 4, 4) = B_initial * (expm_vec).exp();
         }
         else if (optPDF == 3) {
             Eigen::VectorXd gmean(6);

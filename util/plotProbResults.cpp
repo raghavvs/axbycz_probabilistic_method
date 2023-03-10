@@ -3,7 +3,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
-#include <matplotlib> 
+#include <matplotlibcpp.h> 
 
 namespace plt = matplotlibcpp;
 
@@ -87,7 +87,6 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std:
         plt::plot(point, Err2_Avg.segment(6, 3), "r");
         plt::ylabel("$\\bf E_{R_{Z}}$");
         plt::xlabel("$\\bf Time (sec)$");
-        plt::grid(true);
         
         plt::figure();
         plt::subplot(3, 1, 1);
@@ -100,4 +99,29 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std:
         plt::grid(true);
         plt::legend("$Prob1$", "$Prob2$", "fontsize", 12);
         }
+}
+
+int main() {
+    // Create sample data
+    std::vector<std::vector<std::vector<double>>> error_1(2, std::vector<std::vector<double>>(3, std::vector<double>(4, 0.0)));
+    std::vector<std::vector<std::vector<double>>> error_2(2, std::vector<std::vector<double>>(3, std::vector<double>(4, 0.0)));
+    std::vector<double> point = {0.0, 1.0, 2.0, 3.0};
+
+    // Set some example values for the error matrices
+    for (size_t i = 0; i < error_1.size(); i++) {
+        for (size_t j = 0; j < error_1[0].size(); j++) {
+            for (size_t k = 0; k < error_1[0][0].size(); k++) {
+                error_1[i][j][k] = i + j + k;
+                error_2[i][j][k] = 2*i + j + k;
+            }
+        }
+    }
+
+    // Plot boxplots
+    plotProbResults(error_1, error_2, point, "boxplot");
+
+    // Plot line graphs
+    plotProbResults(error_1, error_2, point, "lineplot");
+
+    return 0;
 }
