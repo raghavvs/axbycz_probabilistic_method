@@ -1,5 +1,5 @@
 # axbycz_probabilistic_method
-AXB = YCZ extrinsic camera calibration of duall-arm robot using probabilistic methods. Working on porting code from MATLAB to C++. 
+AXB = YCZ extrinsic camera calibration of dual-arm robot using probabilistic methods. Working on porting code from MATLAB to C++. 
 Working on porting code from MATLAB to C++ 
 
 Cite:
