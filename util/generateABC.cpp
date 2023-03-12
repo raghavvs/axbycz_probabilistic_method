@@ -24,16 +24,19 @@ sensor noise modeling, respectively.
 #include <sensorNoise.h>
 #include <fKine.h>
 
-
 void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
                 Eigen::Matrix4d X, Eigen::Matrix4d Y, Eigen::Matrix4d Z, Eigen::Matrix4d& A, 
                 Eigen::Matrix4d& B, Eigen::Matrix4d& C) {
     int len = length;
     int dataGenMode = 3;
     Eigen::Matrix4d A_initial, B_initial, C_initial;
-    const Eigen::VectorXd qz1 = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
-    const Eigen::VectorXd qz2 = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
-    const Eigen::VectorXd qz3 = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
+    Eigen::VectorXd qz1(6);
+    qz1 << M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0;
+    Eigen::VectorXd qz2(6);
+    qz2 << M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0;
+    Eigen::VectorXd qz3(6);
+    qz3 << M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0;
+
     Eigen::Matrix<double, 6, 1> a, b, c;
 
     if (dataGenMode == 1) {
@@ -70,12 +73,12 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
         b << randn(), randn(), randn(), randn(), randn(), randn();
         b.normalize();
-        B_initial = Matrix4d::Identity();
+        B_initial = Eigen::Matrix4d::Identity();
         B_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(b.norm(), b.normalized()).toRotationMatrix();
 
         c << randn(), randn(), randn(), randn(), randn(), randn();
         c.normalize();
-        C_initial = Matrix4d::Identity();
+        C_initial = Eigen::Matrix4d::Identity();
         C_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
     }
     if (optFix == 1) { // Fix A, randomize B and C
