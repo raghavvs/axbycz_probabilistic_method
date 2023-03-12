@@ -24,16 +24,19 @@ sensor noise modeling, respectively.
 #include <sensorNoise.h>
 #include <fKine.h>
 
-
 void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
                 Eigen::Matrix4d X, Eigen::Matrix4d Y, Eigen::Matrix4d Z, Eigen::Matrix4d& A, 
                 Eigen::Matrix4d& B, Eigen::Matrix4d& C) {
     int len = length;
     int dataGenMode = 3;
     Eigen::Matrix4d A_initial, B_initial, C_initial;
-    const Eigen::VectorXd qz1 = {M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0};
-    const Eigen::VectorXd qz2 = {M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0};
-    const Eigen::VectorXd qz3 = {M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0};
+    Eigen::VectorXd qz1(6);
+    qz1 << M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0;
+    Eigen::VectorXd qz2(6);
+    qz2 << M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0;
+    Eigen::VectorXd qz3(6);
+    qz3 << M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0;
+
     Eigen::Matrix<double, 6, 1> a, b, c;
 
     if (dataGenMode == 1) {
@@ -70,12 +73,12 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
         b << randn(), randn(), randn(), randn(), randn(), randn();
         b.normalize();
-        B_initial = Matrix4d::Identity();
+        B_initial = Eigen::Matrix4d::Identity();
         B_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(b.norm(), b.normalized()).toRotationMatrix();
 
         c << randn(), randn(), randn(), randn(), randn(), randn();
         c.normalize();
-        C_initial = Matrix4d::Identity();
+        C_initial = Eigen::Matrix4d::Identity();
         C_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
     }
     if (optFix == 1) { // Fix A, randomize B and C
@@ -105,12 +108,12 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
     for (int m = 0; m < len; m++) {
 
         if (optPDF == 1) {
-            Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
+            Eigen::VectorXd randn_vec = mvg(M, Sig, 1).first;
             Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
             B.block<4, 4>(0, 0, 4, 4) = (expm_vec).exp() * B_initial;
         }
         else if (optPDF == 2) {
-            Eigen::VectorXd randn_vec = mvg(M, Sig, 1);
+            Eigen::VectorXd randn_vec = mvg(M, Sig, 1).first;
             Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
             B.block<4, 4>(0, 0, 4, 4) = B_initial * (expm_vec).exp();
         }
@@ -118,7 +121,15 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
             Eigen::VectorXd gmean(6);
             gmean << 0, 0, 0, 0, 0, 0;
             double sigma = Sig(0, 0);
-            B.block<4, 4>(0, 0, 4, 4) = sensorNoise(B_initial, gmean, sigma, 1);
+            // get the matrix from the vector of matrices
+            Eigen::MatrixXd sensor_noise_matrix= Eigen::MatrixXd::Zero(6,6); //initialize empty matrix of desired size
+            
+            for(auto mat : sensorNoise(B_initial, gmean, sigma, 1)){  // iterate over the vector of matrices
+                sensor_noise_matrix += mat;   // add each matrix to build final matrix
+            }
+
+            // assign the computed matrix to B block
+            B.block<4, 4>(0, 0, 4, 4) = sensor_noise_matrix.block<4, 4>(0, 0);
         }
 
         C.block<4, 4>(0, 0, 4, 4) = Y.inverse() * (A_initial * X * B.block<4, 4>(0, 0, 4, 4) / Z);
@@ -133,11 +144,11 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     for (int m = 0; m < len; m++) {
         if (optPDF == 1) {
-            Eigen::VectorXd random_vector = mvg(M, Sig, 1);
+            Eigen::VectorXd random_vector = mvg(M, Sig, 1).first;
             Eigen::MatrixXd matrix = se3Vec(random_vector);
             A.slice(m) = matrix.exp() * A_initial;
         } else if (optPDF == 2) {
-            Eigen::VectorXd random_vector = mvg(M, Sig, 1);
+            Eigen::VectorXd random_vector = mvg(M, Sig, 1).first;
             Eigen::MatrixXd matrix = se3Vec(random_vector);
             A.slice(m) = A_initial * matrix.exp();
         } else if (optPDF == 3) {
@@ -197,3 +208,27 @@ if (optFix == 3) { // Fix C, randomize A and B
         }
     }
 }
+
+/* int main() {
+    int length = 10;
+    int optFix = 1;
+    int optPDF = 3;
+    Eigen::VectorXd M(6);
+    M << 0, 0, 0, 0, 0, 0;
+    Eigen::MatrixXd Sig(6, 6);
+    Sig << Eigen::MatrixXd::Identity(6, 6);
+    Eigen::Matrix4d X = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Y = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Z = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d A, B, C;
+
+    generateABC(length, optFix, optPDF, M, Sig, X, Y, Z, A, B, C);
+
+    for (int i = 0; i < length; ++i) {
+        std::cout << "A_" << i << ":\n" << A.col(i) << "\n\n";
+        std::cout << "B_" << i << ":\n" << B.col(i) << "\n\n";
+        std::cout << "C_" << i << ":\n" << C.col(i) << "\n\n";
+    }
+
+    return 0;
+} */

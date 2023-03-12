@@ -198,7 +198,7 @@ if (optFix == 3) { // Fix C, randomize A and B
     }
 }
 
-int main() {
+/* int main() {
     int length = 10;
     int optFix = 1;
     int optPDF = 3;
@@ -220,4 +220,4 @@ int main() {
     }
 
     return 0;
-}
+} */

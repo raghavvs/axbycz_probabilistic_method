@@ -52,34 +52,44 @@ The function first checks that the input arguments meet certain requirements:
 #include <eigen3/Eigen/Cholesky>
 #include <random>
 
-void mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N, Eigen::MatrixXd& y, Eigen::MatrixXd& R) {
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N) {
     if (mu.size() != Sigma.rows()) {
         std::cerr << "Length(mu) must equal size(Sigma,1)." << std::endl;
-        return;
+        exit(EXIT_FAILURE);
     }
+
     if (Sigma.rows() != Sigma.cols()) {
         std::cerr << "Sigma must be square." << std::endl;
-        return;
+        exit(EXIT_FAILURE);
     }
+
     if ((Sigma - Sigma.transpose()).norm() > 1e-15) {
         std::cerr << "Sigma must be symmetric." << std::endl;
-        return;
+        exit(EXIT_FAILURE);
     }
+
     bool is_spd;
     Eigen::MatrixXd L = Sigma.llt().matrixL();
     is_spd = ((L * L.transpose() - Sigma).norm() < 1e-8);
+
     if (!is_spd) {
         std::cerr << "Sigma must be positive definite." << std::endl;
-        return;
+        exit(EXIT_FAILURE);
     }
+
     if (N < 1) {
         std::cerr << "A positive integer number of samples must be requested." << std::endl;
-        return;
+        exit(EXIT_FAILURE);
     }
+
     int m = mu.size();
-    y.resize(m, N);
-    std::default_random_engine generator;
+    Eigen::MatrixXd y(m, N);
+    Eigen::MatrixXd R = L;
+
+    std::random_device rd;
+    std::default_random_engine generator(rd());
     std::normal_distribution<double> distribution(0.0, 1.0);
+
     for (int i = 0; i < N; i++) {
         Eigen::VectorXd r(m);
         for (int j = 0; j < m; j++) {
@@ -87,22 +97,35 @@ void mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N, Eigen::
         }
         y.col(i) = L * r + mu;
     }
-    R = L;
+
+    return {y, R};
 }
 
 // TEST CASE
 
 /* int main() {
-    Eigen::VectorXd mu(3);
-    mu << 1.0, 2.0, 3.0;
-    Eigen::MatrixXd Sigma(3, 3);
-    Sigma << 2.0, 0.3, 0.5, 0.3, 1.0, -0.4, 0.5, -0.4, 4.0;
-    int N = 100;
-    Eigen::MatrixXd y;
+     // Define mean vector
+    Eigen::VectorXd mu(4);
+    mu << 1, 2, 3, 4;
+
+    // Define covariance matrix
+    Eigen::MatrixXd Sigma(4, 4);
+    Sigma << 2, 0.5, -1, 0,
+             0.5, 1, 0, -1,
+             -1, 0, 3, 0.5,
+             0, -1, 0.5, 2;
+
+    int N = 10; // number of samples to be generated
+
+    Eigen::VectorXd y;
     Eigen::MatrixXd R;
-    mvg(mu, Sigma, N, y, R);
-    std::cout << "y = " << std::endl << y << std::endl;
-    std::cout << "R = " << std::endl << R << std::endl;
+
+    std::pair<Eigen::VectorXd, Eigen::MatrixXd> result = mvg(mu, Sigma, N);
+    y = result.first;
+    R = result.second;
+
+    std::cout << "Generated samples:\n" << y << std::endl;
+    std::cout << "Cholesky factorization of covariance matrix:\n" << R << std::endl;
+
     return 0;
-}
- */
+} */
