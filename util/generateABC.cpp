@@ -197,3 +197,27 @@ if (optFix == 3) { // Fix C, randomize A and B
         }
     }
 }
+
+int main() {
+    int length = 10;
+    int optFix = 1;
+    int optPDF = 3;
+    Eigen::VectorXd M(6);
+    M << 0, 0, 0, 0, 0, 0;
+    Eigen::MatrixXd Sig(6, 6);
+    Sig << Eigen::MatrixXd::Identity(6, 6);
+    Eigen::Matrix4d X = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Y = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Z = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d A, B, C;
+
+    generateABC(length, optFix, optPDF, M, Sig, X, Y, Z, A, B, C);
+
+    for (int i = 0; i < length; ++i) {
+        std::cout << "A_" << i << ":\n" << A.col(i) << "\n\n";
+        std::cout << "B_" << i << ":\n" << B.col(i) << "\n\n";
+        std::cout << "C_" << i << ":\n" << C.col(i) << "\n\n";
+    }
+
+    return 0;
+}
