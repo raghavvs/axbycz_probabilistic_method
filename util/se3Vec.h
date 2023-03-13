@@ -15,7 +15,7 @@ The output vector or matrix is represented by an Eigen object of type
 #include <iostream>
 #include <eigen3/Eigen/Core>
 
-Eigen::Matrix<double, 6, 1> se3Vec(const Eigen::Matrix4d& X)
+Eigen::Matrix<double, 6, 1> se3Vec(const Eigen::MatrixXd& X)
 {
     Eigen::Matrix<double, 6, 1> g;
 

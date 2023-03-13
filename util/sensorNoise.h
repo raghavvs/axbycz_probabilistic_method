@@ -33,7 +33,7 @@ The function returns the input matrices with the applied noise as a vector of ma
 #include <se3Vec.h>
 #include <so3Vec.h>
 
-std::vector<Eigen::MatrixXd> sensorNoise(const std::vector<Eigen::MatrixXd> &g, const Eigen::MatrixXd &gmean, const double &std, const int &model)
+std::vector<Eigen::MatrixXd> sensorNoise(std::vector<Eigen::MatrixXd> &g, const Eigen::MatrixXd &gmean, const double &std, const int &model)
 {
     std::vector<Eigen::MatrixXd> g_noise(g.size());
 
