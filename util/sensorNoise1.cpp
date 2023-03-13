@@ -29,10 +29,19 @@ MatrixXd sensorNoise(MatrixXd g, MatrixXd gmean, double std, int model) {
                 noise_old2.segment(3, 3) = Vector3d::Zero();
                 noise_old2 += gmean;
 
-                g_noise.col(i) = g.col(i) * (MatrixXd((se3Vec(noise_old1))).exp() * MatrixXd((se3Vec(noise_old2))).exp());
+                std::cout << "g: " << g.rows() << " x " << g.cols() << std::endl;
+                std::cout << "noise_old1: " << noise_old1.size() << std::endl;
+                
+                MatrixXd exp1 = (MatrixXd((se3Vec(noise_old1))).exp());
+                std::cout << "exp1: " << exp1.rows() << " x " << exp1.cols() << std::endl;
+
+                MatrixXd exp2 = (MatrixXd((se3Vec(noise_old2))).exp());
+                std::cout << "exp2: " << exp2.rows() << " x " << exp2.cols() << std::endl;
+
+                g_noise.col(i) = g.col(i) * exp1 * exp2.topRows(g.rows());
+                std::cout << "g_noise: " << g_noise.rows() << " x " << g_noise.cols() << std::endl;
             }
             break;
-
         default:
             std::cerr << "Invalid noise model specified" << std::endl;
             break;
@@ -42,19 +51,29 @@ MatrixXd sensorNoise(MatrixXd g, MatrixXd gmean, double std, int model) {
 }
 
 int main() {
-    // Create a random 4x4 matrix
-    MatrixXd g = MatrixXd::Random(4, 4);
+    // create a matrix and a vector for testing
+    Eigen::MatrixXd m(3, 2);
+    m << 1, 2,
+         3, 4,
+         5, 6;
 
-    // Set the mean and standard deviation for the noise
-    MatrixXd gmean = MatrixXd::Zero(4, 4);
-    double std = 0.1;
+    Eigen::VectorXd v(3);
+    v << 7, 8, 9;
 
-    // Add noise to the matrix using model 1
-    MatrixXd g_noise = sensorNoise(g, gmean, std, 1);
+    // set noise variables
+    Eigen::MatrixXd g_mean(4, 1);
+    g_mean << 0, 0, 0, 0;
 
-    // Print the original and noisy matrices
-    std::cout << "Original matrix:" << std::endl << g << std::endl << std::endl;
-    std::cout << "Noisy matrix:" << std::endl << g_noise << std::endl;
+    double std_dev = 0.1;
+    int model = 1;
+
+    // apply noise to matrix and print dimensions
+    Eigen::MatrixXd m_noise = sensorNoise(m, g_mean, std_dev, model);
+    std::cout << "m_noise: " << m_noise.rows() << " x " << m_noise.cols() << std::endl;
+
+    // apply noise to vector and print dimensions
+    Eigen::MatrixXd v_noise = sensorNoise(v, g_mean, std_dev, model);
+    std::cout << "v_noise: " << v_noise.rows() << " x " << v_noise.cols() << std::endl;
 
     return 0;
 }
