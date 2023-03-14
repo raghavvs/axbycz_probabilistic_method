@@ -19,10 +19,10 @@ sensor noise modeling, respectively.
 #include <eigen3/Eigen/Geometry>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <random>
-#include <se3Vec.h>
-#include <mvg.h>
-#include <sensorNoise.h>
-#include <fKine.h>
+#include "se3Vec.h"
+#include "mvg.h"
+#include "sensorNoise.h"
+#include "fKine.h"
 
 void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
                 Eigen::Matrix4d X, Eigen::Matrix4d Y, Eigen::Matrix4d Z, Eigen::Matrix4d& A, 
