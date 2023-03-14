@@ -1,35 +1,45 @@
 /*
 DESCRIPTION:
 
-A function to evaluate matrix exponential.
-It used the scaling and squaring method.
-Process:
-    Compute the scaling factor s such that ||A/s|| <= 1/2, where ||.|| is a matrix norm (e.g., the Frobenius norm).
-    Compute the matrix B = A/s.
-    Compute the matrix exponential of B using the power series expansion.
-    Compute the matrix exponential of A as exp(A) = (exp(s) * exp(B))^2.
-nterms refers to number of terms in the power expansion.
+The given code implements the matrix exponential function using the 
+Taylor series expansion method. The function takes an input matrix A 
+of type Eigen::MatrixXd and returns its matrix exponential, exp(A), 
+of the same type.
+
+The function first initializes expA to the identity matrix of the same 
+size as A. It then initializes a variable factorial to 1 and a variable
+i to 1. It also initializes An to A.
+
+The function then enters a do-while loop that calculates the terms of 
+the Taylor series expansion of exp(A) using the formula exp(A) = I + A/1! + A^2/2! + A^3/3! + ... 
+and updates expA and An at each iteration. The variable i is used to 
+calculate the factorials needed for each term.
+
+The loop exits when the norm of the current term of the Taylor series 
+expansion, An/factorial, is smaller than a certain threshold, which is 
+set to 1e-15 in this case.
+
+Finally, the function returns the matrix expA, which should be an 
+approximation of exp(A) calculated using the Taylor series expansion method.
 */
 
-
 #include <cmath>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
-Eigen::Matrix4d expm(const Eigen::Matrix4d& A, int nterms = 20) {
-    double s = 0.5;
-    double normA = A.norm();
-    while (normA / s > 1.0) {
-        s *= 2.0;
-    }
-    Eigen::Matrix4d B = A / s;
-    Eigen::Matrix4d X = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d C = Eigen::Matrix4d::Identity();
-    for (int k = 1; k <= nterms; k++) {
-        X *= B / k;
-        C += X;
-    }
-    for (int i = 0; i < static_cast<int>(s); i++) {
-        C = C * C;
-    }
-    return C;
+Eigen::MatrixXd expm(const Eigen::MatrixXd& A) 
+{
+    Eigen::MatrixXd expA = Eigen::MatrixXd::Identity(A.rows(), A.cols());
+    double factorial = 1;
+    int i = 1;
+    Eigen::MatrixXd An = A;
+    
+    do
+    {
+        factorial *= i;
+        expA += An / factorial;
+        An = An * A;
+        ++i;
+    } while ((An / factorial).lpNorm<Eigen::Infinity>() > 1e-15);
+  
+    return expA;
 }

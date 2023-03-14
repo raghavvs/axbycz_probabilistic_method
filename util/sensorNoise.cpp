@@ -1,4 +1,6 @@
 /*
+DESCRIPTION:
+
 Function to add Gaussian noise to a g in SE(3)
 model = 1: Add noise independently from Normal Distribution
 g: input SE(3) matrices to add noise to
@@ -26,16 +28,14 @@ The function returns the input matrices with the applied noise as a vector of ma
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
+#include <unsupported/Eigen/MatrixFunctions>
 #include <random>
-#include <expm.h>
 #include <se3Vec.h>
 #include <so3Vec.h>
 
-using namespace Eigen;
-
-std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd &gmean, const double &std, const int &model)
+std::vector<Eigen::MatrixXd> sensorNoise(const std::vector<Eigen::MatrixXd> &g, const Eigen::MatrixXd &gmean, const double &sd, const int &model)
 {
-    std::vector<MatrixXd> g_noise(g.size());
+    std::vector<Eigen::MatrixXd> g_noise(g.size());
 
     switch (model)
     {
@@ -44,15 +44,13 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
             // Independently from Normal Distribution
             for (int i = 0; i < g.size(); i++)
             {
-                VectorXd temp = VectorXd::Random(3);
+                Eigen::VectorXd temp = Eigen::VectorXd::Random(3);
 
-                VectorXd noise_old1 = gmean + VectorXd::Zero(6);
-                noise_old1.tail(3) = std * VectorXd::Random(3);
-
-                VectorXd noise_old2 = gmean + VectorXd::Zero(6);
-                noise_old2.head(3) = std * (temp / temp.norm());
-                
-                MatrixXd g_temp = g[i] * expm(se3Vec(noise_old1)) * expm(se3Vec(noise_old2));
+                Eigen::VectorXd noise_old1 = gmean + sd * Eigen::VectorXd::Random(6);
+                Eigen::VectorXd noise_old2 = gmean + Eigen::VectorXd::Zero(6);
+                noise_old2.head(3) = sd * (temp / temp.norm());
+                        
+                Eigen::MatrixXd g_temp = g[i] * (se3Vec(noise_old1)).exp() * (se3Vec(noise_old2)).exp();
                 g_noise[i] = g_temp;
             }
             break;
@@ -61,45 +59,115 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
         case 2:
         {
             // Coupling Matrix
-            MatrixXd C = MatrixXd::Zero(g.size() * 6, g.size() * 6);
+            Eigen::MatrixXd C = Eigen::MatrixXd::Zero(g.size() * 6, g.size() * 6);
             for (int i = 0; i < g.size(); i++)
             {
                 if ((i - 3) >= 0)
-                    C.block(i * 6, (i - 3) * 6, 6, 6) = MatrixXd::Identity(6, 6) * 0.25;
+                    C.block(i * 6, (i - 3) * 6, 6, 6) = Eigen::MatrixXd::Identity(6, 6) * 0.25;
                 if ((i - 2) >= 0)
-                    C.block(i * 6, (i - 2) * 6, 6, 6) = MatrixXd::Identity(6, 6) * 0.5;
-                C.block(i * 6, i * 6, 6, 6) = MatrixXd::Identity(6, 6);
-                if ((i + 1) <= g.size())
-                    C.block(i * 6, (i + 1) * 6, 6, 6) = MatrixXd::Identity(6, 6) * 0.5;
-                if ((i + 2) <= g.size())
-                    C.block(i * 6, (i + 2) * 6, 6, 6) = MatrixXd::Identity(6, 6) * 0.25;
+                    C.block(i * 6, (i - 2) * 6, 6, 6) = Eigen::MatrixXd::Identity(6, 6) * 0.5;
+                C.block(i * 6, i * 6, 6, 6) = Eigen::MatrixXd::Identity(6, 6);
+                if ((i + 1) < g.size())
+                    C.block(i * 6, (i + 1) * 6, 6, 6) = Eigen::MatrixXd::Identity(6, 6) * 0.5;
+                if ((i + 2) < g.size())
+                    C.block(i * 6, (i + 2) * 6, 6, 6) = Eigen::MatrixXd::Identity(6, 6) * 0.25;
             }
 
-            VectorXd noise_old = std * VectorXd::Random(g.size() * 6) + gmean;
-            VectorXd noise_new = C * noise_old;
+            Eigen::VectorXd noise_old = sd * Eigen::VectorXd::Random(g.size() * 6) + gmean;
+            Eigen::VectorXd noise_new = C * noise_old;
 
             for (int i = 0; i < g.size(); i++)
             {
-                MatrixXd g_temp = g[i] * expm(se3Vec(noise_new.segment(i * 6, 6)));
+                Eigen::MatrixXd g_temp = g[i] * (se3Vec(noise_new.segment(i * 6, 6))).exp();
                 g_noise[i] = g_temp;
             }
             break;
         }
 
+
         case 3:
         {
             // Wiener Process
-            MatrixXd noise_old = std * MatrixXd::Random(6, g.size()) + gmean;
-            MatrixXd noise_new = MatrixXd::Zero(6, g.size());
-            
+            Eigen::MatrixXd noise_old = sd * Eigen::MatrixXd::Random(g.size(), 6) + gmean;
+            Eigen::MatrixXd noise_new = Eigen::MatrixXd::Zero(6, g.size());
+                    
             for (int i = 0; i < g.size(); i++)
             {
                 noise_new.col(i).head(6) = noise_old.leftCols(i + 1).rowwise().sum() / sqrt(i + 1);
-                MatrixXd g_temp = g[i] * expm(se3Vec(noise_new.col(i).head(6)));
+                Eigen::MatrixXd g_temp = g[i] * (se3Vec(noise_new.col(i).head(6))).exp();
+                g_noise[i] = g_temp;
             }
+            break;
         }
 
         case 4:
+        {
+            // Outlier noise
+            for (int i = 0; i < g_noise.size(); i++) {
+                Eigen::Matrix4d noise_old1, noise_old2;
+
+                if ((i + 1) % 10 == 1) {
+                    Eigen::Vector3d temp = Eigen::Vector3d::Random();
+                    noise_old1 << Eigen::Matrix3d::Zero(), 0.1*Eigen::Matrix3d::Zero(), temp + gmean, Eigen::Vector4d::UnitW();
+                    noise_old2 << 0.01*(temp / temp.norm()), Eigen::Matrix3d::Zero(), gmean, Eigen::Vector4d::UnitW();
+                    g_noise[i] = g[i] * (se3Vec(noise_old1)).exp() * (se3Vec(noise_old2)).exp();
+                }
+                else {
+                    noise_old1 << sd * Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Zero(), gmean, Eigen::Vector4d::UnitW();
+                    noise_old2 << Eigen::Matrix3d::Zero(), sd * Eigen::Matrix3d::Identity(), gmean, Eigen::Vector4d::UnitW();
+                    g_noise[i] = g[i] * (se3Vec(noise_old1)).exp() * (se3Vec(noise_old2)).exp();
+                }
+            }
+            break;
+        }
+
+        default:
+            std::cout << "Error" << std::endl;
+        }
+    return g_noise;
+}
+
+// TEST CASE
+
+int main()
+{
+    return 1;
+}
+
+/* int main()
+{
+    // Create example input data
+    Eigen::MatrixXd g1 = Eigen::MatrixXd::Identity(4, 4);
+    Eigen::MatrixXd g2 = Eigen::MatrixXd::Identity(4, 4);
+    std::vector<Eigen::MatrixXd> g = {g1, g2};
+    Eigen::MatrixXd gmean = Eigen::MatrixXd::Zero(6, 1);
+    double std = 0.1;
+    int model = 1;
+
+    // Call the sensorNoise function
+    std::vector<Eigen::MatrixXd> g_noise = sensorNoise(g, gmean, std, model);
+
+    // Print the original and noisy data
+    std::cout << "Original data:\n";
+    for (const auto& g_matrix : g)
+    {
+        std::cout << g_matrix << "\n\n";
+    }
+
+    std::cout << "Noisy data:\n";
+    for (const auto& g_matrix : g_noise)
+    {
+        std::cout << g_matrix << "\n\n";
+    }
+
+    return 0;
+} */
+
+
+
+
+
+/*         case 4: Plucker Nudge - errors - needs debugging - at the moment - ignoring this case
         {   
             //-----------plucker nudge------------------------------------
             for (int i = 0; i < g.size(); i++) {
@@ -126,29 +194,4 @@ std::vector<MatrixXd> sensorNoise(const std::vector<MatrixXd> &g, const MatrixXd
                 g_noise_i << expm(thetag2*Ng2), (Matrix3d::Identity() - expm(thetag2*Ng2))*pg2 + dg2*so3Vec(Ng2), 0, 0, 0, 1;
                 g_noise[i] = g_noise_i;
             }
-        }    
-
-        case 5:
-        {
-            //-----------outlier noise-----------------------------------
-            for (int i = 0; i < g_noise.size(); i++) {
-                Matrix4d noise_old1, noise_old2;
-
-                if ((i + 1) % 10 == 1) {
-                    Vector3d temp = Vector3d::Random();
-                    noise_old1 << Matrix3d::Zero(), 0.1*Matrix3d::Zero(), temp + gmean, Vector4d::UnitW();
-                    noise_old2 << 0.01*(temp / temp.norm()), Matrix3d::Zero(), gmean, Vector4d::UnitW();
-                    g_noise[i] = g[i]*expm(se3Vec(noise_old1))*expm(se3Vec(noise_old2));
-                }
-                else {
-                    noise_old1 << std*Matrix3d::Identity(), Matrix3d::Zero(), gmean, Vector4d::UnitW();
-                    noise_old2 << Matrix3d::Zero(), std*Matrix3d::Identity(), gmean, Vector4d::UnitW();
-                    g_noise[i] = g[i]*expm(se3Vec(noise_old1))*expm(se3Vec(noise_old2));
-                }
-            }
-        }
-
-        default:
-            std::cout<<"Error"<<std::endl;
-    }
-}
+        }  */  

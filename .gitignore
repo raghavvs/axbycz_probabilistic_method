@@ -2,3 +2,8 @@
 .DS_Store
 .idea
 cmake-build-debug
+build
+CMakeFiles
+cmake_install.cmake
+Makefile
+googletest
