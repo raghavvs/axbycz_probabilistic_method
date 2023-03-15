@@ -8,7 +8,7 @@
 #include "se3Vec.h"
 #include "so3Vec.h"
 
-void sensorNoise(Eigen::Matrix4d *g_noise[10], Eigen::Matrix4d g[10], Eigen::MatrixXd gmean, double sd) {
+std::pair<Eigen::Matrix4d*, int> sensorNoise(Eigen::Matrix4d *g_noise, Eigen::Matrix4d g[10], Eigen::MatrixXd gmean, double sd) {
 
     std::cout << "g: " << g->rows() << " x " << g->cols() << std::endl;
 
@@ -34,17 +34,17 @@ void sensorNoise(Eigen::Matrix4d *g_noise[10], Eigen::Matrix4d g[10], Eigen::Mat
 
     for (int i = 0; i < 10; i++) {
         //g_noise[i] = g[i] * exp1[i] * exp2[i];
-        *g_noise[i] = g[i] * prod;
+        g_noise[i] = g[i] * prod;
     }
 
     for (int i = 0; i < 10; i++) {
         std::cout << "Matrix: " << i << std::endl;
-        std::cout << *g_noise[i] << std::endl;
+        std::cout << g_noise[i] << std::endl;
     };
 
     std::cout << "function works" << std::endl;
 
-    //return g_noise;
+    return std::make_pair(g_noise, 10);
 }
 
 int main() {
@@ -63,23 +63,23 @@ int main() {
     Eigen::MatrixXd g_mean(6, 1);
     g_mean << 0, 0, 0, 0, 0, 0;
 
+    // allocate memory for the m_noise array
+    Eigen::Matrix4d *m_noise = new Eigen::Matrix4d[10];
     // apply noise to matrix and print dimensions
-    Eigen::Matrix4d *m_noise[10];
-
-    for (int i = 0; i < 10; i++) {
-        m_noise[i] = new Eigen::Matrix4d;
-        *m_noise[i] = Eigen::Matrix4d::Zero();
-    }
-
-    Eigen::Matrix4d m_noise_new[10];
-    m_noise_new = sensorNoise(m_noise, m, g_mean, sd).first;
+    std::pair<Eigen::Matrix4d*, int> m_noise_new_pair = sensorNoise(m_noise, m, g_mean, sd);
+    Eigen::Matrix4d *m_noise_new = m_noise_new_pair.first;
+    int noise_size = m_noise_new_pair.second;
 
     for (int i = 0; i < 10; i++) {
         std::cout << "Matrix: " << i << std::endl;
         std::cout << m_noise_new[i] << std::endl;
     };
 
+    // free memory for m_noise array
+    delete[] m_noise;
+
     std::cout << "main works" << std::endl;
 
     return 0;
+
 }
