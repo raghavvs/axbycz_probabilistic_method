@@ -53,6 +53,8 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     Eigen::Matrix<double, 6, 1> a, b, c;
 
+    //PART I -Generate random matrices - A, B, C
+
     if (dataGenMode == 1) {
         
         A_initial = fKine(qz1);
@@ -95,17 +97,20 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
         C_initial = Eigen::Matrix4d::Identity();
         C_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
     }
+
+    //PART II - Fix a matrix A, B, C - Only using Gaussian noise - optPDF = 1
+
     if (optFix == 1) { // Fix A, randomize B and C
     // This can be applied to both serial-parallel and dual-robot arm
     // calibrations
 
-    Eigen::MatrixXd B_initial(4, 4);
+    B_initial(4, 4);
     B_initial << 1, 0, 0, 0,
                  0, 1, 0, 0,
                  0, 0, 1, 0,
                  0, 0, 0, 1;
 
-    Eigen::MatrixXd C_initial(4, 4);
+    C_initial(4, 4);
     C_initial << 1, 0, 0, 0,
                  0, 1, 0, 0,
                  0, 0, 1, 0,
@@ -176,7 +181,7 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     Eigen::MatrixXd B = B_initial;
 
-if (optFix == 3) { // Fix C, randomize A and B
+    if (optFix == 3) { // Fix C, randomize A and B
     // This is only physically achievable on multi-robot hand-eye calibration
     Eigen::MatrixXd A(len, 4, 4);
     Eigen::MatrixXd B(len, 4, 4);
