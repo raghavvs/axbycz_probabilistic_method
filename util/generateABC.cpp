@@ -26,9 +26,11 @@ sensor noise modeling, respectively.
 
 void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::MatrixXd Sig, 
                 Eigen::Matrix4d X, Eigen::Matrix4d Y, Eigen::Matrix4d Z, Eigen::Matrix4d& A, 
-                Eigen::Matrix4d& B, Eigen::Matrix4d& C) {
+                Eigen::Matrix4d& B, Eigen::Matrix4d& C) 
+{
     int len = length;
     int dataGenMode = 3;
+    
     Eigen::Matrix4d A_initial, B_initial, C_initial;
     Eigen::VectorXd qz1(6);
     qz1 << M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0;

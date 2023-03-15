@@ -9,6 +9,7 @@
 #include "so3Vec.h"
 
 Eigen::MatrixXd sensorNoise(const Eigen::Matrix4d g[], Eigen::MatrixXd gmean, double sd) {
+    
     Eigen::Matrix4d g_noise[10];
 
     std::cout << "g: " << g->rows() << " x " << g->cols() << std::endl;
