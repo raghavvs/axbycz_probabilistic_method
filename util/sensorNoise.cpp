@@ -21,6 +21,9 @@ to each matrix. If model is 4, then the function applies Plücker nudge noise
 to each matrix.
 
 The function returns the input matrices with the applied noise as a vector of matrices.
+New argument - length of the matrix array
+
+ONLY CASE 1 - WORKS - at the moment
 */
 
 #include <iostream>
@@ -33,10 +36,10 @@ The function returns the input matrices with the applied noise as a vector of ma
 #include "se3Vec.h"
 #include "so3Vec.h"
 
-Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d g[10], const Eigen::MatrixXd gmean, double sd, int model) {
+Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d* g, int len, const Eigen::MatrixXd gmean, double sd, int model) {
 {
     // Declare g_noise as an array of matrices and allocate memory for it
-    Eigen::Matrix4d* g_noise = new Eigen::Matrix4d[10];
+    Eigen::Matrix4d* g_noise = new Eigen::Matrix4d[len];
 
     switch (model)
     {
@@ -59,7 +62,7 @@ Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d g[10], const Eigen::MatrixXd 
             Eigen::Matrix4d exp2 = (se3Vec(noise_old2)).exp();
             Eigen::Matrix4d prod = exp1 * exp2;
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < len; i++) {
                 g_noise[i] = g[i] * prod;
             }
 

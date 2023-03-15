@@ -11,6 +11,18 @@ of the matrices. The program relies on several external libraries,
 including Eigen, which is a library for linear algebra in C++, and 
 mvg and sensorNoise, which are libraries for computer vision and 
 sensor noise modeling, respectively.
+
+Data generation for AXB = YCZ problem
+Input:
+       length: number of generated data pairs
+       optFix: option for fixing different data streams
+       optPDF: option for generating data using different distributions
+       M:      mean of perturbance in lie algebra
+       Sig:    covariance of perturbance in lie algebra
+       X, Y, Z: ground truths
+ Output:
+       A, B, C: 4 x 4 x length or 4 x 4
+                noise-free data streams with correspondence
 */
 
 #include <iostream>
@@ -126,7 +138,7 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
             // get the matrix from the vector of matrices
             Eigen::MatrixXd sensor_noise_matrix= Eigen::MatrixXd::Zero(6,6); //initialize empty matrix of desired size
             
-            for(auto mat : sensorNoise(B_initial, gmean, sigma, 1)){  // iterate over the vector of matrices
+            for(auto mat : sensorNoise(B_initial, len, gmean, sigma, 1)){  // iterate over the vector of matrices
                 sensor_noise_matrix += mat;   // add each matrix to build final matrix
             }
 
@@ -181,7 +193,7 @@ if (optFix == 3) { // Fix C, randomize A and B
         else if (optPDF == 3) {
             Eigen::VectorXd gmean(6);
             gmean << 0, 0, 0, 0, 0, 0;
-            B(m) = sensorNoise(B_initial, gmean, Sig(0), 1);
+            B(m) = sensorNoise(B_initial, len, gmean, Sig(0), 1);
         }
 
         A(m) = (Y * C_initial * Z / B(m)) / X;

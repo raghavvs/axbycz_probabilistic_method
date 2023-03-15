@@ -6,7 +6,7 @@
 #include "se3Vec.h"
 #include "so3Vec.h"
 
-Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d g[2], int len, const Eigen::MatrixXd& gmean, double sd) {
+Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d* g, int len, const Eigen::MatrixXd& gmean, double sd) {
 
     // Declare g_noise as an array of matrices and allocate memory for it
     Eigen::Matrix4d* g_noise = new Eigen::Matrix4d[len];
