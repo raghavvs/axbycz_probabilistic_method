@@ -30,29 +30,39 @@ The function returns the input matrices with the applied noise as a vector of ma
 #include <eigen3/Eigen/Geometry>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <random>
-#include <se3Vec.h>
-#include <so3Vec.h>
+#include "se3Vec.h"
+#include "so3Vec.h"
 
-std::vector<Eigen::MatrixXd> sensorNoise(const std::vector<Eigen::MatrixXd> &g, const Eigen::MatrixXd &gmean, const double &sd, const int &model)
+Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d g[10], const Eigen::MatrixXd gmean, double sd, int model) {
 {
-    std::vector<Eigen::MatrixXd> g_noise(g.size());
+    // Declare g_noise as an array of matrices and allocate memory for it
+    Eigen::Matrix4d* g_noise = new Eigen::Matrix4d[10];
 
     switch (model)
     {
         case 1:
         {
-            // Independently from Normal Distribution
-            for (int i = 0; i < g.size(); i++)
-            {
-                Eigen::VectorXd temp = Eigen::VectorXd::Random(3);
+            Eigen::Vector3d temp = Eigen::Vector3d::Random();
+            Eigen::VectorXd noise_old1(6);
+            Eigen::VectorXd noise_old2(6);
 
-                Eigen::VectorXd noise_old1 = gmean + sd * Eigen::VectorXd::Random(6);
-                Eigen::VectorXd noise_old2 = gmean + Eigen::VectorXd::Zero(6);
-                noise_old2.head(3) = sd * (temp / temp.norm());
-                        
-                Eigen::MatrixXd g_temp = g[i] * (se3Vec(noise_old1)).exp() * (se3Vec(noise_old2)).exp();
-                g_noise[i] = g_temp;
+            // Independently from Normal Distribution
+            noise_old1.segment(0, 3) = Eigen::Vector3d::Zero();
+            noise_old1.segment(3, 3) = sd * Eigen::Vector3d::Random();
+            noise_old1 += gmean;
+
+            noise_old2.segment(0, 3) = sd * temp.normalized() * temp.norm();
+            noise_old2.segment(3, 3) = Eigen::Vector3d::Zero();
+            noise_old2 += gmean;
+
+            Eigen::Matrix4d exp1 = (se3Vec(noise_old1)).exp();
+            Eigen::Matrix4d exp2 = (se3Vec(noise_old2)).exp();
+            Eigen::Matrix4d prod = exp1 * exp2;
+
+            for (int i = 0; i < 10; i++) {
+                g_noise[i] = g[i] * prod;
             }
+
             break;
         }
 
