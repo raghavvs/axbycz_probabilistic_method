@@ -31,6 +31,8 @@ Input:
 #include <eigen3/Eigen/Geometry>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <random>
+#include <tuple>
+#include <vector>
 #include "mvg.h"
 #include "sensorNoise.h"
 #include "se3Vec.h"
