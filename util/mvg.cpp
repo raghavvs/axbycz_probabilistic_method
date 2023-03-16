@@ -44,7 +44,7 @@ The function first checks that the input arguments meet certain requirements:
     Sigma must be square.
     Sigma must be symmetric.
     Sigma must be positive definite.
-    N must be a positive intege
+    N must be a positive integer
 */
 
 #include <iostream>

@@ -11,6 +11,18 @@ of the matrices. The program relies on several external libraries,
 including Eigen, which is a library for linear algebra in C++, and 
 mvg and sensorNoise, which are libraries for computer vision and 
 sensor noise modeling, respectively.
+
+Data generation for AXB = YCZ problem
+Input:
+       length: number of generated data pairs
+       optFix: option for fixing different data streams
+       optPDF: option for generating data using different distributions
+       M:      mean of perturbance in lie algebra
+       Sig:    covariance of perturbance in lie algebra
+       X, Y, Z: ground truths
+ Output:
+       A, B, C: 4 x 4 x length or 4 x 4
+                noise-free data streams with correspondence
 */
 
 #include <iostream>
@@ -41,6 +53,8 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     Eigen::Matrix<double, 6, 1> a, b, c;
 
+    //PART I -Generate random matrices - A, B, C
+
     if (dataGenMode == 1) {
         
         A_initial = fKine(qz1);
@@ -64,107 +78,66 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     } else if (dataGenMode == 3) {
 
-        std::default_random_engine generator;
-        std::normal_distribution<double> distribution(0.0, 1.0);
-        auto randn = [&] { return distribution(generator); };
+        Eigen::VectorXd a = Eigen::VectorXd::Random(6);
+        a /= a.norm(); // normalize a
+        Eigen::Matrix4d A_initial = (Eigen::Matrix4d(se3Vec(a))).exp();
 
-        a << randn(), randn(), randn(), randn(), randn(), randn();
-        a.normalize();
-        A_initial = Eigen::Matrix4d::Identity();
-        A_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(a.norm(), a.normalized()).toRotationMatrix();
+        Eigen::VectorXd b = Eigen::VectorXd::Random(6);
+        b /= b.norm(); // normalize b
+        Eigen::Matrix4d B_initial = (Eigen::Matrix4d(se3Vec(b))).exp();
 
-        b << randn(), randn(), randn(), randn(), randn(), randn();
-        b.normalize();
-        B_initial = Eigen::Matrix4d::Identity();
-        B_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(b.norm(), b.normalized()).toRotationMatrix();
+        Eigen::VectorXd c = Eigen::VectorXd::Random(6);
+        c /= c.norm(); // normalize c
+        Eigen::Matrix4d C_initial = (Eigen::Matrix4d(se3Vec(c))).exp();
 
-        c << randn(), randn(), randn(), randn(), randn(), randn();
-        c.normalize();
-        C_initial = Eigen::Matrix4d::Identity();
-        C_initial.topLeftCorner<3, 3>() = Eigen::AngleAxisd(c.norm(), c.normalized()).toRotationMatrix();
-    }
-    if (optFix == 1) { // Fix A, randomize B and C
-    // This can be applied to both serial-parallel and dual-robot arm
-    // calibrations
+    //PART II - Fix a matrix A, B, C - Only using Gaussian noise - optPDF = 1
 
-    Eigen::MatrixXd B_initial(4, 4);
-    B_initial << 1, 0, 0, 0,
-                 0, 1, 0, 0,
-                 0, 0, 1, 0,
-                 0, 0, 0, 1;
+    if (optFix == 1){ // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
+        Eigen::Matrix4d A[len], B[len], C[len];
 
-    Eigen::MatrixXd C_initial(4, 4);
-    C_initial << 1, 0, 0, 0,
-                 0, 1, 0, 0,
-                 0, 0, 1, 0,
-                 0, 0, 0, 1;
-
-    Eigen::MatrixXd X(4, 4);
-    Eigen::MatrixXd Y(4, 4);
-    Eigen::MatrixXd Z(4, 4);
-
-    Eigen::MatrixXd B(4, 4, len);
-    Eigen::MatrixXd C(4, 4, len);
-    Eigen::MatrixXd A(4, 4, len);
-
-    for (int m = 0; m < len; m++) {
-
-        if (optPDF == 1) {
-            Eigen::VectorXd randn_vec = mvg(M, Sig, 1).first;
-            Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
-            B.block<4, 4>(0, 0, 4, 4) = (expm_vec).exp() * B_initial;
-        }
-        else if (optPDF == 2) {
-            Eigen::VectorXd randn_vec = mvg(M, Sig, 1).first;
-            Eigen::MatrixXd expm_vec = se3Vec(randn_vec);
-            B.block<4, 4>(0, 0, 4, 4) = B_initial * (expm_vec).exp();
-        }
-        else if (optPDF == 3) {
-            Eigen::VectorXd gmean(6);
-            gmean << 0, 0, 0, 0, 0, 0;
-            double sigma = Sig(0, 0);
-            // get the matrix from the vector of matrices
-            Eigen::MatrixXd sensor_noise_matrix= Eigen::MatrixXd::Zero(6,6); //initialize empty matrix of desired size
-            
-            for(auto mat : sensorNoise(B_initial, gmean, sigma, 1)){  // iterate over the vector of matrices
-                sensor_noise_matrix += mat;   // add each matrix to build final matrix
+        for (int m = 0; m < len; m++){
+            if (optPDF == 1){
+                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
+                B[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * B_initial);
             }
+            /*else if (optPDF == 2){
+                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1);
+                B[m] = Eigen::Matrix4d(B_initial * (se3Vec(randVec)).exp());
+            }
+            else if (optPDF == 3){
+                Eigen::Matrix<double, 6, 1> g_mean;
+                g_mean << 0, 0, 0, 0, 0, 0;
+                double sd = Sig(0); // Assuming Sig is a vector with one value
+                std::pair<Eigen::Matrix4d*, double> sensor_output = sensorNoise(B_initial, g_mean, sd, 1);
+                B[m] = *(sensor_output.first);
+            }*/
 
-            // assign the computed matrix to B block
-            B.block<4, 4>(0, 0, 4, 4) = sensor_noise_matrix.block<4, 4>(0, 0);
+            C[m] = Y.inverse() * (A_initial * X * B[m] * Z.inverse());
+            A[m] = A_initial;
         }
+    } else if(optFix == 2) // Fix B, randomize A and C - This can be applied to both serial-parallel and dual-robot arm calibrations
 
-        C.block<4, 4>(0, 0, 4, 4) = Y.inverse() * (A_initial * X * B.block<4, 4>(0, 0, 4, 4) / Z);
-        A.block<4, 4>(0, 0, 4, 4) = A_initial;
+        Eigen::Matrix4d A[len], C[len], B[len];
+
+        for(int m = 0; m < len; m++) {
+            if(optPDF == 1) {
+                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
+                A[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * A_initial);
+            /*} else if(optPDF == 2) {
+                A[m] = A_initial * (se3Vec(mvg(M, Sig, 1))).exp();
+            } else if(optPDF == 3) {
+                Eigen::VectorXd gmean(6);
+                gmean << 0, 0, 0, 0, 0, 0;
+                A[m] = sensorNoise(A_initial, gmean, Sig(0,0), 1);
+            }*/
+
+            C[m] = Y.inverse() * (A_initial * X * B[m] * Z.inverse());
+            B[m] = B_initial;
         }
     }
-
-    if (optFix == 2) { // Fix B, randomize A and C
-    // This can be applied to both serial-parallel and dual-robot arm calibrations
-    Eigen::MatrixXd A(4, 4, len);
-    Eigen::MatrixXd C(4, 4, len);
-
-    for (int m = 0; m < len; m++) {
-        if (optPDF == 1) {
-            Eigen::VectorXd random_vector = mvg(M, Sig, 1).first;
-            Eigen::MatrixXd matrix = se3Vec(random_vector);
-            A.slice(m) = matrix.exp() * A_initial;
-        } else if (optPDF == 2) {
-            Eigen::VectorXd random_vector = mvg(M, Sig, 1).first;
-            Eigen::MatrixXd matrix = se3Vec(random_vector);
-            A.slice(m) = A_initial * matrix.exp();
-        } else if (optPDF == 3) {
-            Eigen::VectorXd gmean = Eigen::VectorXd::Zero(6);
-            A.slice(m) = sensorNoise(A_initial, gmean, Sig(0), 1);
-        }
-        
-        C.slice(m) = Y.llt().solve(A.slice(m) * X * B_initial) / Z;
-        }   
-    }
-
     Eigen::MatrixXd B = B_initial;
 
-if (optFix == 3) { // Fix C, randomize A and B
+    if (optFix == 3) { // Fix C, randomize A and B
     // This is only physically achievable on multi-robot hand-eye calibration
     Eigen::MatrixXd A(len, 4, 4);
     Eigen::MatrixXd B(len, 4, 4);
@@ -181,7 +154,7 @@ if (optFix == 3) { // Fix C, randomize A and B
         else if (optPDF == 3) {
             Eigen::VectorXd gmean(6);
             gmean << 0, 0, 0, 0, 0, 0;
-            B(m) = sensorNoise(B_initial, gmean, Sig(0), 1);
+            B(m) = sensorNoise(B_initial, len, gmean, Sig(0), 1);
         }
 
         A(m) = (Y * C_initial * Z / B(m)) / X;
