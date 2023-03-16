@@ -12,6 +12,9 @@ The output vector or matrix is represented by an Eigen object of type
 "Eigen::Matrix<double, 6, 1>".
 */
 
+#ifndef SE3VEC_H
+#define SE3VEC_H
+
 #include <iostream>
 #include <eigen3/Eigen/Core>
 
@@ -34,22 +37,4 @@ Eigen::MatrixXd se3Vec(const Eigen::MatrixXd& X)
     }
 }
 
-/* int main()
-{
-    Eigen::Matrix<double, 4, 4> M;
-    M << 0, -3, 2, 4,
-            3, 0, -1, 5,
-            -2, 1, 0, 6,
-            0, 0, 0, 0;
-
-    Eigen::Matrix<double, 6, 1> vec = se3Vec(M);
-    std::cout << "Mat2Vec = \n" << vec << "\n";
-
-    Eigen::Matrix<double, 6, 1> V;
-    V << 1, 2, 3, 4, 5, 6;
-
-    Eigen::Matrix4d mat = se3Vec(V);
-    std::cout << "Vec2Mat = \n" << mat << "\n";
-
-    return 0;
-} */
+#endif
