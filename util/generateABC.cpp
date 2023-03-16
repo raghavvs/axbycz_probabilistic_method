@@ -90,65 +90,51 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
         c /= c.norm(); // normalize c
         Eigen::Matrix4d C_initial = (Eigen::Matrix4d(se3Vec(c))).exp();
 
-        //PART II - Fix a matrix A, B, C - Only using Gaussian noise - optPDF = 1
+    //PART II - Fix a matrix A, B, C - Only using Gaussian noise - optPDF = 1
 
-    if (optFix == 1) // Fix A, randomize B and C
-    {
-        // This can be applied to both serial-parallel and dual-robot arm calibrations
+    if (optFix == 1){ // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
+        Eigen::Matrix4d A[len], B[len], C[len];
 
-        Eigen::Matrix4d B[len], C[len]; // initialize B and C as 4x4 matrices with len number of elements
-
-        for (int m = 0; m < len; m++)
-        {
-            if (optPDF == 1)
-            {
-                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1);
+        for (int m = 0; m < len; m++){
+            if (optPDF == 1){
+                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
                 B[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * B_initial);
             }
-            else if (optPDF == 2)
-            {
+            /*else if (optPDF == 2){
                 Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1);
                 B[m] = Eigen::Matrix4d(B_initial * (se3Vec(randVec)).exp());
             }
-            else if (optPDF == 3)
-            {
+            else if (optPDF == 3){
                 Eigen::Matrix<double, 6, 1> g_mean;
                 g_mean << 0, 0, 0, 0, 0, 0;
                 double sd = Sig(0); // Assuming Sig is a vector with one value
                 std::pair<Eigen::Matrix4d*, double> sensor_output = sensorNoise(B_initial, g_mean, sd, 1);
                 B[m] = *(sensor_output.first);
-            }
+            }*/
 
             C[m] = Y.inverse() * (A_initial * X * B[m] * Z.inverse());
             A[m] = A_initial;
         }
+    } else if(optFix == 2) // Fix B, randomize A and C - This can be applied to both serial-parallel and dual-robot arm calibrations
 
-        A = A_initial;
-    }
+        Eigen::Matrix4d A[len], C[len], B[len];
 
-    if (optFix == 2) { // Fix B, randomize A and C
-    // This can be applied to both serial-parallel and dual-robot arm calibrations
-    Eigen::MatrixXd A(4, 4, len);
-    Eigen::MatrixXd C(4, 4, len);
+        for(int m = 0; m < len; m++) {
+            if(optPDF == 1) {
+                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
+                A[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * A_initial);
+            /*} else if(optPDF == 2) {
+                A[m] = A_initial * (se3Vec(mvg(M, Sig, 1))).exp();
+            } else if(optPDF == 3) {
+                Eigen::VectorXd gmean(6);
+                gmean << 0, 0, 0, 0, 0, 0;
+                A[m] = sensorNoise(A_initial, gmean, Sig(0,0), 1);
+            }*/
 
-    for (int m = 0; m < len; m++) {
-        if (optPDF == 1) {
-            Eigen::VectorXd random_vector = mvg(M, Sig, 1).first;
-            Eigen::MatrixXd matrix = se3Vec(random_vector);
-            A.slice(m) = matrix.exp() * A_initial;
-        } else if (optPDF == 2) {
-            Eigen::VectorXd random_vector = mvg(M, Sig, 1).first;
-            Eigen::MatrixXd matrix = se3Vec(random_vector);
-            A.slice(m) = A_initial * matrix.exp();
-        } else if (optPDF == 3) {
-            Eigen::VectorXd gmean = Eigen::VectorXd::Zero(6);
-            A.slice(m) = sensorNoise(A_initial, gmean, Sig(0), 1);
+            C[m] = Y.inverse() * (A_initial * X * B[m] * Z.inverse());
+            B[m] = B_initial;
         }
-        
-        C.slice(m) = Y.llt().solve(A.slice(m) * X * B_initial) / Z;
-        }   
     }
-
     Eigen::MatrixXd B = B_initial;
 
     if (optFix == 3) { // Fix C, randomize A and B
