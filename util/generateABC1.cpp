@@ -36,43 +36,42 @@ Input:
 //#include "se3Vec.h"
 #include "fKine.h"
 
-void generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd M, const Eigen::MatrixXd Sig,
-                 const Eigen::Matrix4d X, const Eigen::Matrix4d Y, Eigen::Matrix4d Z, const Eigen::Matrix4d& A,
-                 const Eigen::Matrix4d& B, const Eigen::Matrix4d& C)
+std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>>
+    generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
+                const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
 {
-    int len = length;
-    Eigen::Matrix4d A_initial, B_initial, C_initial;
+    std::vector<Eigen::Matrix4d> A(length), B(length), C(length);
 
-    Eigen::VectorXd a = Eigen::VectorXd::Random(6);
-    a /= a.norm();
-    A_initial = (Eigen::Matrix4d(se3Vec(a))).exp();
+    Eigen::VectorXd a = Eigen::VectorXd::Random(6).normalized();
+    Eigen::Matrix4d A_initial = (Eigen::Matrix4d(se3Vec(a))).exp();
 
-    Eigen::VectorXd b = Eigen::VectorXd::Random(6);
-    b /= b.norm();
-    B_initial = (Eigen::Matrix4d(se3Vec(b))).exp();
+    Eigen::VectorXd b = Eigen::VectorXd::Random(6).normalized();
+    Eigen::Matrix4d B_initial = (Eigen::Matrix4d(se3Vec(b))).exp();
 
-    Eigen::VectorXd c = Eigen::VectorXd::Random(6);
-    c /= c.norm();
-    C_initial = (Eigen::Matrix4d(se3Vec(c))).exp();
+    Eigen::VectorXd c = Eigen::VectorXd::Random(6).normalized();
+    Eigen::Matrix4d C_initial = (Eigen::Matrix4d(se3Vec(c))).exp();
 
-    //PART II - Fix a matrix A, B, C - Only using Gaussian noise - optPDF = 1
-
-    if (optFix ==1) { // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
-        Eigen::Matrix4d A[len], B[len], C[len];
-        for (int m = 0; m < len; m++) {
+    if (optFix == 1) { // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
+        for (int m = 0; m < length; m++) {
             if (optPDF == 1) {
-                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
-                B[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * B_initial);
+                Eigen::VectorXd randVec = mvg(M, Sig, 1).first;
+                // Update B matrix with random noise
+                B[m] = (Eigen::MatrixXd(se3Vec(randVec)).exp() * B_initial);
             }
-
+            // Compute C matrix from A,B,X,Y,Z matrices
             C[m] = Y.inverse() * (A_initial * X * B[m] * Z.inverse());
+            // Assign fixed value to A matrix
             A[m] = A_initial;
         }
     }
+
+    // Return a tuple of vectors containing the output matrices
+    return std::make_tuple(A,B,C);
 }
 
 int main() {
-    int length = 10;
+
+    int length = 2;
     int optFix = 1;
     int optPDF = 1;
     Eigen::VectorXd M(6);
@@ -87,10 +86,15 @@ int main() {
     Eigen::Matrix4d X = Eigen::Matrix4d::Identity();
     Eigen::Matrix4d Y = Eigen::Matrix4d::Identity();
     Eigen::Matrix4d Z = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d A, B, C = Eigen::Matrix4d::Zero();
-    generateABC(length, optFix, optPDF, M, Sig, X, Y, Z, A, B, C);
-    std::cout << "A: \n" << A << std::endl;
-    std::cout << "B: \n" << B << std::endl;
-    std::cout << "C: \n" << C << std::endl;
+
+    // Call the function and get the output matrices in a tuple
+    auto [A,B,C] = generateABC(length, optFix, optPDF, M, Sig, X, Y, Z);
+
+    for(int i = 0; i < length; i++) {
+        std::cout << "A: \n" << A[i] << std::endl;
+        std::cout << "B: \n" << B[i] << std::endl;
+        std::cout << "C: \n" << C[i] << std::endl;
+    }
+
     return 0;
 }
