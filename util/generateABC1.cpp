@@ -26,14 +26,12 @@ Input:
 */
 
 #include <iostream>
-#include <cmath>
-#include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <random>
 #include "mvg.h"
 #include "sensorNoise.h"
-//#include "se3Vec.h"
+#include "se3Vec.h"
 #include "fKine.h"
 
 std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>>
@@ -95,6 +93,8 @@ int main() {
         std::cout << "B: \n" << B[i] << std::endl;
         std::cout << "C: \n" << C[i] << std::endl;
     }
+
+    std::cout << "generateABC.cpp works for optFix==1" << std::endl;
 
     return 0;
 }
