@@ -27,7 +27,6 @@ SigB_13, which causes a compiler error, and using an ellipsis
 #include <Eigen/Dense>
 #include "meanCov.h"
 #include "so3Vec.h"
-#include "se3Vec.h"
 
 void batchSolveXY(const Eigen::Matrix4d* A,
                   const Eigen::Matrix4d* B,
@@ -43,12 +42,6 @@ void batchSolveXY(const Eigen::Matrix4d* A,
                   Eigen::MatrixXd& SigB) {
 
     Eigen::Matrix4d X_candidate, Y_candidate;
-
-    // Reshape A and B for matching the input sizes of mex functions
-    int a1 = A[0].rows();
-    int a2 = A[0].cols();
-    Eigen::Matrix3d A_mex = Eigen::Map<Eigen::Matrix3d>(A->data(), a1, a2 * len);
-    Eigen::Matrix3d B_mex = Eigen::Map<Eigen::Matrix3d>(B->data(), a1, a2 * len);
 
     // Calculate mean and covariance for A and B
     meanCov(A, len, MeanA, SigA);
@@ -87,24 +80,18 @@ void batchSolveXY(const Eigen::Matrix4d* A,
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
     for (int i = 0; i < 8; i++) {
-        Eigen::MatrixXd SigA_sub = SigA.block(0, 0, 3, 3);
-        Eigen::MatrixXd SigB_sub = SigB.block(0, 0, 3, 3);
-
-        Eigen::VectorXd tx_temp_vec = (Rx_solved.block<3, 3>(0, i).transpose() * SigA_sub * Rx_solved.block<3, 3>(0, i)).inverse() *
-                               (SigB_sub - Rx_solved.block<3, 3>(0, i).transpose() * SigA.block(0, 3, 3, 3));
-        Eigen::Vector3d tx_temp(tx_temp_vec(0), tx_temp_vec(1), tx_temp_vec(2));
-        Eigen::Vector3d tx = -Rx_solved.block<3, 3>(0, i) * tx_temp;
-
-        X_candidate.block(0, 0, 3, 3) = Rx_solved.block<3, 3>(0, i);
-        X_candidate.block(0, 3, 3, 1) = tx;
-        X_candidate.block(3, 0, 1, 3) = Eigen::MatrixXd::Zero(1, 3);
-        X_candidate(3, 3) = 1;
-
+        Eigen::Matrix3d Rx_solved = Rx_solved[i];
+        Eigen::Matrix3d SigA = SigA.block<3, 3>(0, 0);
+        Eigen::Matrix3d SigB = SigB.block<3, 3>(0, 3);
+        Eigen::Matrix3d temp = (Rx_solved_i.transpose() * SigA_1_3_1_3 * Rx_solved).inverse() * (SigB - Rx_solved.transpose() * SigA.block<3, 3>(0, 3) * Rx_solved);
+        Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
+        Eigen::Matrix4d X_candidate;
+        X_candidate << Rx_solved, -Rx_solved_i * tx_temp, 0, 0, 0, 1;
         Eigen::Matrix4d Y_candidate = MeanA * X_candidate * MeanB.inverse();
-
-        X.block(0, 0, 4, 4) = X_candidate;
-        Y.block(0, 0, 4, 4) = Y_candidate;
+        X_candidate[i] = X_candidate;
+        Y_candidate[i] = Y_candidate;
     }
+
     X = X_candidate;
     Y = Y_candidate;
 }
