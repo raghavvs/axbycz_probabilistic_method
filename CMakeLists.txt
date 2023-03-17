@@ -44,6 +44,8 @@ include_directories(${axbycz_probabilistic_method}/util)
 # Create executable
 #add_executable(meanCov util/meanCov.cpp)
 #add_executable(meanCov1 util/meanCov1.cpp)
+#add_executable(meanCov_solvertest util/meanCov_solvertest.cpp)
+#add_executable(meanCov_solvertest solvers/meanCov_solvertest.cpp)
 #add_executable(meanCovTEST test/meanCovTEST.cpp)
 #add_executable(mvg util/mvg.cpp)
 #add_executable(mvgTEST test/mvgTEST.cpp)
@@ -93,6 +95,7 @@ set(LIBRARIES_TO_LINK
 # Link all the targets with the library list
 #target_link_libraries(meanCov ${LIBRARIES_TO_LINK})
 #target_link_libraries(meanCov1 ${LIBRARIES_TO_LINK})
+#target_link_libraries(meanCov_solvertest ${LIBRARIES_TO_LINK})
 #target_link_libraries(meanCovTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvg ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvgTEST ${LIBRARIES_TO_LINK})

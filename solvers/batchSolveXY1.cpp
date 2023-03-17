@@ -28,8 +28,8 @@ SigB_13, which causes a compiler error, and using an ellipsis
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d* A,
-                  const Eigen::Matrix4d* B,
+void batchSolveXY(const Eigen::Matrix4d A,
+                  const Eigen::Matrix4d B,
                   int len,
                   bool opt,
                   double nstd_A,
@@ -41,7 +41,8 @@ void batchSolveXY(const Eigen::Matrix4d* A,
                   Eigen::MatrixXd& SigA,
                   Eigen::MatrixXd& SigB) {
 
-    Eigen::Matrix4d X_candidate, Y_candidate;
+    Eigen::Matrix4d X_candidate[len], Y_candidate[len];
+    Eigen::Matrix4d A[len], B[len];
 
     // Calculate mean and covariance for A and B
     meanCov(A, len, MeanA, SigA);
@@ -80,31 +81,14 @@ void batchSolveXY(const Eigen::Matrix4d* A,
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
     for (int i = 0; i < 8; i++) {
-        Eigen::Matrix3d Rx_solved = Rx_solved[i];
-        Eigen::Matrix3d SigA = SigA.block<3, 3>(0, 0);
-        Eigen::Matrix3d SigB = SigB.block<3, 3>(0, 3);
-        Eigen::Matrix3d temp = (Rx_solved_i.transpose() * SigA_1_3_1_3 * Rx_solved).inverse() * (SigB - Rx_solved.transpose() * SigA.block<3, 3>(0, 3) * Rx_solved);
+        SigA = SigA.block<3, 3>(0, 0);
+        SigB = SigB.block<3, 3>(0, 3);
+        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA * Rx_solved[i]).inverse() *
+                                (SigB - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
-        Eigen::Matrix4d X_candidate;
-        X_candidate << Rx_solved, -Rx_solved_i * tx_temp, 0, 0, 0, 1;
-        Eigen::Matrix4d Y_candidate = MeanA * X_candidate * MeanB.inverse();
-        X_candidate[i] = X_candidate;
-        Y_candidate[i] = Y_candidate;
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, 0, 0, 0, 1;
+        Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
+        //X[i] = X_candidate[i];
+        //Y[i] = Y_candidate[i];
     }
-
-    X = X_candidate;
-    Y = Y_candidate;
 }
-
-
-/*
-for (int i = 0; i < 8; i++) {
-Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA.topLeftCorner<3, 3>() * Rx_solved[i]).inverse() *
-                       (SigB.topRightCorner<3, 3>() - Rx_solved[i].transpose() * SigA.topRightCorner<3, 3>() * Rx_solved[i]);
-Eigen::Vector3d tx_temp = se3Vec(temp);
-Eigen::Vector3d tx = -Rx_solved[i] * tx_temp;
-X[i].block<3,3>(0,0) = Rx_solved[i];
-X[i].block<3,1>(0,3) = tx;
-X[i].block<1,4>(3,0) << 0, 0 , 0 ,1;
-Y[i] = MeanA * X[i] / MeanB;
-}*/
