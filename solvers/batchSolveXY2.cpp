@@ -29,8 +29,8 @@ SigB_13, which causes a compiler error, and using an ellipsis
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d A,
-                  const Eigen::Matrix4d B,
+void batchSolveXY(const Eigen::Matrix4d& A,
+                  const Eigen::Matrix4d& B,
                   int len,
                   bool opt,
                   double nstd_A,
@@ -62,8 +62,8 @@ void batchSolveXY(const Eigen::Matrix4d A,
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
 
-    auto VA = eig_solver_A.eigenvectors();
-    auto VB = eig_solver_B.eigenvectors();
+    auto const VA = eig_solver_A.eigenvectors();
+    auto const VB = eig_solver_B.eigenvectors();
 
     // Define Q matrices
     Eigen::MatrixXd Q1, Q2, Q3, Q4;

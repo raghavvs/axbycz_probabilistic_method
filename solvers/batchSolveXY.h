@@ -1,104 +1,111 @@
 /*
-The code defines two functions: distibutionPropsMex and batchSolveXY. 
-The former function takes a matrix as an input and calculates the 
-covariance matrix of the matrix along with other properties, which 
-it stores in a matrix that it returns. The batchSolveXY function 
-takes several inputs and solves for the rotation matrix X and Y. 
-It does this by first calling the distibutionPropsMex function for 
-two matrices A and B, to obtain their mean and covariance matrix. 
-It then calculates the eigenvectors of the covariance matrices, 
-and uses them to calculate eight possible solutions for the 
-rotation matrix. It stores these solutions in two arrays, one 
+The code defines two functions: distributionPropsMex and batchSolveXY.
+The former function takes a matrix as an input and calculates the
+covariance matrix of the matrix along with other properties, which
+it stores in a matrix that it returns. The batchSolveXY function
+takes several inputs and solves for the rotation matrix X and Y.
+It does this by first calling the distributionPropsMex function for
+two matrices A and B, to obtain their mean and covariance matrix.
+It then calculates the eigenvectors of the covariance matrices,
+and uses them to calculate eight possible solutions for the
+rotation matrix. It stores these solutions in two arrays, one
 for X and one for Y.
 
-The batchSolveXY function can also adjust the covariance matrices 
-of A and B based on nstd_A and nstd_B. If the boolean input "opt" 
-is true, then the covariance matrices are adjusted by subtracting 
-the identity matrix multiplied by nstd_A and nstd_B. The code does 
-not explain what these values are or what they represent, so it 
-is unclear what effect this has on the calculation. Additionally, 
-the code contains some errors, such as redefining SigA_13 and 
-SigB_13, which causes a compiler error, and using an ellipsis 
+The batchSolveXY function can also adjust the covariance matrices
+of A and B based on nstd_A and nstd_B. If the boolean input "opt"
+is true, then the covariance matrices are adjusted by subtracting
+the identity matrix multiplied by nstd_A and nstd_B. The code does
+not explain what these values are or what they represent, so it
+is unclear what effect this has on the calculation. Additionally,
+the code contains some errors, such as redefining SigA_13 and
+SigB_13, which causes a compiler error, and using an ellipsis
 (...) instead of an integer to index into the Rx_solved array.
 */
 
-#include <eigen3/Eigen/Dense>
 #include <iostream>
+#include <array>
 #include <vector>
+#include <Eigen/Dense>
+#include "meanCov.h"
+#include "so3Vec.h"
 
-using namespace Eigen;
-using namespace std;
+void batchSolveXY(const Eigen::Matrix4d& A,
+                  const Eigen::Matrix4d& B,
+                  int len,
+                  bool opt,
+                  double nstd_A,
+                  double nstd_B,
+                  Eigen::Matrix4d& X,
+                  Eigen::Matrix4d& Y,
+                  Eigen::MatrixXd& MeanA,
+                  Eigen::MatrixXd& MeanB,
+                  Eigen::MatrixXd& SigA,
+                  Eigen::MatrixXd& SigB) {
 
-Matrix4d vec2mat(VectorXd vec) {
-    Matrix4d mat;
-    mat << vec(0), vec(1), vec(2), vec(3),
-           vec(4), vec(5), vec(6), vec(7),
-           vec(8), vec(9), vec(10), vec(11),
-           vec(12), vec(13), vec(14), vec(15);
-    return mat;
-}
+    Eigen::Matrix4d X_candidate[len], Y_candidate[len];
+    std::vector<Eigen::Matrix4d> A_arr(len, A);
+    std::vector<Eigen::Matrix4d> B_arr(len, B);
+    std::fill(A_arr.begin(), A_arr.end(), A);
+    std::fill(B_arr.begin(), B_arr.end(), B);
 
-VectorXd mat2vec(Matrix4d mat) {
-    VectorXd vec(16);
-    vec << mat(0,0), mat(0,1), mat(0,2), mat(0,3),
-           mat(1,0), mat(1,1), mat(1,2), mat(1,3),
-           mat(2,0), mat(2,1), mat(2,2), mat(2,3),
-           mat(3,0), mat(3,1), mat(3,2), mat(3,3);
-    return vec;
-}
+    // Calculate mean and covariance for A and B
+    meanCov(A_arr.data(), len, MeanA, SigA);
+    meanCov(B_arr.data(), len, MeanB, SigB);
 
-void distibutionProps(const MatrixXd& data, VectorXd& mean, MatrixXd& cov) {
-    int num_samples = data.cols();
-    mean = data.rowwise().mean();
-    MatrixXd centered = data.colwise() - mean;
-    cov = centered * centered.transpose() / (num_samples - 1);
-}
-
-void batchSolveXY(Matrix4d A[8], Matrix4d B[8], bool opt, double nstd_A, double nstd_B, Matrix4d X_candidate[8], Matrix4d Y_candidate[8]) {
-    MatrixXd A_mex(4, 8);
-    MatrixXd B_mex(4, 8);
-
-    for (int i = 0; i < 8; i++) {
-        A_mex.col(i) = mat2vec(A[i]);
-        B_mex.col(i) = mat2vec(B[i]);
-    }
-
-    VectorXd MeanA, MeanB;
-    MatrixXd SigA, SigB;
-
-    distibutionProps(A_mex, MeanA, SigA);
-    distibutionProps(B_mex, MeanB, SigB);
-
+    // update SigA and SigB if nstd_A and nstd_B are known
     if (opt) {
-        SigA -= nstd_A * MatrixXd::Identity(6, 6);
-        SigB -= nstd_B * MatrixXd::Identity(6, 6);
+        SigA -= nstd_A * Eigen::MatrixXd::Identity(6, 6);
+        SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
-    SelfAdjointEigenSolver<MatrixXd> eigA(SigA.block<3,3>(0,0));
-    SelfAdjointEigenSolver<MatrixXd> eigB(SigB.block<3,3>(0,0));
-    MatrixXd VA = eigA.eigenvectors();
-    MatrixXd VB = eigB.eigenvectors();
+    // Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
 
-    MatrixXd Q1 = MatrixXd::Identity(3, 3);
-    MatrixXd Q2(3, 3), Q3(3, 3), Q4(3, 3);
-    Q2 << -1, 0, 0,
-           0, -1, 0,
-           0, 0, 1;
-    Q3 << -1, 0, 0,
-           0, 1, 0,
-           0, 0, -1;
-    Q4 << 1, 0, 0,
-           0, -1, 0,
-           0, 0, -1;
+    auto const VA = eig_solver_A.eigenvectors();
+    auto const VB = eig_solver_B.eigenvectors();
 
-    MatrixXd Rx_solved[8];
+    // Define Q matrices
+    Eigen::MatrixXd Q1, Q2, Q3, Q4;
+    Q1 = Eigen::MatrixXd::Identity(3, 3);
+    Q2 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
+    Q3 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
+    Q4 = (Eigen::MatrixXd(3, 3) << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
+
+    Eigen::Matrix3d Rx_solved[8];
+
+    // There are eight possibilities for Rx
+    Rx_solved[0] = VA * Q1 * VB.transpose();
+    Rx_solved[1] = VA * Q2 * VB.transpose();
+    Rx_solved[2] = VA * Q3 * VB.transpose();
+    Rx_solved[3] = VA * Q4 * VB.transpose();
+    Rx_solved[4] = VA * (-Q1) * VB.transpose();
+    Rx_solved[5] = VA * (-Q2) * VB.transpose();
+    Rx_solved[6] = VA * (-Q3) * VB.transpose();
+    Rx_solved[7] = VA * (-Q4) * VB.transpose();
+
     for (int i = 0; i < 8; i++) {
-        MatrixXd tx_temp = ((Rx_solved[i].transpose()*SigA.block<3,3>(0,0)*Rx_solved[i]).inverse() *
-                            (SigB.block<3,3>(0,3)-Rx_solved[i].transpose()*SigA.block<3,3>(0,3)*Rx_solved[i])).transpose();
-        MatrixXd tx = -Rx_solved[i] * tx_temp;
-        X_candidate[i] << Rx_solved[i], tx, 0, 0, 0, 1;
-        Y_candidate[i] = MeanA * X_candidate[i] / (MeanB);
+        // block SigA and SigB to 3x3 sub-matrices
+        Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
+        Eigen::Matrix3d sigB_33 = SigB.block<3, 3>(0, 3);
+
+        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * sigA_33 * Rx_solved[i]).inverse() *
+                               (sigB_33 - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
+
+        Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
+
+        // Construct X and Y candidates
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
+        Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
+
+        // Set the output X and Y
+        X = X_candidate[i];
+        Y = Y_candidate[i];
     }
-    X = X_candidate;
-    Y = Y_candidate;
+
+    // Set the output MeanA, MeanB, SigA, and SigB
+    MeanA = MeanA * X * MeanB.inverse();
+    MeanB = Eigen::Matrix4d::Identity();
+    SigA = SigA.block<3, 3>(0, 0);
+    SigB = SigB.block<3, 3>(0, 3);
 }
