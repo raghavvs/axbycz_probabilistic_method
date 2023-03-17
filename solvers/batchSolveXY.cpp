@@ -26,7 +26,7 @@ SigB_13, which causes a compiler error, and using an ellipsis
 #include <Eigen/Dense>
 #include <unsupported/Eigen/CXX11/Tensor>
 #include <vector>
-#include <meanCov.h>
+#include "meanCov.h"
 
 using namespace Eigen;
 
@@ -38,10 +38,9 @@ std::vector<MatrixXd> eig(MatrixXd A) {
     return result;
 }
 
-void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B, MatrixXd& X, MatrixXd& Y) {
-    
-    //X = Matrix4d::Zero(4, 4, 8);
-    //Y = Matrix4d::Zero(4, 4, 8);
+void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B,
+                  MatrixXd& X, MatrixXd& Y) {
+
 
     Tensor<double, 3> X(4, 4, 8);
     X.setZero();
@@ -74,7 +73,7 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
 
     MatrixXd VA, VB;
     VA.setZero(3, 3);
-    VB.setZero(3, 3);   
+    VB.setZero(3, 3);
 
     std::vector<MatrixXd> VA_eig, VB_eig;
     VA_eig = eig(SigA.block<3, 3>(0, 0));
@@ -104,8 +103,8 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
         MatrixXd SigA_sub = SigA.block(0, 0, 3, 3);
         MatrixXd SigB_sub = SigB.block(0, 0, 3, 3);
 
-        VectorXd tx_temp_vec = (Rx_solved.block<3, 3>(0, i).transpose() * SigA_sub * Rx_solved.block<3, 3>(0, i)).inverse() * 
-                            (SigB_sub - Rx_solved.block<3, 3>(0, i).transpose() * SigA.block(0, 3, 3, 3));
+        VectorXd tx_temp_vec = (Rx_solved.block<3, 3>(0, i).transpose() * SigA_sub * Rx_solved.block<3, 3>(0, i)).inverse() *
+                               (SigB_sub - Rx_solved.block<3, 3>(0, i).transpose() * SigA.block(0, 3, 3, 3));
         Vector3d tx_temp(tx_temp_vec(0), tx_temp_vec(1), tx_temp_vec(2));
         Vector3d tx = -Rx_solved.block<3, 3>(0, i) * tx_temp;
 
@@ -123,4 +122,29 @@ void batchSolveXY(MatrixXd A, MatrixXd B, bool opt, double nstd_A, double nstd_B
     X = X_candidate;
     Y = Y_candidate;
 
+}
+
+int main() {
+    // Define input parameters for batchSolveXY
+    std::array<Eigen::Matrix4d, Eigen::Dynamic> A;
+    std::array<Eigen::Matrix4d, Eigen::Dynamic> B;
+    bool opt = true;
+    double nstd_A = 1.0;
+    double nstd_B = 1.0;
+
+    // Define output parameters for batchSolveXY
+    std::array<Eigen::Matrix4d, 8> X;
+    std::array<Eigen::Matrix4d, 8> Y;
+    Eigen::Matrix4d MeanA;
+    Eigen::Matrix4d MeanB;
+    Eigen::Matrix<double, 6, 6> SigA;
+    Eigen::Matrix<double, 6, 6> SigB;
+
+    // Call batchSolveXY with the defined input and output parameters
+    batchSolveXY(A,B,opt,nstd_A,nstd_B,X,Y,MeanA,MeanB,SigA,SigB);
+
+    std::cout << "X: " << X << std::endl;
+    std::cout << "Y: " << Y << std::endl;
+
+    return 0;
 }

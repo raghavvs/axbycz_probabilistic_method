@@ -5,6 +5,11 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 add_compile_options(-g)
 
+# Uncomment when compiling on wall-e
+#set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
+# Uncomment when compiling on mac
+set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
+
 # Find Eigen3 library
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -30,10 +35,15 @@ endif()
 include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 
 # Include headers
-include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
+#include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
+include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
+#include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
+include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
+include_directories(${axbycz_probabilistic_method}/util)
 
 # Create executable
-#add_executable(meanCov1 util/meanCov1.cpp)
+#add_executable(meanCov util/meanCov.cpp)
+add_executable(meanCov1 util/meanCov1.cpp)
 #add_executable(meanCovTEST test/meanCovTEST.cpp)
 #add_executable(mvg util/mvg.cpp)
 #add_executable(mvgTEST test/mvgTEST.cpp)
@@ -66,6 +76,8 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 #add_executable(plotProbResults util/plotProbResults.cpp)
 #add_executable(fKine util/fKine.cpp)
 #add_executable(fKineTEST test/fKineTEST.cpp)
+#add_executable(batchSolveXY solvers/batchSolveXY.cpp)
+#add_executable(batchSolveXY1 solvers/batchSolveXY1.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -74,10 +86,12 @@ set(LIBRARIES_TO_LINK
   pthread
   ${PYTHON_LIBRARIES}
   Python3::NumPy
+  #${axbycz_probabilistic_method}/util
 )
 
 # Link all the targets with the library list
-#target_link_libraries(meanCov1 ${LIBRARIES_TO_LINK})
+#target_link_libraries(meanCov ${LIBRARIES_TO_LINK})
+target_link_libraries(meanCov1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(meanCovTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvg ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvgTEST ${LIBRARIES_TO_LINK})
@@ -108,3 +122,5 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(plotProbResults ${LIBRARIES_TO_LINK})
 #target_link_libraries(fKine ${LIBRARIES_TO_LINK})
 #target_link_libraries(fKineTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(batchSolveXY ${LIBRARIES_TO_LINK})
+#target_link_libraries(batchSolveXY1 ${LIBRARIES_TO_LINK})

@@ -79,7 +79,7 @@ and returns its corresponding 3D vector.
 
 //TEST Case
 
-/* int main()
+ int main()
 {
     // Define some 4x4 matrices
     Eigen::MatrixXd X1;
@@ -116,4 +116,4 @@ and returns its corresponding 3D vector.
     std::cout << "Covariance:\n" << result.second << "\n";
 
     return 0;
-} */
+}
