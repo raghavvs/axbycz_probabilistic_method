@@ -1,10 +1,10 @@
 /*
-The code defines two functions: distibutionPropsMex and batchSolveXY. 
+The code defines two functions: distributionPropsMex and batchSolveXY.
 The former function takes a matrix as an input and calculates the 
 covariance matrix of the matrix along with other properties, which 
 it stores in a matrix that it returns. The batchSolveXY function 
 takes several inputs and solves for the rotation matrix X and Y. 
-It does this by first calling the distibutionPropsMex function for 
+It does this by first calling the distributionPropsMex function for
 two matrices A and B, to obtain their mean and covariance matrix. 
 It then calculates the eigenvectors of the covariance matrices, 
 and uses them to calculate eight possible solutions for the 
@@ -43,9 +43,10 @@ void batchSolveXY(const Eigen::Matrix4d A,
                   Eigen::MatrixXd& SigB) {
 
     Eigen::Matrix4d X_candidate[len], Y_candidate[len];
-    std::vector<Eigen::Matrix4d> A_arr(len), B_arr(len);
-    A_arr.fill(A);
-    B_arr.fill(B);
+    std::vector<Eigen::Matrix4d> A_arr(len, A);
+    std::vector<Eigen::Matrix4d> B_arr(len, B);
+    std::fill(A_arr.begin(), A_arr.end(), A);
+    std::fill(B_arr.begin(), B_arr.end(), B);
 
     // Calculate mean and covariance for A and B
     meanCov(A_arr.data(), len, MeanA, SigA);
@@ -84,7 +85,7 @@ void batchSolveXY(const Eigen::Matrix4d A,
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
     for (int i = 0; i < 8; i++) {
-        // block SigA and SigB to 3x3 submatrices
+        // block SigA and SigB to 3x3 sub-matrices
         Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
         Eigen::Matrix3d sigB_33 = SigB.block<3, 3>(0, 3);
 
@@ -96,30 +97,11 @@ void batchSolveXY(const Eigen::Matrix4d A,
         // Construct X and Y candidates
         X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
+
+        // Set the output X and Y
+        X = X_candidate[i];
+        Y = Y_candidate[i];
     }
-
-    // Choose the best X and Y candidates
-    int best_idx = -1;
-    double best_err = std::numeric_limits<double>::max();
-
-    for (int i = 0; i < 8; i++) {
-        // Compute the error for the current X and Y candidates
-        double err = 0;
-        for (int j = 0; j < len; j++) {
-            Eigen::Matrix4d X[j], Y[i] = X_candidate[i] * A[j] * Y_candidate[i].inverse();
-            err += (X[j] * Y[i] - B[j]).squaredNorm();
-        }
-
-        // Update the best candidate if the error is smaller
-        if (err < best_err) {
-            best_idx = i;
-            best_err = err;
-        }
-    }
-
-    // Set the output X and Y
-    X = X_candidate[best_idx];
-    Y = Y_candidate[best_idx];
 
     // Set the output MeanA, MeanB, SigA, and SigB
     MeanA = MeanA * X * MeanB.inverse();
@@ -127,3 +109,46 @@ void batchSolveXY(const Eigen::Matrix4d A,
     SigA = SigA.block<3, 3>(0, 0);
     SigB = SigB.block<3, 3>(0, 3);
 }
+
+int main() {
+    Eigen::Matrix4d A = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d B = Eigen::Matrix4d::Random();
+    int len = 10;
+    bool opt = true;
+    double nstd_A = 0.1;
+    double nstd_B = 0.2;
+    Eigen::Matrix4d X, Y;
+    Eigen::MatrixXd MeanA(6, 6), MeanB(6, 6), SigA(6, 6), SigB(6, 6);
+
+    batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
+                 X,Y,
+                 MeanA,
+                 MeanB,
+                 SigA,
+                 SigB);
+
+    std::cout << "X: \n" << X << std::endl;
+    std::cout << "Y: \n" << Y << std::endl;
+
+    return 0;
+}
+
+/*
+// Choose the best X and Y candidates
+int best_idx = -1;
+double best_err = std::numeric_limits<double>::max();
+
+for (int i = 0; i < 8; i++) {
+// Compute the error for the current X and Y candidates
+double err = 0;
+for (int j = 0; j < len; j++) {
+X(j) = X_candidate(i) * A(j) * Y_candidate(i).inverse();
+err += (X[j] * Y[i] - B[j]).squaredNorm();
+}
+
+// Update the best candidate if the error is smaller
+if (err < best_err) {
+best_idx = i;
+best_err = err;
+}
+}*/
