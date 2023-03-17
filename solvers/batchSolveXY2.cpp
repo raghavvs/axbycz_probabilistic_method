@@ -24,29 +24,33 @@ SigB_13, which causes a compiler error, and using an ellipsis
 
 #include <iostream>
 #include <array>
+#include <vector>
 #include <Eigen/Dense>
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d A,
-                  const Eigen::Matrix4d B,
+void batchSolveXY(const Eigen::Matrix4d& A,
+                  const Eigen::Matrix4d& B,
                   int len,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
                   Eigen::Matrix4d& X,
                   Eigen::Matrix4d& Y,
-                  Eigen::Matrix4d& MeanA,
-                  Eigen::Matrix4d& MeanB,
+                  Eigen::MatrixXd& MeanA,
+                  Eigen::MatrixXd& MeanB,
                   Eigen::MatrixXd& SigA,
                   Eigen::MatrixXd& SigB) {
 
     Eigen::Matrix4d X_candidate[len], Y_candidate[len];
-    Eigen::Matrix4d A[len], B[len];
+    std::vector<Eigen::Matrix4d> A_arr(len, A);
+    std::vector<Eigen::Matrix4d> B_arr(len, B);
+    std::fill(A_arr.begin(), A_arr.end(), A);
+    std::fill(B_arr.begin(), B_arr.end(), B);
 
     // Calculate mean and covariance for A and B
-    meanCov(A, len, MeanA, SigA);
-    meanCov(B, len, MeanB, SigB);
+    meanCov(A_arr.data(), len, MeanA, SigA);
+    meanCov(B_arr.data(), len, MeanB, SigB);
 
     // update SigA and SigB if nstd_A and nstd_B are known
     if (opt) {
@@ -58,8 +62,8 @@ void batchSolveXY(const Eigen::Matrix4d A,
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
 
-    auto VA = eig_solver_A.eigenvectors();
-    auto VB = eig_solver_B.eigenvectors();
+    auto const VA = eig_solver_A.eigenvectors();
+    auto const VB = eig_solver_B.eigenvectors();
 
     // Define Q matrices
     Eigen::MatrixXd Q1, Q2, Q3, Q4;
@@ -81,14 +85,70 @@ void batchSolveXY(const Eigen::Matrix4d A,
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
     for (int i = 0; i < 8; i++) {
-        SigA = SigA.block<3, 3>(0, 0);
-        SigB = SigB.block<3, 3>(0, 3);
-        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA * Rx_solved[i]).inverse() *
-                                (SigB - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
+        // block SigA and SigB to 3x3 sub-matrices
+        Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
+        Eigen::Matrix3d sigB_33 = SigB.block<3, 3>(0, 3);
+
+        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * sigA_33 * Rx_solved[i]).inverse() *
+                               (sigB_33 - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
+
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, 0, 0, 0, 1;
+
+        // Construct X and Y candidates
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
-        //X[i] = X_candidate[i];
-        //Y[i] = Y_candidate[i];
+
+        // Set the output X and Y
+        X = X_candidate[i];
+        Y = Y_candidate[i];
     }
+
+    // Set the output MeanA, MeanB, SigA, and SigB
+    MeanA = MeanA * X * MeanB.inverse();
+    MeanB = Eigen::Matrix4d::Identity();
+    SigA = SigA.block<3, 3>(0, 0);
+    SigB = SigB.block<3, 3>(0, 3);
 }
+
+int main() {
+    Eigen::Matrix4d A = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d B = Eigen::Matrix4d::Random();
+    int len = 10;
+    bool opt = true;
+    double nstd_A = 0.1;
+    double nstd_B = 0.2;
+    Eigen::Matrix4d X, Y;
+    Eigen::MatrixXd MeanA(6, 6), MeanB(6, 6), SigA(6, 6), SigB(6, 6);
+
+    batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
+                 X,Y,
+                 MeanA,
+                 MeanB,
+                 SigA,
+                 SigB);
+
+    std::cout << "X: \n" << X << std::endl;
+    std::cout << "Y: \n" << Y << std::endl;
+
+    return 0;
+}
+
+/*
+// Choose the best X and Y candidates
+int best_idx = -1;
+double best_err = std::numeric_limits<double>::max();
+
+for (int i = 0; i < 8; i++) {
+// Compute the error for the current X and Y candidates
+double err = 0;
+for (int j = 0; j < len; j++) {
+X(j) = X_candidate(i) * A(j) * Y_candidate(i).inverse();
+err += (X[j] * Y[i] - B[j]).squaredNorm();
+}
+
+// Update the best candidate if the error is smaller
+if (err < best_err) {
+best_idx = i;
+best_err = err;
+}
+}*/

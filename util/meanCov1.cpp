@@ -1,3 +1,19 @@
+/*
+DESCRIPTION:
+
+This program defines several functions for calculating the mean
+and covariance of a set of 4x4 matrices. The log function takes
+a 4x4 matrix and calculates its matrix logarithm, while the vex
+function takes a 3x3 matrix and returns its vector of exteriorization.
+The meanCov function takes an array of 3x3 matrices and its size
+N and calculates the mean and covariance of the logarithms of those
+matrices. It does this by first taking the average of the logarithms
+using the expm function, then iteratively refining this average until
+convergence using the log and vex functions. Finally, it calculates
+the covariance by taking the vector of differences between each logarithm
+and the mean logarithm and computing their outer product.
+*/
+
 #include <iostream>
 #include <cmath>
 #include <Eigen/Dense>

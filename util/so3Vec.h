@@ -9,18 +9,27 @@ an element of the special orthogonal group SO(3), which is used in 3D
 rotation calculations.
 */
 
+#ifndef SO3VEC_H
+#define SO3VEC_H
+
 #include <eigen3/Eigen/Core>
 
-Eigen::Matrix3d so3_vec(const Eigen::Vector3d& X) {
-  Eigen::Matrix3d g;
-  if (X.size() == 3) {
-    g << 0, -X(2), X(1),
-         X(2), 0, -X(0),
-         -X(1), X(0), 0;
-  } else { 
-    g << 0, -X(2), X(1),
-         X(2), 0, -X(0),
-         -X(1), X(0), 0;
-  }
-  return g;
+Eigen::MatrixXd so3Vec(const Eigen::MatrixXd& X)
+{
+    if (X.cols() == 3) // If input is skew-sym change to vector
+    {
+        Eigen::Matrix<double, 3, 1> g;
+        g << -X(1,2), X(0,2), -X(0,1);
+        return g;
+    }
+    else // If input is vector change to skew-sym
+    {
+        Eigen::Matrix3d g;
+        g << 0, -X(2), X(1),
+                X(2), 0, -X(0),
+                -X(1), X(0), 0;
+        return g;
+    }
 }
+
+#endif
