@@ -1,192 +1,86 @@
-#include <unsupported/Eigen/MatrixFunctions>
 #include <iostream>
-#include <vector>
+#include <cmath>
+#include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 
-Eigen::Vector3d vex(const Eigen::Matrix3d& S)
-{
-    Eigen::Vector3d w;
-    w << S(2, 1), S(0, 2), S(1, 0);
-    return w;
+// Define a function that converts a 3x3 skew-symmetric matrix into a 3x1 vector
+Eigen::Vector3d vex(Eigen::Matrix3d M) {
+    Eigen::Vector3d v;
+    v << M(2,1), M(0,2), M(1,0);
+    return v;
 }
 
-void meanCov(Eigen::MatrixXd X, Eigen::MatrixXd& Mean, Eigen::MatrixXd& Cov)
-{
-    int N = X.cols() / 4;
-    Mean = Eigen::MatrixXd::Identity(4, 4);
-    Cov = Eigen::MatrixXd::Zero(6, 6);
-
-    // Initial approximation of Mean
-    Eigen::MatrixXd sum_se = Eigen::MatrixXd::Zero(4, 4);
-    for (int i = 0; i < N; i++)
-    {
-        sum_se += X.block<4, 4>(0, 4*i).log();
+void meanCov(Eigen::MatrixXd* X, int N, Eigen::Matrix4d& Mean, Eigen::MatrixXd& Cov) {
+    Mean = Eigen::Matrix4d::Identity();
+    Cov = Eigen::MatrixXd::Zero(6,6);
+    Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
+    for (int i = 0; i < N; i++) {
+        sum_se += X[i].log();
     }
-    Mean = (sum_se / N).exp();
+    Mean = (sum_se/N).exp();
 
     // Iterative process to calculate the true Mean
-    Eigen::MatrixXd diff_se = Eigen::MatrixXd::Ones(4, 4);
+    Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
     int max_num = 100;
     double tol = 1e-5;
     int count = 1;
-    while (diff_se.norm() >= tol && count <= max_num)
-    {
-        diff_se.setZero();
-        for (int i = 0; i < N; i++)
-        {
-            diff_se += (Mean.inverse() * X.block<4, 4>(0, 4*i)).log();
+    while (diff_se.norm() >= tol && count <= max_num) {
+        diff_se = Eigen::Matrix4d::Zero();
+        for (int i = 0; i < N; i++) {
+            diff_se += (Mean.inverse()*X[i]).log();
         }
-        Mean = Mean * diff_se.exp() / N;
+        Mean *= (diff_se/N).exp();
         count++;
     }
 
     // Covariance
-    for (int i = 0; i < N; i++)
-    {
-        Eigen::MatrixXd diff_se = (Mean.inverse() * X.block<4, 4>(0, 4*i)).log();
+    for (int i = 0; i < N; i++) {
+        diff_se = (Mean.inverse()*X[i]).log();
         Eigen::VectorXd diff_vex(6);
-        diff_vex << vex(diff_se.block<3, 3>(0, 0)), diff_se.block<3, 1>(0, 3);
+        diff_vex << vex(diff_se.block<3,3>(0,0)), diff_se.block<3,1>(0,3);
         Cov += diff_vex * diff_vex.transpose();
     }
     Cov /= N;
 }
 
-/* int main()
+int main()
 {
-    std::cout << "Build successful" << std::endl;
-    return 0;
-} */
-
-int main() 
-{
-    Eigen::MatrixXd X(4, 16);
-    X << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16;
-
-    Eigen::MatrixXd Mean, Cov;
-    meanCov(X, Mean, Cov);
-
-    std::cout << "Mean: " << std::endl << Mean << std::endl;
-    std::cout << "Covariance: " << std::endl << Cov << std::endl;
-
-     return 0;
-}
-
-/* int main() 
-{
-    MatrixXd X(4, 4 * 3);
-    X << 1, 0, 0, 1,
-         0, 0, 1, 1,
-         0, 1, 0, 1,
-         1, 1, 1, 0,
-         0, 1, 1, 1,
-         1, 0, 1, 1,
-         1, 1, 0, 1,
-         1, 1, 1, 1,
-         0, 1, 1, 1,
-         1, 0, 1, 1,
-         1, 1, 0, 1,
-         1, 1, 1, 1;
-
-    MatrixXd Mean;
-    MatrixXd Cov;
-    meanCov(X, Mean, Cov);
-
-    std::cout << "Mean: " << std::endl << Mean << std::endl;
-    std::cout << "Covariance: " << std::endl << Cov << std::endl;
-
-     return 0;
-} */
-
-/* int main()
-{
-    // Define some 4x4 matrices
-    Eigen::MatrixXd X1;
-    X1 << 1, 0, 0, 1,
-          0, 1, 0, 2,
-          0, 0, 1, 3,
-          0, 0, 0, 1;
-          
-    Eigen::MatrixXd X2;
-    X2 << -1, 0, 0, 4,
-          0, -1, 0, 5,
-          0, 0, -1, 6,
-          0, 0, 0, 1;
-          
-    Eigen::MatrixXd X3;
-    X3 << 0, 1, 0, 7,
-          -1, 0, 0, 8,
-          0, 0, 1, 9,
-          0, 0, 0, 1;
-
-    // Put the matrices in a vector
-    Eigen::MatrixXd X(16, 3);
-    Eigen::Map<Eigen::MatrixXd>(X.data(), 4, 4) = X1;
-    Eigen::Map<Eigen::MatrixXd>(X.data() + 16, 4, 4) = X2;
-    Eigen::Map<Eigen::MatrixXd>(X.data() + 32, 4, 4) = X3;
-
-    // Compute the mean and covariance
-    Eigen::VectorXd Mean(4);
-    Eigen::MatrixXd Cov(6, 6);
-    result = meanCov(X, Mean, Cov);
-
-    // Print the results
-    std::cout << "Mean:\n" << result.first << "\n";
-    std::cout << "Covariance:\n" << result.second << "\n";
-
-    return 0;
-} */
-
-/* int main()
-{
-    // Generate some random 4x4 matrices
-    int N = 10;
-    MatrixXd X(4, 4*N);
-    for (int i = 0; i < N; i++)
-    {
-        Matrix4d M = Matrix4d::Random();
-        X.block<4, 4>(0, 4*i) = M.exp();
-    }
-
-    // Calculate the mean and covariance
-    MatrixXd Mean, Cov;
-    meanCov(X, Mean, Cov);
-
-    // Print the results
-    cout << "Mean: " << endl << Mean << endl;
-    cout << "Covariance: " << endl << Cov << endl;
-
-    return 0;
-} */
-
-/* int main()
-{
-    // Define random dataset
-    int N = 10; // number of samples
-    MatrixXd X(4, 4*N); // data matrix
+    int N = 5;
+    Eigen::MatrixXd* X = new Eigen::MatrixXd[N]; // Dynamically allocate memory for the array
     for (int i = 0; i < N; i++) {
-        Matrix4d T = Matrix4d::Identity();
-        Quaterniond q = Quaterniond(AngleAxisd(rand() % 10 / 10.0, Vector3d::UnitX())
-                              * AngleAxisd(rand() % 10 / 10.0, Vector3d::UnitY())
-                              * AngleAxisd(rand() % 10 / 10.0, Vector3d::UnitZ()));
-        Matrix3d R = q.toRotationMatrix();
-
-        T.block<3, 3>(0, 0) = R;
-        T(0, 3) = rand() % 10;
-        T(1, 3) = rand() % 10;
-        T(2, 3) = rand() % 10;
-        X.block<4, 4>(0, 4*i) = T;
+        X[i] = Eigen::MatrixXd(4,4); // Initialize each element as a 4x4 matrix
+        X[i] << rand()%10+1 , rand()%10+1 , rand()%10+1 , rand()%10+1 , // Fill each element with random numbers from 1 to 10
+                rand()%10+1 , rand()%10+1 , rand()%10+1 , rand()%10+1 ,
+                rand()%10+1 , rand()%10+1 , rand()%10+1 , rand()%10+1 ,
+                rand()%10+1 , rand()%10+1 , rand()%10+1 , rand()%10+1 ;
     }
 
-    // Calculate mean and covariance
-    Matrix4d Mean;
-    MatrixXd Cov;
-    meanCov(X, Mean, Cov);
+    // Print the input array
+    std::cout << "The input array is: " << std::endl;
+    for (int i = 0; i < N; i++) {
+        std::cout << "X[" << i << "] =" << std::endl;
+        std::cout << X[i] << std::endl;
+        std::cout << std::endl;
+    }
 
-    // Print results
-    cout << "Mean:" << endl << Mean << endl << endl;
-    cout << "Covariance:" << endl << Cov << endl;
+    // Declare variables to store the output mean and covariance
+    Eigen::Matrix4d Mean;
+    Eigen::MatrixXd Cov;
+
+    // Call the meanCov function with the input and output arguments
+    meanCov(X,N,Mean,Cov);
+
+    // Print the output mean and covariance
+    std::cout << "The output mean is: " << std::endl;
+    std::cout << Mean << std::endl;
+
+    std::cout <<"The output covariance is:"<<std::endl;
+
+    std::cout<<Cov<<std::endl;
+
+    // Free the memory allocated for the input array
+
+    delete[] X;
 
     return 0;
-} */
+}
