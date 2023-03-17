@@ -91,7 +91,6 @@ set(LIBRARIES_TO_LINK
   pthread
   ${PYTHON_LIBRARIES}
   Python3::NumPy
-  #${axbycz_probabilistic_method}/util
 )
 
 # Link all the targets with the library list
