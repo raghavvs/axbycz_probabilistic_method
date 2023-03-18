@@ -20,6 +20,22 @@ is unclear what effect this has on the calculation. Additionally,
 the code contains some errors, such as redefining SigA_13 and
 SigB_13, which causes a compiler error, and using an ellipsis
 (...) instead of an integer to index into the Rx_solved array.
+
+%% Calculate X using mean and covariance propagation
+% calculate Y using mean propagation (AX = YB)
+%
+ Input: A : 4 x 4 x n
+        B : 4 x 4 x n
+        len : number of A, B matrices
+        opt : true - known nstd of data noise
+        nstd_A : standard deviation of A
+        nstd_B : standard deviation of B
+        MeanA, MeanB, SigA, SigB : Mean and Covariance of A, B - pass by reference
+
+
+ Output:
+       X : 4 x 4 x 8 - pass by reference to the solver
+       Y : 4 x 4 x 8 - pass by reference to the solver
 */
 
 #include <iostream>

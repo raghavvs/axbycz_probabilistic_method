@@ -16,181 +16,89 @@ select those that satisfy certain constraints, in order to estimate the desired 
 #include <eigen3/Eigen/Dense>
 #include <batchSolveXY.h>
 
-using namespace Eigen;
+void axbyczProb1(const Eigen::Matrix4d& A1,
+                 const Eigen::Matrix4d& B1,
+                 const Eigen::Matrix4d& C1,
+                 const Eigen::Matrix4d& A2,
+                 const Eigen::Matrix4d& B2,
+                 const Eigen::Matrix4d& C2,
+                 bool opt,
+                 double nstd1,
+                 double nstd2,
+                 int len,
+                 Eigen::Matrix4d& X_final,
+                 Eigen::Matrix4d& Y_final,
+                 Eigen::Matrix4d& Z_final) {
 
-void axbyczProb1(Matrix4d A1, Matrix4d B1, Matrix4d C1, Matrix4d A2, Matrix4d B2, Matrix4d C2,
-                  int opt, double nstd1, double nstd2, Matrix4d& X_final, Matrix4d& Y_final, Matrix4d& Z_final)
-{
-    Matrix4d A1_1 = A1, C2_1 = C2;
+    //   A1 is constant with B1 and C1 free
+    //   C2 is constant with A2 and B2 free
 
-    Matrix4d Z_g[4];
-    Matrix4d MeanC1, MeanB1;
-    int s_Z = 0;
+    //// ------ Solve for Z -------- //
+    // A1 fixed, B1 and C1 free
 
-    // calculate Z_g : all guesses of Z
-    // Normally, there will be four Z ∈ SE(3)
-    // Keep the candidates of Z that are SE(3)
-    for (int i = 0; i < 4; i++)
-    {
-        // Note that the MATLAB function `batchSolveXY` is not defined here.
-        // You'll need to provide an implementation of this function.
-        // This function should take two 4x4 matrices and return a 4x4 matrix.
-        Z_g[i] = batchSolveXY(C1, B1, opt, nstd1, nstd2);
-        if (Z_g[i].determinant() > 0)
-        {
-            s_Z++;
+    //// ------ using probability methods ------
+
+    std::vector<Eigen::MatrixXd> MeanA(2), MeanB(2), MeanC(2), SigA(2), SigB(2), SigC(2);
+
+    std::vector<Eigen::MatrixXd> Z_g;
+
+    batchSolveXY(C1, B1, len, opt, nstd1, nstd2, X_final, Z_final,
+                 MeanC[0], MeanB[0], SigC[0], SigB[0]);
+
+    std::vector<Eigen::MatrixXd> Z;
+
+    for (const auto &z: Z_g) {
+        if (z.determinant() > 0) {
+            Z.push_back(z);
         }
     }
 
-    Matrix4d X_g[4];
-    Matrix4d MeanA2, MeanB2;
-    int s_X = 0;
+    int s_Z = static_cast<int>(Z.size());
 
-    // Calculate B2^-1
-    int Num = A2.cols();
-    Matrix4d A2_inv[Num], B2_inv[Num];
-    for (int i = 0; i < Num; i++)
-    {
-        A2_inv[i] = A2[i].inverse();
-        B2_inv[i] = B2[i].inverse();
+    std::cout << "works till here?" << std::endl;
+
+    //// ------ Solve for X -------- //
+    // C2 fixed, A2 and B2 free
+
+    //// ------ Calculate B2^-1 -------
+
+    size_t dim1 = 4;
+    size_t dim2 = 4;
+    int Num = static_cast<int>(A2.size());
+
+    std::vector<Eigen::MatrixXd> A2_inv(Num), B2_inv(Num);
+
+    for (int i = 0; i < Num; ++i) {
+        Eigen::Matrix4d A2_mat = A2.block(0, i*dim2, dim1, dim2);
+        Eigen::Matrix4d B2_mat = B2.block(0, i*dim2, dim1, dim2);
+        A2_inv[i] = A2_mat.inverse();
+        B2_inv[i] = B2_mat.inverse();
     }
 
+    //// ------ using probability methods ------
     // calculate X_g : all guesses of X
-    // Keep the candidates of X that are SE(3)
-    for (int i = 0; i < 4; i++)
-    {
-        X_g[i] = batchSolveXY(A2, B2_inv, opt, nstd1, nstd2);
-        if (X_g[i].determinant() > 0)
-        {
-            s_X++;
+    std::vector<Eigen::MatrixXd> X_g, MeanA2, MeanB2;
+
+    batchSolveXY(A2, B2, len, opt, nstd1, nstd2, X_g, Y_final,
+                 MeanA2[0], MeanB2[0], SigA[0], SigB[0]);
+
+    // Calculate MeanB2 for computing Y later
+    // Note: can be further simplified by using only the distribution function
+
+    batchSolveXY(A2_inv, B2, len, opt, nstd1, nstd2, X_final, Y_final,
+                 MeanA2[0], MeanB2[0], SigA[0], SigB[0]);
+
+    // Keep the candidates of X that are SE3
+    // Normally, there will be four X \in SE3
+    int X_index = 1;
+
+    std::vector<Eigen::MatrixXd> X;
+
+    for (const auto &x : X_g) {
+        if (x.determinant() > 0) {
+            X.push_back(x);
+            ++X_index;
         }
     }
 
-    // Compute Y using the mean equations
-    Matrix4d Y[2 * s_X * s_Z];
-    int k = 0;
-    for (int i = 0; i < s_X; i++)
-    {
-        for (int j = 0; j < s_Z; j++)
-        {
-            // There are at least four mean equations to choose from to compute
-            // Y. It will be interesting to see how each choice of the mean
-            // equations can affect the result
-            Y[k] = (A1_1.array() * X_g[i].array() * MeanB1.array() / Z_g[j].array()).matrix() / MeanC1.array();
-            Y[k + s_X * s_Z] = (MeanA2.array() * X_g[i].array() * MeanB2.array() / Z_g[j].array()).matrix() / C2_1.array();
-            k++;
-        }
-    }
-
-    // Find out the optimal (X, Y, Z) that minimizes cost
-    int s_Y = 2 * s_X * s_Z;
-    MatrixXd cost(s_X, s_Y * s_Z);
-    double weight = 1.0 / (2.0 * sigma * sigma);
-
-    for (int x = 0; x < s_X; x++) {
-        for (int yz = 0; yz < s_Y * s_Z; yz++) {
-            int y = yz % s_Y;
-            int z = yz / s_Y;
-            double diff = (data(x, y, z) - mu(x, y, z));
-            cost(x, yz) = weight * diff * diff;
-        }
-    }
-
-    MatrixXd D(s_X, s_Y * s_Z);
-    D.setConstant(0.0);
-
-    for (int x = 1; x < s_X; x++) {
-        for (int yz = 0; yz < s_Y * s_Z; yz++) {
-            int y = yz % s_Y;
-            int z = yz / s_Y;
-
-            double min_val = D(x - 1, yz);
-            if (y > 0 && z > 0) {
-                min_val = std::min(min_val, D(x - 1, (y - 1) * s_Z + (z - 1)));
-            }
-            if (y > 0) {
-                min_val = std::min(min_val, D(x - 1, (y - 1) * s_Z + z));
-            }
-            if (z > 0) {
-                min_val = std::min(min_val, D(x - 1, y * s_Z + (z - 1)));
-            }
-
-            D(x, yz) = cost(x, yz) + min_val;
-        }
-    }
-
-    // Backtracking to find the optimal path
-    int best_yz = 0;
-    for (int yz = 1; yz < s_Y * s_Z; yz++) {
-        if (D(s_X - 1, yz) < D(s_X - 1, best_yz)) {
-            best_yz = yz;
-        }
-    }
-
-    VectorXi seam_indices(s_X);
-    seam_indices(s_X - 1) = best_yz % s_Y;
-    for (int x = s_X - 2; x >= 0; x--) {
-        int y = seam_indices(x + 1);
-        int z = best_yz / s_Y;
-        double min_val = D(x, y * s_Z + z);
-        seam_indices(x) = y;
-        if (y > 0 && z > 0) {
-            if (D(x, (y - 1) * s_Z + (z - 1)) < min_val) {
-                min_val = D(x, (y - 1) * s_Z + (z - 1));
-                seam_indices(x) = y - 1;
-            }
-        }
-        if (y > 0) {
-            if (D(x, (y - 1) * s_Z + z) < min_val) {
-                min_val = D(x, (y - 1) * s_Z + z);
-                seam_indices(x) = y - 1;
-            }
-        }
-        if (z > 0) {
-            if (D(x, y * s_Z + (z - 1)) < min_val) {
-                min_val = D(x, y * s_Z + (z - 1));
-                seam_indices(x) = y;
-            }
-        }
-        best_yz = seam_indices(x) * s_Y + z;
-    }
-
-    return seam_indices;
-
-}
-
-int main() {
-    // Load the input data
-    MatrixXd
-    input_data;
-    ifstream input_file("input.txt");
-    input_file >> input_data;
-    // Get the dimensions of the input data
-    int n = input_data.rows();
-    int m = input_data.cols();
-
-    // Compute the optimal (X, Y, Z) that minimizes cost
-    int s_X = round(pow(n, 1.0 / 3.0));
-    int s_Z = round(pow(m, 1.0 / 3.0));
-    int s_Y = 2 * s_X * s_Z;
-    MatrixXd cost(s_X, s_Y * s_Z);
-    double weight = 1.0 / (s_X * s_Y * s_Z);
-
-    for (int i = 0; i < s_X; i++) {
-        for (int j = 0; j < s_Y * s_Z; j++) {
-            cost(i, j) = weight * compute_cost(input_data, s_X, s_Y, s_Z, i, j);
-        }
-    }
-
-    VectorXd X, Y, Z;
-    tie(X, Y, Z) = optimize_cost(cost);
-
-    // Compute the tensor approximation
-    MatrixXd tensor_approximation = compute_tensor_approximation(input_data, X, Y, Z);
-
-    // Save the tensor approximation to a file
-    ofstream output_file("output.txt");
-    output_file << tensor_approximation;
-
-    return 0;
 }
