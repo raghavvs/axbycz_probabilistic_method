@@ -1,24 +1,24 @@
 /*
 The code defines two functions: distributionPropsMex and batchSolveXY.
-The former function takes a matrix as an input and calculates the 
-covariance matrix of the matrix along with other properties, which 
-it stores in a matrix that it returns. The batchSolveXY function 
-takes several inputs and solves for the rotation matrix X and Y. 
+The former function takes a matrix as an input and calculates the
+covariance matrix of the matrix along with other properties, which
+it stores in a matrix that it returns. The batchSolveXY function
+takes several inputs and solves for the rotation matrix X and Y.
 It does this by first calling the distributionPropsMex function for
-two matrices A and B, to obtain their mean and covariance matrix. 
-It then calculates the eigenvectors of the covariance matrices, 
-and uses them to calculate eight possible solutions for the 
-rotation matrix. It stores these solutions in two arrays, one 
+two matrices A and B, to obtain their mean and covariance matrix.
+It then calculates the eigenvectors of the covariance matrices,
+and uses them to calculate eight possible solutions for the
+rotation matrix. It stores these solutions in two arrays, one
 for X and one for Y.
 
-The batchSolveXY function can also adjust the covariance matrices 
-of A and B based on nstd_A and nstd_B. If the boolean input "opt" 
-is true, then the covariance matrices are adjusted by subtracting 
-the identity matrix multiplied by nstd_A and nstd_B. The code does 
-not explain what these values are or what they represent, so it 
-is unclear what effect this has on the calculation. Additionally, 
-the code contains some errors, such as redefining SigA_13 and 
-SigB_13, which causes a compiler error, and using an ellipsis 
+The batchSolveXY function can also adjust the covariance matrices
+of A and B based on nstd_A and nstd_B. If the boolean input "opt"
+is true, then the covariance matrices are adjusted by subtracting
+the identity matrix multiplied by nstd_A and nstd_B. The code does
+not explain what these values are or what they represent, so it
+is unclear what effect this has on the calculation. Additionally,
+the code contains some errors, such as redefining SigA_13 and
+SigB_13, which causes a compiler error, and using an ellipsis
 (...) instead of an integer to index into the Rx_solved array.
 */
 
@@ -35,8 +35,8 @@ void batchSolveXY(const Eigen::Matrix4d& A,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  Eigen::Matrix4d& X,
-                  Eigen::Matrix4d& Y,
+                  std::vector<Eigen::MatrixXd> &X,
+                  std::vector<Eigen::MatrixXd> &Y,
                   Eigen::MatrixXd& MeanA,
                   Eigen::MatrixXd& MeanB,
                   Eigen::MatrixXd& SigA,
@@ -62,8 +62,8 @@ void batchSolveXY(const Eigen::Matrix4d& A,
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
 
-    auto const VA = eig_solver_A.eigenvectors();
-    auto const VB = eig_solver_B.eigenvectors();
+    auto const& VA = eig_solver_A.eigenvectors();
+    auto const& VB = eig_solver_B.eigenvectors();
 
     // Define Q matrices
     Eigen::MatrixXd Q1, Q2, Q3, Q4;
@@ -99,12 +99,14 @@ void batchSolveXY(const Eigen::Matrix4d& A,
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
 
         // Set the output X and Y
-        X = X_candidate[i];
-        Y = Y_candidate[i];
+        X[i] = X_candidate[i];
+        Y[i] = Y_candidate[i];
     }
 
     // Set the output MeanA, MeanB, SigA, and SigB
-    MeanA = MeanA * X * MeanB.inverse();
+    for (int i = 0; i < 8; i++) {
+        MeanA = MeanA * X[i] * MeanB.inverse();
+    }
     MeanB = Eigen::Matrix4d::Identity();
     SigA = SigA.block<3, 3>(0, 0);
     SigB = SigB.block<3, 3>(0, 3);
@@ -117,7 +119,7 @@ int main() {
     bool opt = true;
     double nstd_A = 0.1;
     double nstd_B = 0.2;
-    Eigen::Matrix4d X, Y;
+    std::vector<Eigen::MatrixXd> X(len), Y(len);
     Eigen::MatrixXd MeanA(6, 6), MeanB(6, 6), SigA(6, 6), SigB(6, 6);
 
     batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
@@ -127,28 +129,8 @@ int main() {
                  SigA,
                  SigB);
 
-    std::cout << "X: \n" << X << std::endl;
-    std::cout << "Y: \n" << Y << std::endl;
+    std::cout << "X: \n" << X[0] << std::endl;
+    std::cout << "Y: \n" << Y[0] << std::endl;
 
     return 0;
 }
-
-/*
-// Choose the best X and Y candidates
-int best_idx = -1;
-double best_err = std::numeric_limits<double>::max();
-
-for (int i = 0; i < 8; i++) {
-// Compute the error for the current X and Y candidates
-double err = 0;
-for (int j = 0; j < len; j++) {
-X(j) = X_candidate(i) * A(j) * Y_candidate(i).inverse();
-err += (X[j] * Y[i] - B[j]).squaredNorm();
-}
-
-// Update the best candidate if the error is smaller
-if (err < best_err) {
-best_idx = i;
-best_err = err;
-}
-}*/

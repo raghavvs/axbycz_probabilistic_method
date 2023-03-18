@@ -26,9 +26,9 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
                  double nstd1,
                  double nstd2,
                  int len,
-                 Eigen::Matrix4d& X_final,
-                 Eigen::Matrix4d& Y_final,
-                 Eigen::Matrix4d& Z_final) {
+                 std::vector<Eigen::MatrixXd>& X_final,
+                 std::vector<Eigen::MatrixXd>& Y_final,
+                 std::vector<Eigen::MatrixXd>& Z_final) {
 
     //   A1 is constant with B1 and C1 free
     //   C2 is constant with A2 and B2 free
@@ -66,13 +66,13 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
     size_t dim2 = 4;
     int Num = static_cast<int>(A2.size());
 
-    std::vector<Eigen::MatrixXd> A2_inv(Num), B2_inv(Num);
+    Eigen::MatrixXd A2_inv, B2_inv;
 
     for (int i = 0; i < Num; ++i) {
         Eigen::Matrix4d A2_mat = A2.block(0, i*dim2, dim1, dim2);
         Eigen::Matrix4d B2_mat = B2.block(0, i*dim2, dim1, dim2);
-        A2_inv[i] = A2_mat.inverse();
-        B2_inv[i] = B2_mat.inverse();
+        A2_inv(i) = A2_mat.inverse();
+        B2_inv(i) = B2_mat.inverse();
     }
 
     //// ------ using probability methods ------

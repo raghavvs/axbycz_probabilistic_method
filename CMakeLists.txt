@@ -81,8 +81,8 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(fKineTEST test/fKineTEST.cpp)
 #add_executable(batchSolveXY solvers/batchSolveXY.cpp)
 #add_executable(batchSolveXY1 solvers/batchSolveXY1.cpp)
-#add_executable(batchSolveXY2 solvers/batchSolveXY2.cpp)
-add_executable(axbyczProb1_v3 solvers/axbyczProb1_v3.cpp)
+add_executable(batchSolveXY2 solvers/batchSolveXY2.cpp)
+#add_executable(axbyczProb1_v3 solvers/axbyczProb1_v3.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -130,5 +130,5 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(fKineTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(batchSolveXY ${LIBRARIES_TO_LINK})
 #target_link_libraries(batchSolveXY1 ${LIBRARIES_TO_LINK})
-#target_link_libraries(batchSolveXY2 ${LIBRARIES_TO_LINK})
-target_link_libraries(axbyczProb1_v3 ${LIBRARIES_TO_LINK})
+target_link_libraries(batchSolveXY2 ${LIBRARIES_TO_LINK})
+#target_link_libraries(axbyczProb1_v3 ${LIBRARIES_TO_LINK})
