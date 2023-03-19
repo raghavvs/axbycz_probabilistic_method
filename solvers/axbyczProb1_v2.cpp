@@ -14,7 +14,7 @@ select those that satisfy certain constraints, in order to estimate the desired 
 #include <iostream>
 #include <vector>
 #include <eigen3/Eigen/Dense>
-#include <batchSolveXY.h>
+#include "batchSolveXY.h"
 
 void axbyczProb1(const Eigen::Matrix4d& A1,
                  const Eigen::Matrix4d& B1,
