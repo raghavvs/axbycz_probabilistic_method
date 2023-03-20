@@ -41,8 +41,8 @@ Output:
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d& A,
-                  const Eigen::Matrix4d& B,
+void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
+                  const std::vector<Eigen::Matrix4d> &B,
                   int len,
                   bool opt,
                   double nstd_A,

@@ -44,14 +44,24 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  std::vector<Eigen::MatrixXd> &X,
-                  std::vector<Eigen::MatrixXd> &Y,
+                  std::vector<Eigen::Matrix4d> &X,
+                  std::vector<Eigen::Matrix4d> &Y,
                   Eigen::MatrixXd& MeanA,
                   Eigen::MatrixXd& MeanB,
                   Eigen::MatrixXd& SigA,
                   Eigen::MatrixXd& SigB) {
 
     std::vector<Eigen::Matrix4d> X_candidate(8), Y_candidate(8);
+
+    /*std::vector<Eigen::Matrix4d> A_arr(len, A);
+    //std::cout << "A_arr: " << A_arr[0] << std::endl;
+    std::vector<Eigen::Matrix4d> B_arr(len, B);
+    std::fill(A_arr.begin(), A_arr.end(), A);
+    std::fill(B_arr.begin(), B_arr.end(), B);
+
+    std::cout << "A: " << A << std::endl;
+    std::cout << "A_arr: " << A_arr[0] << std::endl;
+    std::cout << "A_arr: " << A_arr.data() << std::endl;*/
 
     // Calculate mean and covariance for A and B
     meanCov(A, len, MeanA, SigA);
@@ -132,8 +142,8 @@ int main() {
         B[i] = Eigen::Matrix4d::Random();
     }
 
-    std::vector<Eigen::MatrixXd> X(len), Y(len);
-    Eigen::MatrixXd MeanA(6, 6), MeanB(6, 6), SigA(6, 6), SigB(6, 6);
+    std::vector<Eigen::Matrix4d> X(len), Y(len);
+    Eigen::MatrixXd MeanA(4, 4), MeanB(4, 4), SigA(6, 6), SigB(6, 6);
 
     batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
                  X,Y,

@@ -16,12 +16,12 @@ select those that satisfy certain constraints, in order to estimate the desired 
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
 
-void axbyczProb1(const Eigen::Matrix4d& A1,
-                 const Eigen::Matrix4d& B1,
-                 const Eigen::Matrix4d& C1,
-                 const Eigen::Matrix4d& A2,
-                 const Eigen::Matrix4d& B2,
-                 const Eigen::Matrix4d& C2,
+void axbyczProb1(const Eigen::Matrix4d &A1,
+                 const Eigen::Matrix4d &B1,
+                 const Eigen::Matrix4d &C1,
+                 const Eigen::Matrix4d &A2,
+                 const Eigen::Matrix4d &B2,
+                 const Eigen::Matrix4d &C2,
                  int len,
                  bool opt,
                  double nstd1,
@@ -29,26 +29,83 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
                  std::vector<Eigen::MatrixXd> &X_final,
                  std::vector<Eigen::MatrixXd> &Y_final,
                  std::vector<Eigen::MatrixXd> &Z_final) {
-    // This function implements the Prob1 method in the paper
-    // Prerequisites on the input
+
     //   A1 is constant with B1 and C1 free
-    //   C2 is constant with A2 adn B2 free
+    //   C2 is constant with A2 and B2 free
 
     auto A = A1.block(0, 0, 4, 4);
     auto C = C2.block(0, 0, 4, 4);
 
-    // ------ Solve for Z -------- //
-    // A fixed, B and C free
+    //// ------ Solve for Z -------- //
+    // A1 fixed, B1 and C1 free
 
-    // ------ using probability methods ------
+    //// ------ using probability methods ------
     // calculate Z_g : all guesses of Z
     std::vector<Eigen::MatrixXd> Z_g(len);
-    Eigen::MatrixXd MeanC;
-    Eigen::MatrixXd MeanB;
-    Eigen::MatrixXd SigA;
-    Eigen::MatrixXd SigB;
+    Eigen::MatrixXd MeanC, MeanB, SigA, SigB;
 
-    batchSolveXY(C1,B1,len,opt,nstd1,nstd2,Z_g,Y_final,MeanC,MeanB,SigA,SigB);
+    batchSolveXY(C1,B1, len, opt,nstd1,nstd2,Z_g,Y_final,
+                 MeanC,MeanB,SigA,SigB);
+
+    // Keep the candidates of Z that are SE3
+    // Normally there will be four Z \in SE3
+    int Z_index = 0;
+    for (int i = 0; i < len; i++) {
+        if (Z_g[i].determinant() > 0) {
+            Z_final.push_back(Z_g[i]);
+            Z_index++;
+        }
+    }
+
+    int s_Z = Z_final.size();
+
+    std::cout << "works till here?" << std::endl;
+
+    // Solve for X
+    // C2 fixed, A2 and B2 free
+
+    // Calculate B2^-1
+    size_t dim1 = 4;
+    size_t dim2 = 4;
+    int Num = A2.size();
+    std::vector<Eigen::MatrixXd> A2_inv(Num), B2_inv(Num);
+    for (size_t k = 0; k < Num; ++k) {
+        Eigen::Matrix4d A2_mat = A2.block(0, k*dim2, dim1, dim2);
+        Eigen::Matrix4d B2_mat = B2.block(0, k*dim2, dim1, dim2);
+
+        A2_inv[k] = A2_mat.inverse();
+        B2_inv[k] = B2_mat.inverse();
+    }
+
+    // using probability methods
+    // calculate X_g : all guesses of X
+    std::vector<Eigen::MatrixXd> X_g;
+    Eigen::MatrixXd MeanA2;
+    for (int i = 0; i < Num; i++) {
+        std::vector<Eigen::MatrixXd> temp_X_g;
+        batchSolveXY(A2[i],B2_inv[i],len,opt,nstd1,nstd2,temp_X_g,Y_final,
+                     MeanA2,MeanB,SigA,SigB);
+        X_g.insert(X_g.end(), temp_X_g.begin(), temp_X_g.end());
+    }
+
+    // Calculate MeanB for computing Y later
+    for (int i = 0; i < Num; i++) {
+        batchSolveXY(A2_inv[i],B2[i],len,opt,nstd1,nstd2,X_g,Y_final,
+                     MeanA2,MeanB,SigA,SigB);
+    }
+
+    // Keep the candidates of X that are SE3
+    // Normally there will be four X \in SE3
+    int X_index = 0;
+    for (int i = 0; i < Num; i++) {
+        if (X_g[i].determinant() > 0) {
+            X_final.push_back(X_g[i]);
+            X_index++;
+        }
+    }
+
+    int s_X = X_final.size();
+
 }
 
 int main() {
@@ -71,7 +128,7 @@ int main() {
     axbyczProb1(A1,B1,C1,A2,B2,C2,len,opt,nstd1,nstd2,X_final,Y_final,Z_final);
 
     std::cout << "Build successful" <<std::endl;
-    std::cout << "X_final: " << Y_final[0] << std::endl;
+    std::cout << "Y_final: " << std::endl << Y_final[0] << std::endl;
 
     return 0;
 }
