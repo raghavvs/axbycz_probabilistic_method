@@ -12,6 +12,14 @@ using the expm function, then iteratively refining this average until
 convergence using the log and vex functions. Finally, it calculates
 the covariance by taking the vector of differences between each logarithm
 and the mean logarithm and computing their outer product.
+
+Input:
+    X: Matrix dim - 4x4 - pass by reference
+    N: Number of A, B, C matrices or data pairs
+Output:
+    Mean: Matrix dim - 4x4
+    Covariance: Matrix dim - 6x6
+    No return value to function meanCov - outputs can be obtained from the function parameters
 */
 
 #include <iostream>
@@ -58,7 +66,8 @@ void meanCov(const Eigen::MatrixXd &X, int N, Eigen::MatrixXd &Mean, Eigen::Matr
 int main()
 {
     int N = 1;
-    Eigen::Matrix4d X = Eigen::Matrix4d::Ones();
+    Eigen::Matrix4d X = Eigen::Matrix4d::Random();
+
     std::cout << "X: " << X << std::endl;
 
     // Print the input array
@@ -74,7 +83,7 @@ int main()
     Eigen::MatrixXd Cov;
 
     // Call the meanCov function with the input and output arguments
-    meanCov(X,N,Mean,Cov);
+    meanCov(X, N,Mean,Cov);
 
     // Print the output mean and covariance
     std::cout << "The output mean is: " << std::endl;

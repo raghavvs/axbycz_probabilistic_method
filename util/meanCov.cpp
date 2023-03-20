@@ -12,6 +12,14 @@ using the expm function, then iteratively refining this average until
 convergence using the log and vex functions. Finally, it calculates
 the covariance by taking the vector of differences between each logarithm
 and the mean logarithm and computing their outer product.
+
+Input:
+    X: Matrix dim - 4x4 - pass by reference
+    N: Number of A, B, C matrices or data pairs
+Output:
+    Mean: Matrix dim - 4x4
+    Covariance: Matrix dim - 6x6
+    No return value to function meanCov - outputs can be obtained from the function parameters
 */
 
 #include <iostream>
@@ -19,14 +27,15 @@ and the mean logarithm and computing their outer product.
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-void meanCov(Eigen::MatrixXd* X, int N, Eigen::MatrixXd &Mean, Eigen::MatrixXd &Cov) {
+void meanCov(const Eigen::MatrixXd &X, int N, Eigen::MatrixXd &Mean, Eigen::MatrixXd &Cov) {
+    std::vector<Eigen::MatrixXd> Y(N, X);
     Mean = Eigen::Matrix4d::Identity();
     Cov = Eigen::Matrix<double, 6, 6>::Zero();
 
     // Initial approximation of Mean
     Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
     for (int i = 0; i < N; i++) {
-        sum_se += X[i].log();
+        sum_se += Y[i].log();
     }
     Mean = (1.0 / N * sum_se).exp();
 
@@ -38,7 +47,7 @@ void meanCov(Eigen::MatrixXd* X, int N, Eigen::MatrixXd &Mean, Eigen::MatrixXd &
     while (diff_se.norm() >= tol && count <= max_num) {
         diff_se = Eigen::Matrix4d::Zero();
         for (int i = 0; i < N; i++) {
-            diff_se += (Mean.inverse() * X[i]).log();
+            diff_se += (Mean.inverse() * Y[i]).log();
         }
         Mean *= (1.0 / N * diff_se).exp();
         count++;
@@ -46,7 +55,7 @@ void meanCov(Eigen::MatrixXd* X, int N, Eigen::MatrixXd &Mean, Eigen::MatrixXd &
 
     // Covariance
     for (int i = 0; i < N; i++) {
-        diff_se = (Mean.inverse() * X[i]).log();
+        diff_se = (Mean.inverse() * Y[i]).log();
         Eigen::VectorXd diff_vex(6);
         diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
         Cov += diff_vex * diff_vex.transpose();
@@ -56,26 +65,16 @@ void meanCov(Eigen::MatrixXd* X, int N, Eigen::MatrixXd &Mean, Eigen::MatrixXd &
 
 int main()
 {
-    int N = 5;
-    Eigen::MatrixXd* X = new Eigen::MatrixXd[N]; // Dynamically allocate memory for the array
-    for (int i = 0; i < N; i++) {
-        X[i] = Eigen::Matrix4d::Random();
-    }
-
-    // Print the input array
-    std::cout << "The input array is: " << std::endl;
-    for (int i = 0; i < N; i++) {
-        std::cout << "X[" << i << "] =" << std::endl;
-        std::cout << X[i] << std::endl;
-        std::cout << std::endl;
-    }
+    int N = 1;
+    Eigen::Matrix4d X = Eigen::Matrix4d::Random();
+    std::cout << "X: " << X << std::endl;
 
     // Declare variables to store the output mean and covariance
     Eigen::MatrixXd Mean;
     Eigen::MatrixXd Cov;
 
     // Call the meanCov function with the input and output arguments
-    meanCov(X,N,Mean,Cov);
+    meanCov(X, N,Mean,Cov);
 
     // Print the output mean and covariance
     std::cout << "The output mean is: " << std::endl;
@@ -84,10 +83,6 @@ int main()
     std::cout <<"The output covariance is:"<<std::endl;
 
     std::cout<<Cov<<std::endl;
-
-    // Free the memory allocated for the input array
-
-    delete[] X;
 
     return 0;
 }

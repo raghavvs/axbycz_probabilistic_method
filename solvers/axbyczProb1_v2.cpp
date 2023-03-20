@@ -16,19 +16,19 @@ select those that satisfy certain constraints, in order to estimate the desired 
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
 
-void axbyczProb1(const Eigen::Matrix4d& A1,
-                 const Eigen::Matrix4d& B1,
-                 const Eigen::Matrix4d& C1,
-                 const Eigen::Matrix4d& A2,
-                 const Eigen::Matrix4d& B2,
-                 const Eigen::Matrix4d& C2,
+void axbyczProb1(const Eigen::Matrix4d &A1,
+                 const Eigen::Matrix4d &B1,
+                 const Eigen::Matrix4d &C1,
+                 const Eigen::Matrix4d &A2,
+                 const Eigen::Matrix4d &B2,
+                 const Eigen::Matrix4d &C2,
                  bool opt,
                  double nstd1,
                  double nstd2,
                  int len,
-                 std::vector<Eigen::MatrixXd>& X_final,
-                 std::vector<Eigen::MatrixXd>& Y_final,
-                 std::vector<Eigen::MatrixXd>& Z_final) {
+                 std::vector<Eigen::MatrixXd> &X_final,
+                 std::vector<Eigen::MatrixXd> &Y_final,
+                 std::vector<Eigen::MatrixXd> &Z_final) {
 
     //   A1 is constant with B1 and C1 free
     //   C2 is constant with A2 and B2 free
@@ -37,6 +37,8 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
     // A1 fixed, B1 and C1 free
 
     //// ------ using probability methods ------
+
+    //X_final[len], Y_final[len], Z_final[len];
 
     std::vector<Eigen::MatrixXd> MeanA(2), MeanB(2), MeanC(2), SigA(2), SigB(2), SigC(2);
 
@@ -111,7 +113,7 @@ int main(){
     double nstd1 = 0.1;
     double nstd2 = 0.1;
     int len = 2;
-    std::vector<Eigen::MatrixXd> X_final, Y_final, Z_final;
+    std::vector<Eigen::MatrixXd> X_final(len), Y_final(len), Z_final(len);
     axbyczProb1(A1, B1, C1, A2, B2, C2, opt, nstd1, nstd2, len, X_final, Y_final, Z_final);
     return 0;
 }
