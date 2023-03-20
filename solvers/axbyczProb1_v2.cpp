@@ -71,8 +71,10 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
     for (int i = 0; i < Num; ++i) {
         Eigen::Matrix4d A2_mat = A2.block(0, i*dim2, dim1, dim2);
         Eigen::Matrix4d B2_mat = B2.block(0, i*dim2, dim1, dim2);
-        A2_inv(i) = A2_mat.inverse();
-        B2_inv(i) = B2_mat.inverse();
+        std::cout << "A2_mat dim: " << A2_mat.rows() << "x" << A2_mat.cols() << std::endl;
+        std::cout << "B2_mat dim: " << B2_mat.rows() << "x" << B2_mat.cols() << std::endl;
+        //A2_inv(i) = A2_mat.inverse();
+        //B2_inv(i) = B2_mat.inverse();
     }
 
     //// ------ using probability methods ------
@@ -85,8 +87,8 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
     // Calculate MeanB2 for computing Y later
     // Note: can be further simplified by using only the distribution function
 
-    batchSolveXY(A2_inv, B2, len, opt, nstd1, nstd2, X_final, Y_final,
-                 MeanA2[0], MeanB2[0], SigA[0], SigB[0]);
+    /*batchSolveXY(A2_inv, B2, len, opt, nstd1, nstd2, X_final, Y_final,
+                 MeanA2[0], MeanB2[0], SigA[0], SigB[0]);*/
 
     // Keep the candidates of X that are SE3
     // Normally, there will be four X \in SE3
@@ -102,3 +104,28 @@ void axbyczProb1(const Eigen::Matrix4d& A1,
     }
 
 }
+
+int main(){
+    Eigen::Matrix4d A1, B1, C1, A2, B2, C2 = Eigen::Matrix4d::Random();
+    bool opt = false;
+    double nstd1 = 0.1;
+    double nstd2 = 0.1;
+    int len = 2;
+    std::vector<Eigen::MatrixXd> X_final, Y_final, Z_final;
+    axbyczProb1(A1, B1, C1, A2, B2, C2, opt, nstd1, nstd2, len, X_final, Y_final, Z_final);
+    return 0;
+}
+
+/*axbyczProb1(const Eigen::Matrix4d& A1,
+            const Eigen::Matrix4d& B1,
+            const Eigen::Matrix4d& C1,
+            const Eigen::Matrix4d& A2,
+            const Eigen::Matrix4d& B2,
+            const Eigen::Matrix4d& C2,
+            bool opt,
+            double nstd1,
+            double nstd2,
+            int len,
+            std::vector<Eigen::MatrixXd>& X_final,
+            std::vector<Eigen::MatrixXd>& Y_final,
+            std::vector<Eigen::MatrixXd>& Z_final)*/

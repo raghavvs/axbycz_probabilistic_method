@@ -44,13 +44,18 @@ void batchSolveXY(const Eigen::Matrix4d& A,
 
     Eigen::Matrix4d X_candidate[len], Y_candidate[len];
     std::vector<Eigen::Matrix4d> A_arr(len, A);
+    //std::cout << "A_arr: " << A_arr[0] << std::endl;
     std::vector<Eigen::Matrix4d> B_arr(len, B);
     std::fill(A_arr.begin(), A_arr.end(), A);
     std::fill(B_arr.begin(), B_arr.end(), B);
 
+    std::cout << "A: " << A << std::endl;
+    std::cout << "A_arr: " << A_arr[0] << std::endl;
+    //std::cout << "A_arr: " << A_arr[1] << std::endl;
+
     // Calculate mean and covariance for A and B
-    meanCov(A_arr.data(), len, MeanA, SigA);
-    meanCov(B_arr.data(), len, MeanB, SigB);
+   // meanCov(A_arr.data(), len, MeanA, SigA);
+    //meanCov(B_arr.data(), len, MeanB, SigB);
 
     // update SigA and SigB if nstd_A and nstd_B are known
     if (opt) {
