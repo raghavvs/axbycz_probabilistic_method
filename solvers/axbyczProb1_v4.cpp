@@ -15,6 +15,8 @@ select those that satisfy certain constraints, in order to estimate the desired 
 #include <vector>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
+#include "rotError.h"
+#include "tranError.h"
 
 void axbyczProb1(const Eigen::Matrix4d &A1,
                  const Eigen::Matrix4d &B1,
@@ -111,6 +113,96 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     std::cout << "works till here - solve for Z and X? - YES" << std::endl;
 
+    //// ------ Solve for Y -------- //
+    // Compute Y using the mean equations
+    std::vector<Eigen::MatrixXd> Y(2 * s_X * s_Z);
+    Eigen::MatrixXd MeanB1, MeanC1, MeanA2;
+    for (int i = 0; i < s_X; ++i) {
+        for (int j = 0; j < s_Z; ++j) {
+            // There are at least four mean equations to choose from to compute
+            // Y. It will be interesting to see how each choice of the mean
+            // equations can affect the result
+            Y[(i - 1) * s_Z + j] =
+                    (A1.array() * (X[i] * MeanB1).array() / Z_final[j].array()).matrix()* MeanC1.inverse();
+            Y[(i - 1) * s_Z + j + s_X * s_Z] =
+                    ((MeanA2.array() * X[i].array()).matrix() *
+                     MeanB2.array().matrix()) * Z_final[j].array().matrix().inverse() * C2; // verify this equation
+        }
+    }
+
+    int s_Y = Y.size();
+
+    std::cout << "works till here - solve for Z, X and Y? - YES " << std::endl;
+
+    //// Find out the optimal (X, Y, Z) that minimizes cost
+
+    Eigen::MatrixXd cost = Eigen::MatrixXd::Zero(s_X, s_Y * s_Z);
+    double weight = 1.5; // weight on the translational error of the cost function
+    for (int i = 0; i < s_X; ++i) {
+        for (int j = 0; j < s_Z; ++j) {
+            for (int m = 0; m < s_Y; ++m) {
+                Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
+                Eigen::MatrixXd right1 = Y[m] * MeanC1 * Z_final[j];
+
+                double diff1 =
+                        rotError(left1, right1) + weight * tranError(left1, right1);
+
+                Eigen::MatrixXd left2 = MeanA2 * X[i] * MeanB2;
+                Eigen::MatrixXd right2 = Y[m] * C2 * Z_final[j];
+                double diff2 =
+                        rotError(left2, right2) + weight * tranError(left2, right2);
+
+                // different error metrics can be picked and this (diff1 +
+                // diff2) is the best one so far. However, it can still be
+                // unstable sometimes and miss the optimal solutions
+                cost(i, (j - 1) * s_Y + m) =
+                        left1.norm() + left2.norm() + right1.norm() + right2.norm();
+            }
+        }
+    }
+
+    std::cout << "works till here - optimal cost? - YES" << std::endl;
+
+    //// recover the X,Y,Z that minimizes cost
+
+    /*int I_row;
+    int I_col;*/
+    /*Eigen::Index I_row;
+    Eigen::Index I_col;
+    double minCost;
+    minCost = cost.minCoeff(&I_row,&I_col);
+
+    X_final = X[I_row]; // final X
+    */
+
+    Eigen::Index I1;
+    //cost.minCoeff(&I1);
+
+    Eigen::Index I_row = I1 / cost.cols();
+    Eigen::Index I_col = I1 % cost.cols();
+    double minCost;
+    minCost = cost.minCoeff(&I_row,&I_col);
+
+    Eigen::Matrix4d X_final_ = X[I_row]; // final X
+
+    int index_Z;
+    if (I_col % s_Y > 0)
+        index_Z = floor(I_col / s_Y) + 1;
+    else
+        index_Z = floor(I_col / s_Y);
+
+    Eigen::Matrix4d Z_final_ = Z_final[index_Z]; // final Z
+
+    int index_Y;
+    if (I_col % s_Y > 0)
+        index_Y = I_col % s_Y;
+    else
+        index_Y = s_Y;
+
+    Eigen::Matrix4d Y_final_ = Y[index_Y]; // final Y
+
+    std::cout << "works till here - recover X,Y,Z final? - " << std::endl;
+
 }
 
 int main() {
@@ -125,6 +217,7 @@ int main() {
     double nstd1 = 0.5;
     double nstd2 = 0.5;
 
+    //Eigen::Matrix4d X_final;
     std::vector<Eigen::MatrixXd> X_final;
     std::vector<Eigen::MatrixXd> Y_final;
     std::vector<Eigen::MatrixXd> Z_final;
