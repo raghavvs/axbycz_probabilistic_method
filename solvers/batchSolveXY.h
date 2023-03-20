@@ -20,17 +20,29 @@ is unclear what effect this has on the calculation. Additionally,
 the code contains some errors, such as redefining SigA_13 and
 SigB_13, which causes a compiler error, and using an ellipsis
 (...) instead of an integer to index into the Rx_solved array.
+
+Input:
+    A, B: Matrices - dim - 4x4 - pass by reference
+    len: number of data pairs / A, B matrices
+    opt: update SigA and SigB if nstd_A and nstd_B are known
+    nstd_A, nstd_B: standard deviation of A, B matrices
+Output:
+    X, Y: Matrices - dim - 4x4
+    MeanA, MeanB: Matrices - dim - 4x4 - Mean of A, B
+    SigA, SigB: Matrices - dim - 6x6 - Covariance of A, B
 */
 
+#ifndef BATCHSOLVEXY_H
+#define BATCHSOLVEXY_H
+
 #include <iostream>
-#include <array>
 #include <vector>
 #include <Eigen/Dense>
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d& A,
-                  const Eigen::Matrix4d& B,
+void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
+                  const std::vector<Eigen::Matrix4d> &B,
                   int len,
                   bool opt,
                   double nstd_A,
@@ -42,15 +54,11 @@ void batchSolveXY(const Eigen::Matrix4d& A,
                   Eigen::MatrixXd& SigA,
                   Eigen::MatrixXd& SigB) {
 
-    Eigen::Matrix4d X_candidate[len], Y_candidate[len];
-    std::vector<Eigen::Matrix4d> A_arr(len, A);
-    std::vector<Eigen::Matrix4d> B_arr(len, B);
-    std::fill(A_arr.begin(), A_arr.end(), A);
-    std::fill(B_arr.begin(), B_arr.end(), B);
+    std::vector<Eigen::Matrix4d> X_candidate(8), Y_candidate(8);
 
     // Calculate mean and covariance for A and B
-    meanCov(A_arr.data(), len, MeanA, SigA);
-    meanCov(B_arr.data(), len, MeanB, SigB);
+    meanCov(A, len, MeanA, SigA);
+    meanCov(B, len, MeanB, SigB);
 
     // update SigA and SigB if nstd_A and nstd_B are known
     if (opt) {
@@ -84,6 +92,9 @@ void batchSolveXY(const Eigen::Matrix4d& A,
     Rx_solved[6] = VA * (-Q3) * VB.transpose();
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
+    X.resize(8);
+    Y.resize(8);
+
     for (int i = 0; i < 8; i++) {
         // block SigA and SigB to 3x3 sub-matrices
         Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
@@ -111,3 +122,5 @@ void batchSolveXY(const Eigen::Matrix4d& A,
     SigA = SigA.block<3, 3>(0, 0);
     SigB = SigB.block<3, 3>(0, 3);
 }
+
+#endif

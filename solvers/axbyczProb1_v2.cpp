@@ -16,89 +16,52 @@ select those that satisfy certain constraints, in order to estimate the desired 
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
 
-void axbyczProb1(const Eigen::Matrix4d& A1,
-                 const Eigen::Matrix4d& B1,
-                 const Eigen::Matrix4d& C1,
-                 const Eigen::Matrix4d& A2,
-                 const Eigen::Matrix4d& B2,
-                 const Eigen::Matrix4d& C2,
-                 bool opt,
-                 double nstd1,
-                 double nstd2,
-                 int len,
-                 std::vector<Eigen::MatrixXd>& X_final,
-                 std::vector<Eigen::MatrixXd>& Y_final,
-                 std::vector<Eigen::MatrixXd>& Z_final) {
+using namespace Eigen;
 
-    //   A1 is constant with B1 and C1 free
-    //   C2 is constant with A2 and B2 free
+void axbyczProb1(MatrixXd A1, MatrixXd B1, MatrixXd C1, MatrixXd A2, MatrixXd B2, MatrixXd C2, std::string opt, double nstd1, double nstd2, MatrixXd& X_final, MatrixXd& Y_final, std::vector<MatrixXd>& Z_final)
+{
+    int n = A1.rows();
+    A1 = A1.block(0, 0, n, n);
+    C2 = C2.block(0, 0, n, n);
+    int Z_index = 0;
+    std::vector<MatrixXd> Z_g;
+    MatrixXd MeanC1, MeanB1;
+    batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, MeanC1, MeanB1);
 
-    //// ------ Solve for Z -------- //
-    // A1 fixed, B1 and C1 free
-
-    //// ------ using probability methods ------
-
-    std::vector<Eigen::MatrixXd> MeanA(2), MeanB(2), MeanC(2), SigA(2), SigB(2), SigC(2);
-
-    std::vector<Eigen::MatrixXd> Z_g;
-
-    batchSolveXY(C1, B1, len, opt, nstd1, nstd2, X_final, Z_final,
-                 MeanC[0], MeanB[0], SigC[0], SigB[0]);
-
-    std::vector<Eigen::MatrixXd> Z;
-
-    for (const auto &z: Z_g) {
-        if (z.determinant() > 0) {
-            Z.push_back(z);
+    for (int i = 0; i < Z_g.size(); i++) {
+        if (Z_g[i].determinant() > 0) {
+            Z_index++;
+            Z_final.push_back(Z_g[i]);
         }
     }
 
-    int s_Z = static_cast<int>(Z.size());
-
-    std::cout << "works till here?" << std::endl;
-
-    //// ------ Solve for X -------- //
-    // C2 fixed, A2 and B2 free
-
-    //// ------ Calculate B2^-1 -------
-
-    size_t dim1 = 4;
-    size_t dim2 = 4;
-    int Num = static_cast<int>(A2.size());
-
-    Eigen::MatrixXd A2_inv, B2_inv;
-
-    for (int i = 0; i < Num; ++i) {
-        Eigen::Matrix4d A2_mat = A2.block(0, i*dim2, dim1, dim2);
-        Eigen::Matrix4d B2_mat = B2.block(0, i*dim2, dim1, dim2);
-        A2_inv(i) = A2_mat.inverse();
-        B2_inv(i) = B2_mat.inverse();
-    }
-
-    //// ------ using probability methods ------
-    // calculate X_g : all guesses of X
-    std::vector<Eigen::MatrixXd> X_g, MeanA2, MeanB2;
-
-    batchSolveXY(A2, B2, len, opt, nstd1, nstd2, X_g, Y_final,
-                 MeanA2[0], MeanB2[0], SigA[0], SigB[0]);
-
-    // Calculate MeanB2 for computing Y later
-    // Note: can be further simplified by using only the distribution function
-
-    batchSolveXY(A2_inv, B2, len, opt, nstd1, nstd2, X_final, Y_final,
-                 MeanA2[0], MeanB2[0], SigA[0], SigB[0]);
-
-    // Keep the candidates of X that are SE3
-    // Normally, there will be four X \in SE3
-    int X_index = 1;
-
-    std::vector<Eigen::MatrixXd> X;
-
-    for (const auto &x : X_g) {
-        if (x.determinant() > 0) {
-            X.push_back(x);
-            ++X_index;
-        }
-    }
-
+    X_final = A1.inverse() * (B1 - C2 * Z_final[0] * B2);
+    Y_final = Z_final[0] * B2;
 }
+
+
+/*int main() {
+    Eigen::Matrix4d A1 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d B1 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d C1 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d A2 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d B2 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d C2 = Eigen::Matrix4d::Random();
+
+    int len = 2;
+    bool opt = true;
+    double nstd1 = 0.5;
+    double nstd2 = 0.5;
+
+    std::vector<Eigen::MatrixXd> X_final(len);
+    std::vector<Eigen::MatrixXd> Y_final(len);
+    std::vector<Eigen::MatrixXd> Z_final(len);
+
+    axbyczProb1(A1,B1,C1,A2,B2,C2,len,opt,nstd1,nstd2,X_final,Y_final,Z_final);
+
+    std::cout << "Build successful" <<std::endl;
+    std::cout << "Y_final: " << std::endl << Y_final[0] << std::endl;
+
+    return 0;
+}*/
+

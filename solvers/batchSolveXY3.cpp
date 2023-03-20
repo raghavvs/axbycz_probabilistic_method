@@ -38,14 +38,14 @@ Output:
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d& A,
-                  const Eigen::Matrix4d& B,
+void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
+                  const std::vector<Eigen::Matrix4d> &B,
                   int len,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  std::vector<Eigen::MatrixXd> &X,
-                  std::vector<Eigen::MatrixXd> &Y,
+                  std::vector<Eigen::Matrix4d> &X,
+                  std::vector<Eigen::Matrix4d> &Y,
                   Eigen::MatrixXd& MeanA,
                   Eigen::MatrixXd& MeanB,
                   Eigen::MatrixXd& SigA,
@@ -131,13 +131,18 @@ void batchSolveXY(const Eigen::Matrix4d& A,
 }
 
 int main() {
-    Eigen::Matrix4d A = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d B = Eigen::Matrix4d::Random();
     int len = 10;
     bool opt = true;
     double nstd_A = 0.1;
     double nstd_B = 0.2;
-    std::vector<Eigen::MatrixXd> X(len), Y(len);
+
+    std::vector<Eigen::Matrix4d> A(len), B(len);
+    for(int i = 0; i < len; i++){
+        A[i] = Eigen::Matrix4d::Random();
+        B[i] = Eigen::Matrix4d::Random();
+    }
+
+    std::vector<Eigen::Matrix4d> X(len), Y(len);
     Eigen::MatrixXd MeanA(4, 4), MeanB(4, 4), SigA(6, 6), SigB(6, 6);
 
     batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
