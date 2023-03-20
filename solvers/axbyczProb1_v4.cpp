@@ -9,10 +9,19 @@ The functions use the Eigen library to perform matrix operations such as inversi
 and SVD decomposition. The main function (axbyczProb1) calls the other two functions 
 (batchSolveXY and randSE3) to generate a set of random transformations and iteratively 
 select those that satisfy certain constraints, in order to estimate the desired transformations.
+
+Input:
+    A1, B1, C1, A2, B2, C2: Matrices - dim 4x4
+    opt: bool
+    nstd1, nst2: standard deviation
+Output:
+    X_final, Y_final, Z_final: Matrices - dim 4x4
 */
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
 #include "rotError.h"
@@ -175,7 +184,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     X_final = X[I_row]; // final X
     */
 
-    Eigen::Index I1;
+    /*Eigen::Index I1;
     //cost.minCoeff(&I1);
 
     Eigen::Index I_row = I1 / cost.cols();
@@ -184,6 +193,12 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     minCost = cost.minCoeff(&I_row,&I_col);
 
     Eigen::Matrix4d X_final_ = X[I_row]; // final X
+    */
+
+    auto minElementIterator=std::min_element(cost.begin(),cost.end(),[](auto& a,auto& b){return std::min_element(a.begin(),a.end())<std::min_element(b.begin(),b.end());});
+    auto I_row=std::distance(cost.begin(),minElementIterator);
+    auto I_col=std::distance(minElementIterator->begin(),std::min_element(minElementIterator->begin(),minElementIterator->end()));
+    auto X_final_=X[I_row];
 
     int index_Z;
     if (I_col % s_Y > 0)
