@@ -21,5 +21,8 @@ int main() {
     std::cout << "D: \n" << D[0] << std::endl;
     std::cout << "E: \n" << D[0] << std::endl;
 
+    std::cout << "C.size() = " << C.size() << std::endl;
+    std::cout << "C.size() = " << C[0].size() << std::endl;
+
     return 0;
 }

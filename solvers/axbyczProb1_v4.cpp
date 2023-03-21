@@ -36,9 +36,9 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                  bool opt,
                  double nstd1,
                  double nstd2,
-                 std::vector<Eigen::MatrixXd> &X_final,
-                 std::vector<Eigen::MatrixXd> &Y_final,
-                 std::vector<Eigen::MatrixXd> &Z_final) {
+                 std::vector<Eigen::Matrix4d> &X_final,
+                 std::vector<Eigen::Matrix4d> &Y_final,
+                 std::vector<Eigen::Matrix4d> &Z_final) {
 
     //   A1 is constant with B1 and C1 free
     //   C2 is constant with A2 and B2 free
@@ -52,7 +52,8 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     //// ------ using probability methods ------
     // calculate Z_g : all guesses of Z
     int len = C1.size();
-    std::vector<Eigen::MatrixXd> Z_g(len);
+    std::cout << "len: " << len << std::endl;
+    std::vector<Eigen::Matrix4d> Z_g(len);
     Eigen::MatrixXd MeanC, MeanB, SigA, SigB, SigC;
 
     std::vector<Eigen::Matrix4d> A1_vec(len), B1_vec(len), C1_vec(len),
@@ -72,7 +73,10 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     // Keep the candidates of Z that are SE3
     // Normally there will be four Z \in SE3
     int Z_index = 0;
-    for (int i = 0; i < Z_g.size(); ++i) {
+    std::cout << "Z_g: " << Z_g[0] << std::endl;
+    std::cout << "Z_g.size(): " << Z_g.size() << std::endl;
+    std::cout << "Z_g[0].size(): " << Z_g[0].size() << std::endl;
+    for (int i = 0; i < Z_g[0].size(); ++i) {
         if (Z_g[i].determinant() > 0) {
             Z_final.push_back(Z_g[i]);
             ++Z_index;
@@ -80,6 +84,13 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_Z = Z_final.size();
+    std::cout << "s_Z: " << s_Z << std::endl;
+    std::cout << "Z_index: " << Z_index << std::endl;
+    std::cout << "Z_g: " << std::endl;
+    for (int i = 0; i < Z_g.size(); ++i){
+        std::cout << Z_g[i] << std::endl;
+        std::cout << i << std::endl;
+    }
 
     std::cout << "works till here - solve for Z? - YES" << std::endl;
 
@@ -96,7 +107,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     // ------ using probability methods ------
     // calculate X_g : all guesses of X
-    std::vector<Eigen::MatrixXd> X_g;
+    std::vector<Eigen::Matrix4d> X_g;
     Eigen::MatrixXd MeanA;
     batchSolveXY(A2_vec, B2_inv, len, opt, nstd1, nstd2, X_g, Y_final,
                  MeanA, MeanB, SigC, SigB);
@@ -110,7 +121,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     // Keep the candidates of X that are SE3å
     // Normally there will be four X \in SE3
     int X_index = 0;
-    std::vector<Eigen::MatrixXd> X;
+    std::vector<Eigen::Matrix4d> X;
     for (int i = 0; i < X_g.size(); ++i) {
         if (X_g[i].determinant() > 0) {
             X.push_back(X_g[i]);
@@ -119,12 +130,20 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_X = X.size();
+    std::cout << "s_X: " << s_X << std::endl;
+    std::cout << "X_index: " << X_index << std::endl;
+    std::cout << "X_g: " << std::endl;
+    for (int i = 0; i < X_g.size(); ++i){
+        std::cout << X_g[i] << std::endl;
+        std::cout << i << std::endl;
+    }
 
     std::cout << "works till here - solve for Z and X? - YES" << std::endl;
 
     //// ------ Solve for Y -------- //
     // Compute Y using the mean equations
-    std::vector<Eigen::MatrixXd> Y(2 * s_X * s_Z);
+    int Y_index = 0;
+    std::vector<Eigen::Matrix4d> Y(2 * s_X * s_Z);
     Eigen::MatrixXd MeanB1, MeanC1, MeanA2;
     for (int i = 0; i < s_X; ++i) {
         for (int j = 0; j < s_Z; ++j) {
@@ -136,10 +155,18 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
             Y[(i - 1) * s_Z + j + s_X * s_Z] =
                     ((MeanA2.array() * X[i].array()).matrix() *
                      MeanB2.array().matrix()) * Z_final[j].array().matrix().inverse() * C2; // verify this equation
+            ++Y_index;
         }
     }
 
     int s_Y = Y.size();
+    std::cout << "s_Y: " << s_Y << std::endl;
+    std::cout << "Y_index: " << Y_index << std::endl;
+    std::cout << "Y_g: " << std::endl;
+    for (int i = 0; i < Y.size(); ++i){
+        std::cout << Y[i] << std::endl;
+        std::cout << i << std::endl;
+    }
 
     std::cout << "works till here - solve for Z, X and Y? - YES " << std::endl;
 
@@ -164,66 +191,35 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                 // different error metrics can be picked and this (diff1 +
                 // diff2) is the best one so far. However, it can still be
                 // unstable sometimes and miss the optimal solutions
-                cost(i, (j - 1) * s_Y + m) = std::norm(diff1) + std::norm(diff2);
+                cost(i, j * s_Y + m) = std::norm(diff1) + std::norm(diff2);
             }
         }
     }
+
+    std::cout << "cost matrix: " << cost << std::endl;
 
     std::cout << "works till here - optimal cost? - YES" << std::endl;
 
     //// recover the X,Y,Z that minimizes cost
 
-    /*int I_row;
-    int I_col;*/
-    /*Eigen::Index I_row;
-    Eigen::Index I_col;
-    double minCost;
-    minCost = cost.minCoeff(&I_row,&I_col);
+    /*Eigen::Index minRow;
+    Eigen::Index minCol;
+    cost.minCoeff(&minRow,&minCol);
 
-    X_final = X[I_row]; // final X
-    */
+    auto I_row=minRow;
+    auto I_col=minCol;
 
-    /*Eigen::Index I1;
-    //cost.minCoeff(&I1);
+    auto X_final_=X[I_row];
 
-    Eigen::Index I_row = I1 / cost.cols();
-    Eigen::Index I_col = I1 % cost.cols();
-    double minCost;
-    minCost = cost.minCoeff(&I_row,&I_col);
+    auto index_Z=I_col/s_Y;
 
-    Eigen::Matrix4d X_final_ = X[I_row]; // final X
-    */
+    auto Z_final_=Z_final[index_Z];
 
-    /*Eigen::Index minRow, minCol;
-    double minCost=cost.minCoeff(&minRow,&minCol);
-    auto X_final_=X[minRow];*/
+    auto index_Y=I_col%s_Y;
 
-    /*double minCost = cost.minCoeff();
-    Eigen::Index minIndex;
-    for (int i = 0; i < cost.size(); ++i) {
-        if (cost(i) == minCost) {
-            minIndex = i;
-            break;
-        }
-    }
-    Eigen::Index minRow = minIndex / cost.cols();
-    Eigen::Index minCol = minIndex % cost.cols();
-    auto X_final_=X[minRow];*/
+    auto Y_final_=Y[index_Y];*/
 
-    double minElementValue = cost(0);
-    int minElementIndex=0;
-    for(int i=0;i<cost.size();i++){
-        if(cost(i)<minElementValue){
-            minElementValue=cost(i);
-        }
-    }
-
-    int I_row = minElementIndex / cost.size();
-    int I_col = minElementIndex % cost.size();
-
-    auto X_final_ = X[I_row];
-
-    int index_Z;
+    /*int index_Z;
     if (I_col % s_Y > 0)
         index_Z = floor(I_col / s_Y) + 1;
     else
@@ -237,7 +233,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     else
         index_Y = s_Y;
 
-    Eigen::Matrix4d Y_final_ = Y[index_Y]; // final Y
+    Eigen::Matrix4d Y_final_ = Y[index_Y]; // final Y*/
 
     std::cout << "works till here - recover X,Y,Z final? - " << std::endl;
 
@@ -256,15 +252,32 @@ int main() {
     double nstd2 = 0.5;
 
     //Eigen::Matrix4d X_final;
-    std::vector<Eigen::MatrixXd> X_final;
-    std::vector<Eigen::MatrixXd> Y_final;
-    std::vector<Eigen::MatrixXd> Z_final;
+    std::vector<Eigen::Matrix4d> X_final;
+    std::vector<Eigen::Matrix4d> Y_final;
+    std::vector<Eigen::Matrix4d> Z_final;
 
     axbyczProb1(A1,B1,C1,A2,B2,C2,opt,nstd1,nstd2,X_final,Y_final,Z_final);
 
-    std::cout << "Build successful" <<std::endl;
+    std::cout << "Build successful?" <<std::endl;
     //std::cout << "Z_final: " << std::endl << Z_final[0] << std::endl;
     //std::cout << "X_final: " << std::endl << X_final[0] << std::endl;
 
     return 0;
 }
+
+/*
+Output:
+
+s_Z: 0
+Z_index: 0
+Z_g:            1            0            0  5.44603e-32
+0     0.835801     0.549032 -6.56859e-47
+0     0.549032    -0.835801 -1.82759e-31
+0            0            0            0
+works till here - solve for Z? - YES
+        s_X: 0
+X_index: 0
+works till here - solve for Z and X? - YES
+        s_Y: 0
+Y_index: 0
+*/
