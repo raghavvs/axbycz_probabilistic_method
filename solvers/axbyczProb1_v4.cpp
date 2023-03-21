@@ -164,8 +164,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                 // different error metrics can be picked and this (diff1 +
                 // diff2) is the best one so far. However, it can still be
                 // unstable sometimes and miss the optimal solutions
-                cost(i, (j - 1) * s_Y + m) =
-                        left1.norm() + left2.norm() + right1.norm() + right2.norm();
+                cost(i, (j - 1) * s_Y + m) = std::norm(diff1) + std::norm(diff2);
             }
         }
     }
@@ -195,10 +194,37 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     Eigen::Matrix4d X_final_ = X[I_row]; // final X
     */
 
-    auto minElementIterator=std::min_element(cost.begin(),cost.end(),[](auto& a,auto& b){return std::min_element(a.begin(),a.end())<std::min_element(b.begin(),b.end());});
-    auto I_row=std::distance(cost.begin(),minElementIterator);
-    auto I_col=std::distance(minElementIterator->begin(),std::min_element(minElementIterator->begin(),minElementIterator->end()));
-    auto X_final_=X[I_row];
+    /*Eigen::Index minRow, minCol;
+    double minCost=cost.minCoeff(&minRow,&minCol);
+    auto X_final_=X[minRow];*/
+
+    /*double minCost = cost.minCoeff();
+    Eigen::Index minIndex;
+    for (int i = 0; i < cost.size(); ++i) {
+        if (cost(i) == minCost) {
+            minIndex = i;
+            break;
+        }
+    }
+    Eigen::Index minRow = minIndex / cost.cols();
+    Eigen::Index minCol = minIndex % cost.cols();
+    auto X_final_=X[minRow];*/
+
+    double minElementValue=cost[0][0];
+    int minElementIndex=0;
+    for(int i=0;i<cost.size();i++){
+        for(int j=0;j<cost[0].size();j++){
+            if(cost[i][j]<minElementValue){
+                minElementValue=cost[i][j];
+                minElementIndex=i*cost[0].size()+j;
+            }
+        }
+    }
+
+    int I_row = minElementIndex / cost[0].size();
+    int I_col = minElementIndex % cost[0].size();
+
+    auto X_final_ = X[I_row];
 
     int index_Z;
     if (I_col % s_Y > 0)
