@@ -113,7 +113,7 @@ void batchSolveXY(const Eigen::Matrix4d& A,
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
 
         // Construct X and Y candidates
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector3d::Zero().transpose(), 1;
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
 
         // Set the output X and Y
