@@ -73,6 +73,9 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
+    std::cout << "SigA: " << std::endl << SigA << std::endl;
+    std::cout << "SigB: " << std::endl << SigB << std::endl;
+
     // Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
