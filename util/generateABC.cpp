@@ -94,7 +94,6 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
 
     if (optFix == 1){ // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
         Eigen::Matrix4d A[len], B[len], C[len];
-
         for (int m = 0; m < len; m++){
             if (optPDF == 1){
                 Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
@@ -116,9 +115,7 @@ void generateABC(int length, int optFix, int optPDF, Eigen::VectorXd M, Eigen::M
             A[m] = A_initial;
         }
     } else if(optFix == 2) // Fix B, randomize A and C - This can be applied to both serial-parallel and dual-robot arm calibrations
-
-        Eigen::Matrix4d A[len], C[len], B[len];
-
+        Eigen::Matrix4d A[len], B[len], C[len];
         for(int m = 0; m < len; m++) {
             if(optPDF == 1) {
                 Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
