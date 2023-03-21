@@ -76,7 +76,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     std::cout << "Z_g: " << Z_g[0] << std::endl;
     std::cout << "Z_g.size(): " << Z_g.size() << std::endl;
     std::cout << "Z_g[0].size(): " << Z_g[0].size() << std::endl;
-    for (int i = 0; i < Z_g[0].size(); ++i) {
+    for (int i = 0; i < Z_g.size(); ++i) {
         if (Z_g[i].determinant() > 0) {
             Z_final.push_back(Z_g[i]);
             ++Z_index;
@@ -87,7 +87,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     std::cout << "s_Z: " << s_Z << std::endl;
     std::cout << "Z_index: " << Z_index << std::endl;
     std::cout << "Z_g: " << std::endl;
-    for (int i = 0; i < Z_g.size(); ++i){
+    for (int i = 0; i < Z_g[0].size(); ++i){
         std::cout << Z_g[i] << std::endl;
         std::cout << i << std::endl;
     }
