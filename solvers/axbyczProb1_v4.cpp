@@ -210,19 +210,16 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     Eigen::Index minCol = minIndex % cost.cols();
     auto X_final_=X[minRow];*/
 
-    double minElementValue=cost[0][0];
+    double minElementValue = cost(0);
     int minElementIndex=0;
     for(int i=0;i<cost.size();i++){
-        for(int j=0;j<cost[0].size();j++){
-            if(cost[i][j]<minElementValue){
-                minElementValue=cost[i][j];
-                minElementIndex=i*cost[0].size()+j;
-            }
+        if(cost(i)<minElementValue){
+            minElementValue=cost(i);
         }
     }
 
-    int I_row = minElementIndex / cost[0].size();
-    int I_col = minElementIndex % cost[0].size();
+    int I_row = minElementIndex / cost.size();
+    int I_col = minElementIndex % cost.size();
 
     auto X_final_ = X[I_row];
 
