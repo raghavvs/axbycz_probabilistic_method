@@ -39,8 +39,8 @@ Input:
 #include "fKine.h"
 
 std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>>
-    generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
-                const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
+generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
+            const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
 {
     int dataGenMode = 3;
     std::vector<Eigen::Matrix4d> A(length), B(length), C(length);
@@ -56,7 +56,7 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
     //PART I -Generate random matrices - A, B, C
 
     if (dataGenMode == 1) {
-        
+
         A_initial = fKine(qz1);
         B_initial = fKine(qz2);
         C_initial = fKine(qz3);
@@ -64,17 +64,17 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
     } else if (dataGenMode == 2) {
 
         A_initial << 0.2294, -0.1951, -0.9536, -0.1038,
-            0.7098,  0.7039,  0.0268, -0.2332,
-            0.6660, -0.6830,  0.3000,  0.2818,
-            0.0,     0.0,     0.0,     1.0;
+                0.7098,  0.7039,  0.0268, -0.2332,
+                0.6660, -0.6830,  0.3000,  0.2818,
+                0.0,     0.0,     0.0,     1.0;
         B_initial << 0.0268, -0.7039, -0.7098,  0.0714,
-            -0.9536,  0.1951, -0.2294, -0.1764,
-            0.3000,  0.6830, -0.6660,  0.2132,
-            0.0,     0.0,     0.0,     1.0;
+                -0.9536,  0.1951, -0.2294, -0.1764,
+                0.3000,  0.6830, -0.6660,  0.2132,
+                0.0,     0.0,     0.0,     1.0;
         C_initial << -0.0335, -0.4356, -0.8995, -0.0128,
-            0.4665,  0.7891, -0.3995, -0.2250,
-            0.8839, -0.4330,  0.1768,  0.1756,
-            0.0,     0.0,     0.0,     1.0;
+                0.4665,  0.7891, -0.3995, -0.2250,
+                0.8839, -0.4330,  0.1768,  0.1756,
+                0.0,     0.0,     0.0,     1.0;
 
     } else if (dataGenMode == 3) {
 

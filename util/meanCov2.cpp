@@ -23,6 +23,8 @@ Output:
 */
 
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include <random>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
@@ -37,7 +39,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean
     for (int i = 0; i < N; i++) {
         sum_se += X[i].log();
     }
-    Mean = (1.0 / N * sum_se).exp();
+    Mean = ((1.0 / N )* sum_se).exp();
 
     // Iterative process to calculate the true Mean
     Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
@@ -49,13 +51,15 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean
         for (int i = 0; i < N; i++) {
             diff_se += (Mean.inverse() * X[i]).log();
         }
-        Mean *= (1.0 / N * diff_se).exp();
+        Mean *= ((1.0 / N)* diff_se).exp();
         count++;
     }
 
     // Covariance
     for (int i = 0; i < N; i++) {
-        diff_se = (Mean.inverse() * X[i]).log();
+        //diff_se = (Mean.inverse() * X[i]).log();
+        diff_se = (Mean * X[i].inverse()).log();
+        //diff_se = (Mean * X.block(0, 0, i, i).inverse()).log();
         Eigen::VectorXd diff_vex(6);
         diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
         Cov += diff_vex * diff_vex.transpose();
@@ -67,6 +71,8 @@ int main()
 {
     int N = 2;
     std::vector<Eigen::Matrix4d> A(N);
+    //srand((unsigned int) time(0));
+    srand(12345);
     for(int i = 0; i < N; i++){
         A[i] = Eigen::Matrix4d::Random();
     }

@@ -47,8 +47,8 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  std::vector<Eigen::MatrixXd> &X,
-                  std::vector<Eigen::MatrixXd> &Y,
+                  std::vector<Eigen::Matrix4d> &X,
+                  std::vector<Eigen::Matrix4d> &Y,
                   Eigen::MatrixXd& MeanA,
                   Eigen::MatrixXd& MeanB,
                   Eigen::MatrixXd& SigA,
@@ -106,7 +106,7 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
 
         // Construct X and Y candidates
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector3d::Zero().transpose(), 1;
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
 
         // Set the output X and Y
@@ -114,13 +114,13 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         Y[i] = Y_candidate[i];
     }
 
-    // Set the output MeanA, MeanB, SigA, and SigB
+    /*// Set the output MeanA, MeanB, SigA, and SigB
     for (int i = 0; i < 8; i++) {
         MeanA = MeanA * X[i] * MeanB.inverse();
     }
     MeanB = Eigen::Matrix4d::Identity();
     SigA = SigA.block<3, 3>(0, 0);
-    SigB = SigB.block<3, 3>(0, 3);
+    SigB = SigB.block<3, 3>(0, 3)*/;
 }
 
 #endif

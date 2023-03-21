@@ -23,6 +23,7 @@ Output:
 */
 
 #include <iostream>
+#include <cstdlib>
 #include <random>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
@@ -37,7 +38,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean
     for (int i = 0; i < N; i++) {
         sum_se += X[i].log();
     }
-    Mean = (1.0 / N * sum_se).exp();
+    Mean = ((1.0 / N) * sum_se).exp();
 
     // Iterative process to calculate the true Mean
     Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
@@ -49,7 +50,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean
         for (int i = 0; i < N; i++) {
             diff_se += (Mean.inverse() * X[i]).log();
         }
-        Mean *= (1.0 / N * diff_se).exp();
+        Mean *= ((1.0 / N)* diff_se).exp();
         count++;
     }
 
@@ -67,6 +68,7 @@ int main()
 {
     int N = 2;
     std::vector<Eigen::Matrix4d> A(N);
+    srand(12345);
     for(int i = 0; i < N; i++){
         A[i] = Eigen::Matrix4d::Random();
     }
