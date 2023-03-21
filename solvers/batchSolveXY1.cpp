@@ -20,41 +20,29 @@ is unclear what effect this has on the calculation. Additionally,
 the code contains some errors, such as redefining SigA_13 and
 SigB_13, which causes a compiler error, and using an ellipsis
 (...) instead of an integer to index into the Rx_solved array.
-
-Input:
-    A, B: Matrices - dim - 4x4 - pass by reference
-    len: number of data pairs / A, B matrices
-    opt: update SigA and SigB if nstd_A and nstd_B are known
-    nstd_A, nstd_B: standard deviation of A, B matrices
-Output:
-    X, Y: Matrices - dim - 4x4
-    MeanA, MeanB: Matrices - dim - 4x4 - Mean of A, B
-    SigA, SigB: Matrices - dim - 6x6 - Covariance of A, B
 */
 
-#ifndef BATCHSOLVEXY_H
-#define BATCHSOLVEXY_H
-
 #include <iostream>
-#include <vector>
+#include <array>
 #include <Eigen/Dense>
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
-                  const std::vector<Eigen::Matrix4d> &B,
+void batchSolveXY(const Eigen::Matrix4d A,
+                  const Eigen::Matrix4d B,
                   int len,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  std::vector<Eigen::Matrix4d> &X,
-                  std::vector<Eigen::Matrix4d> &Y,
-                  Eigen::MatrixXd& MeanA,
-                  Eigen::MatrixXd& MeanB,
+                  Eigen::Matrix4d& X,
+                  Eigen::Matrix4d& Y,
+                  Eigen::Matrix4d& MeanA,
+                  Eigen::Matrix4d& MeanB,
                   Eigen::MatrixXd& SigA,
                   Eigen::MatrixXd& SigB) {
 
-    std::vector<Eigen::Matrix4d> X_candidate(8), Y_candidate(8);
+    Eigen::Matrix4d X_candidate[len], Y_candidate[len];
+    Eigen::Matrix4d A[len], B[len];
 
     // Calculate mean and covariance for A and B
     meanCov(A, len, MeanA, SigA);
@@ -70,8 +58,8 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
 
-    auto const& VA = eig_solver_A.eigenvectors();
-    auto const& VB = eig_solver_B.eigenvectors();
+    auto VA = eig_solver_A.eigenvectors();
+    auto VB = eig_solver_B.eigenvectors();
 
     // Define Q matrices
     Eigen::MatrixXd Q1, Q2, Q3, Q4;
@@ -92,35 +80,15 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Rx_solved[6] = VA * (-Q3) * VB.transpose();
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
-    X.resize(8);
-    Y.resize(8);
-
     for (int i = 0; i < 8; i++) {
-        // block SigA and SigB to 3x3 sub-matrices
-        Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
-        Eigen::Matrix3d sigB_33 = SigB.block<3, 3>(0, 3);
-
-        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * sigA_33 * Rx_solved[i]).inverse() *
-                               (sigB_33 - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
-
+        SigA = SigA.block<3, 3>(0, 0);
+        SigB = SigB.block<3, 3>(0, 3);
+        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA * Rx_solved[i]).inverse() *
+                                (SigB - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
-
-        // Construct X and Y candidates
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, 0, 0, 0, 1;
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
-
-        // Set the output X and Y
-        X[i] = X_candidate[i];
-        Y[i] = Y_candidate[i];
+        //X[i] = X_candidate[i];
+        //Y[i] = Y_candidate[i];
     }
-
-    // Set the output MeanA, MeanB, SigA, and SigB
-    for (int i = 0; i < 8; i++) {
-        MeanA = MeanA * X[i] * MeanB.inverse();
-    }
-    MeanB = Eigen::Matrix4d::Identity();
-    SigA = SigA.block<3, 3>(0, 0);
-    SigB = SigB.block<3, 3>(0, 3);
 }
-
-#endif

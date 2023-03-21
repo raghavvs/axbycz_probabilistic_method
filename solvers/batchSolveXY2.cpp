@@ -32,29 +32,36 @@ Output:
     SigA, SigB: Matrices - dim - 6x6 - Covariance of A, B
 */
 
-#ifndef BATCHSOLVEXY_H
-#define BATCHSOLVEXY_H
-
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
-                  const std::vector<Eigen::Matrix4d> &B,
+void batchSolveXY(const Eigen::Matrix4d& A,
+                  const Eigen::Matrix4d& B,
                   int len,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  std::vector<Eigen::Matrix4d> &X,
-                  std::vector<Eigen::Matrix4d> &Y,
+                  std::vector<Eigen::MatrixXd> &X,
+                  std::vector<Eigen::MatrixXd> &Y,
                   Eigen::MatrixXd& MeanA,
                   Eigen::MatrixXd& MeanB,
                   Eigen::MatrixXd& SigA,
                   Eigen::MatrixXd& SigB) {
 
     std::vector<Eigen::Matrix4d> X_candidate(8), Y_candidate(8);
+
+    /*std::vector<Eigen::Matrix4d> A_arr(len, A);
+    //std::cout << "A_arr: " << A_arr[0] << std::endl;
+    std::vector<Eigen::Matrix4d> B_arr(len, B);
+    std::fill(A_arr.begin(), A_arr.end(), A);
+    std::fill(B_arr.begin(), B_arr.end(), B);
+
+    std::cout << "A: " << A << std::endl;
+    std::cout << "A_arr: " << A_arr[0] << std::endl;
+    std::cout << "A_arr: " << A_arr.data() << std::endl;*/
 
     // Calculate mean and covariance for A and B
     meanCov(A, len, MeanA, SigA);
@@ -123,4 +130,25 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     SigB = SigB.block<3, 3>(0, 3);
 }
 
-#endif
+int main() {
+    Eigen::Matrix4d A = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d B = Eigen::Matrix4d::Random();
+    int len = 10;
+    bool opt = true;
+    double nstd_A = 0.1;
+    double nstd_B = 0.2;
+    std::vector<Eigen::MatrixXd> X(len), Y(len);
+    Eigen::MatrixXd MeanA(4, 4), MeanB(4, 4), SigA(6, 6), SigB(6, 6);
+
+    batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
+                 X,Y,
+                 MeanA,
+                 MeanB,
+                 SigA,
+                 SigB);
+
+    std::cout << "X: \n" << X[0] << std::endl;
+    std::cout << "Y: \n" << Y[0] << std::endl;
+
+    return 0;
+}

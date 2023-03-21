@@ -1,3 +1,7 @@
+//
+// Created by Raghavendra N S on 3/16/23.
+//
+
 /*
 DESCRIPTION:
 
@@ -14,6 +18,9 @@ set has a constant value for C2, and the third set has a constant
 value for B3. The free variables in each set are randomly generated
 using the specified options and input parameters.
 */
+
+#ifndef AXBYCZ_PROBABILISTIC_METHOD_GENERATESETSOFABC_H
+#define AXBYCZ_PROBABILISTIC_METHOD_GENERATESETSOFABC_H
 
 #include <iostream>
 #include <eigen3/Eigen/Dense>
@@ -56,42 +63,4 @@ ABCSets generateSetsOfABC(int Num, int optPDF, const Eigen::VectorXd& Mean,
     return result;
 }
 
-int main() {
-    int Num = 1;
-    int optPDF = 1;
-    Eigen::VectorXd Mean(6);
-    Mean << 0, 0, 0, 0, 0, 0;
-    Eigen::MatrixXd Cov(6,6);
-    Cov << 0.1, 0, 0, 0, 0, 0,
-            0, 0.1, 0, 0, 0, 0,
-            0, 0, 0.1, 0, 0, 0,
-            0, 0, 0, 0.01, 0, 0,
-            0, 0, 0, 0, 0.01, 0,
-            0, 0, 0, 0, 0, 0.01;
-    Eigen::Matrix4d XActual = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d YActual = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d ZActual = Eigen::Matrix4d::Random();
-
-    ABCSets result = generateSetsOfABC(Num,optPDF,Mean,Cov,XActual,YActual,ZActual);
-
-    // print results
-    std::cout << "A1: " << std::endl;
-    for (const auto& A : result.A1) {
-        std::cout << A << std::endl;
-    }
-    std::cout << "B1: " << std::endl;
-    for (const auto& B : result.B1) {
-        std::cout << B << std::endl;
-    }
-    std::cout << "C1: " << std::endl;
-    for (const auto& C : result.C1) {
-        std::cout << C << std::endl;
-    }
-
-    std::cout << "generateSetsOfABC.cpp works" << std::endl;
-    std::cout << "C fixed, A and B generated" << std::endl;
-
-    // similarly print B1,C1,A2,B2,C2,A3,B3,C3
-
-    return 0;
-}
+#endif //AXBYCZ_PROBABILISTIC_METHOD_GENERATESETSOFABC_H

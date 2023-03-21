@@ -36,7 +36,8 @@ ONLY CASE 1 - WORKS - at the moment
 #include "se3Vec.h"
 #include "so3Vec.h"
 
-Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d* g, int len, const Eigen::MatrixXd gmean, double sd, int model)
+Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d* g, int len, const Eigen::MatrixXd gmean,
+                             double sd, int model)
 {
     // Declare g_noise as an array of matrices and allocate memory for it
     Eigen::Matrix4d *g_noise = new Eigen::Matrix4d[len];
@@ -140,34 +141,37 @@ Eigen::Matrix4d* sensorNoise(const Eigen::Matrix4d* g, int len, const Eigen::Mat
 
 // TEST CASE
 
-/* int main()
-{
-    // Create example input data
-    Eigen::MatrixXd g1 = Eigen::MatrixXd::Identity(4, 4);
-    Eigen::MatrixXd g2 = Eigen::MatrixXd::Identity(4, 4);
-    std::vector<Eigen::MatrixXd> g = {g1, g2};
-    Eigen::MatrixXd gmean = Eigen::MatrixXd::Zero(6, 1);
-    double std = 0.1;
-    int model = 1;
+/*int main() {
 
-    // Call the sensorNoise function
-    std::vector<Eigen::MatrixXd> g_noise = sensorNoise(g, gmean, std, model);
+    Eigen::Matrix4d m[5];
+    int size = sizeof(m) / sizeof(m[0]);
 
-    // Print the original and noisy data
-    std::cout << "Original data:\n";
-    for (const auto& g_matrix : g)
-    {
-        std::cout << g_matrix << "\n\n";
+    // Generate random matrices and store them in the array
+    for (int i = 0; i < size; i++) {
+        m[i] = Eigen::Matrix4d::Random();
     }
 
-    std::cout << "Noisy data:\n";
-    for (const auto& g_matrix : g_noise)
-    {
-        std::cout << g_matrix << "\n\n";
-    }
+    double sd = 0.1;
+
+    // set noise variables
+    Eigen::MatrixXd g_mean(6, 1);
+    g_mean << 0, 0, 0, 0, 0, 0;
+
+    // apply noise to matrix and print dimensions
+    Eigen::Matrix4d* m_noise_new = sensorNoise(m, size, g_mean, sd);
+
+    for (int i = 0; i < size; i++) {
+        std::cout << "Matrix: " << i << std::endl;
+        std::cout << m_noise_new[i] << std::endl;
+    };
+
+    delete[] m_noise_new;
+    std::cout << size << std::endl;
+    std::cout << "main works" << std::endl;
 
     return 0;
-} */
+
+}*/
 
 
 
