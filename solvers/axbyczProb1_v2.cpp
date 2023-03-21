@@ -65,6 +65,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean
     // Covariance
     for (int i = 0; i < N; i++) {
         diff_se = (Mean.inverse() * X[i]).log();
+        //diff_se = (Mean.inverse() * X[i]);
         //std::cout << "diff_se: " << std::endl << diff_se << std::endl;
         Eigen::VectorXd diff_vex(6);
         diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
@@ -147,7 +148,7 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
 
         // Construct X and Y candidates
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector4d::Zero().transpose();
+        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector3d::Zero().transpose(), 1;
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
 
         // Set the output X and Y
@@ -217,6 +218,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
     int Z_index = 0;
     std::cout << "Z_g: " << Z_g[0] << std::endl;
+    std::cout << "Y_final: " << Y_final[0] << std::endl;
     std::cout << "Z_g.size(): " << Z_g.size() << std::endl;
     std::cout << "Z_g[0].size(): " << Z_g[0].size() << std::endl;
     std::cout << "Z_g[0].determinant(): " << Z_g[0].determinant() << std::endl;
