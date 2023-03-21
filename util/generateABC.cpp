@@ -39,8 +39,8 @@ Input:
 #include "fKine.h"
 
 std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>>
-    generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
-                const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
+generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
+            const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
 {
     int dataGenMode = 3;
     std::vector<Eigen::Matrix4d> A(length), B(length), C(length);
@@ -56,7 +56,7 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
     //PART I -Generate random matrices - A, B, C
 
     if (dataGenMode == 1) {
-        
+
         A_initial = fKine(qz1);
         B_initial = fKine(qz2);
         C_initial = fKine(qz3);
@@ -64,17 +64,17 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
     } else if (dataGenMode == 2) {
 
         A_initial << 0.2294, -0.1951, -0.9536, -0.1038,
-            0.7098,  0.7039,  0.0268, -0.2332,
-            0.6660, -0.6830,  0.3000,  0.2818,
-            0.0,     0.0,     0.0,     1.0;
+                0.7098,  0.7039,  0.0268, -0.2332,
+                0.6660, -0.6830,  0.3000,  0.2818,
+                0.0,     0.0,     0.0,     1.0;
         B_initial << 0.0268, -0.7039, -0.7098,  0.0714,
-            -0.9536,  0.1951, -0.2294, -0.1764,
-            0.3000,  0.6830, -0.6660,  0.2132,
-            0.0,     0.0,     0.0,     1.0;
+                -0.9536,  0.1951, -0.2294, -0.1764,
+                0.3000,  0.6830, -0.6660,  0.2132,
+                0.0,     0.0,     0.0,     1.0;
         C_initial << -0.0335, -0.4356, -0.8995, -0.0128,
-            0.4665,  0.7891, -0.3995, -0.2250,
-            0.8839, -0.4330,  0.1768,  0.1756,
-            0.0,     0.0,     0.0,     1.0;
+                0.4665,  0.7891, -0.3995, -0.2250,
+                0.8839, -0.4330,  0.1768,  0.1756,
+                0.0,     0.0,     0.0,     1.0;
 
     } else if (dataGenMode == 3) {
 
@@ -90,21 +90,12 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
 
     //PART II - Fix a matrix A, B, C - Only using Gaussian noise - optPDF = 1
 
-<<<<<<< HEAD
-    if (optFix == 1){ // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
-        Eigen::Matrix4d A[len], B[len], C[len];
-        for (int m = 0; m < len; m++){
-            if (optPDF == 1){
-                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
-                B[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * B_initial);
-=======
     if (optFix == 1) { // Fix A, randomize B and C - This can be applied to both serial-parallel and dual-robot arm calibrations
         for (int m = 0; m < length; m++) {
             if (optPDF == 1) {
                 Eigen::VectorXd randVec = mvg(M, Sig, 1).first;
                 // Update B matrix with random noise
                 B[m] = (Eigen::MatrixXd(se3Vec(randVec)).exp() * B_initial);
->>>>>>> dev_mac
             }
             /*else if (optPDF == 2){
                 Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1);
@@ -122,16 +113,6 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
             // Assign fixed value to A matrix
             A[m] = A_initial;
         }
-<<<<<<< HEAD
-    } else if(optFix == 2) // Fix B, randomize A and C - This can be applied to both serial-parallel and dual-robot arm calibrations
-        Eigen::Matrix4d A[len], B[len], C[len];
-        for(int m = 0; m < len; m++) {
-            if(optPDF == 1) {
-                Eigen::Matrix<double, 6, 1> randVec = mvg(M, Sig, 1).first;
-                A[m] = (Eigen::Matrix4d(se3Vec(randVec)).exp() * A_initial);
-            /*} else if(optPDF == 2) {
-                A[m] = A_initial * (se3Vec(mvg(M, Sig, 1))).exp();
-=======
     } else if (optFix == 2) { // Fix B, randomize A and C - This can be applied to both serial-parallel and dual-robot arm calibrations
         for (int m = 0; m < length; m++) {
             if (optPDF == 1) {
@@ -139,7 +120,6 @@ std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vect
                 A[m] = (Eigen::MatrixXd(se3Vec(randVec)).exp() * C_initial);
             } /*else if(optPDF == 2) {
             A[m] = (A_initial * Eigen::Matrix4d(se3Vec(mvg(M, Sig, 1))).exp());
->>>>>>> dev_mac
             } else if(optPDF == 3) {
                 Eigen::VectorXd gmean(6);
                 gmean << 0, 0, 0, 0, 0, 0;

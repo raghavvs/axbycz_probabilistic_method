@@ -114,13 +114,13 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         Y[i] = Y_candidate[i];
     }
 
-    // Set the output MeanA, MeanB, SigA, and SigB
+    /*// Set the output MeanA, MeanB, SigA, and SigB
     for (int i = 0; i < 8; i++) {
         MeanA = MeanA * X[i] * MeanB.inverse();
     }
     MeanB = Eigen::Matrix4d::Identity();
     SigA = SigA.block<3, 3>(0, 0);
-    SigB = SigB.block<3, 3>(0, 3);
+    SigB = SigB.block<3, 3>(0, 3)*/;
 }
 
 #endif
