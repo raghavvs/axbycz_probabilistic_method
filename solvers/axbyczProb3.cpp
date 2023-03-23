@@ -33,8 +33,21 @@ DESCRIPTION:
 Author: Sipu Ruan, ruansp@jhu.edu, November 2017 (MATLAB Version)
 */
 
+#include <iostream>
 #include <Eigen/Dense>
 #include <vector>
+
+// Define a function that takes a vector of size 3 and returns a 3x3 matrix
+Eigen::Matrix3d skew(Eigen::Vector3d v) {
+    Eigen::Matrix3d M;
+
+    // Fill in the elements of the matrix according to the formula
+    M << 0, -v(2), v(1),
+            v(2), 0, -v(0),
+            -v(1), v(0), 0;
+
+    return M;
+}
 
 void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
                  const std::vector<Eigen::MatrixXd> &B1,
@@ -183,9 +196,9 @@ void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
         Z_hat << skew(w_Z), v_Z,
                 Eigen::RowVector4d::Zero();
 
-        X_cal = Xupdate * expm(X_hat);
-        Y_cal = Yupdate * expm(Y_hat);
-        Z_cal = Zupdate * expm(Z_hat);
+        X_cal = Xupdate * (X_hat).exp();
+        Y_cal = Yupdate * (Y_hat).exp();
+        Z_cal = Zupdate * (Z_hat).exp();
 
         // Update
         Xupdate = X_cal;
@@ -243,45 +256,74 @@ void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
 
         M << M1, M2;
         b << b1, b2;
+
+        // AXB = YCZ
+        // Rotation part
+        Eigen::Matrix3d M11 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e1);
+        Eigen::Matrix3d M13 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e1);
+        Eigen::Matrix3d M15 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e1);
+
+        Eigen::Matrix3d M21 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e2);
+        Eigen::Matrix3d M23 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e2);
+        Eigen::Matrix3d M25 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e2);
+
+        Eigen::Matrix3d M31 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e3);
+        Eigen::Matrix3d M33 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e3);
+        Eigen::Matrix3d M35 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e3);
+
+        // Translation part
+        Eigen::Matrix3d M41 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,1>(0,3));
+        Eigen::Matrix3d M42 = A.block<3,3>(0,0) * X.block<3,3>(0,0);
+        Eigen::Matrix3d M43 = Y.block<3,3>(0,0) * skew(C.block<3,1>(0,2) * Z.block<3,1>(0,3) + C.block<3,1>(0,3));
+        Eigen::Matrix3d M44 = -Y.block<3,3>(0,0);
+        Eigen::Matrix3d M46 = -Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0);
+
+        Eigen::Matrix4d M(9, 12);
+        M << M11, Eigen::Matri3d::Zero(3, 3), M13, Eigen::Matrix3d::Zero(3, 3), M15, Eigen::Matrix3d::Zero(3, 3),
+                M21, Eigen::Matrix3d::Zero(3, 3), M23, Eigen::Matrix3d::Zero(3, 3), M25, Eigen::Matrix3d::Zero(3, 3),
+                M31, Eigen::Matrix3d::Zero(3,3) , M33, Eigen::Matrix3d::Zero(3,3) , M35, Eigen::Matrix3d::Zero (3,3),
+                M41, M42,                          M43, M44,                        Eigen::Matrix3d::Zero (3,3), M46;
+
+        // RHS
+        Eigen::MatrixXd RHS = -A * X * B + Y * C * Z;
+
+        Eigen::VectorXd b(12);
+        b << RHS.block<3,1>(0,0), RHS.block<3,1>(0,1), RHS.block<3,1>(0,2), RHS.block<3,1>(0,3);
+
+        // SigBi = Ad^{-1}(Z) * SigCi * Ad^{-T}(Z)
+        // First block
+        Eigen::Matrix3d M55 = -skew(SigB.block<3,1>(0,0)) + SigB.block<3,3>(0,0) * skew(e1);
+        Eigen::Matrix3d M56 = Eigen::Matrix3d::Zero();
+        Eigen::Matrix3d M65 = -skew(SigB.block<3,1>(0,1)) + SigB.block<3,3>(0,0) * skew(e2);
+        Eigen::Matrix3d M66 = Eigen::Matrix3d::Zero();
+        Eigen::Matrix3d M75 = -skew(SigB.block<3,1>(0,2)) + SigB.block<3,3>(0,0) * skew(e3);
+        Eigen::Matrix3d M75 = Eigen::Matrix3d::Zero();
+
+        // Second block
+        Eigen::Matrix3d M85 = -skew(SigB.block<3,1>(0,4)) + SigB.block<3,2>(0,4) * skew(e1);
+        Eigen::Matrix3d M86 = SigB.block<3,3>(0,4) * skew(e1);
+        Eigen::Matrix3d M95 = -skew(SigB.block<3,1>(0,5)) + SigB.block<3,2>(0,4) * skew(e2);
+        Eigen::Matrix3d M96 = SigB.block<3,3>(0,4) * skew(e2);
+        Eigen::Matrix3d M105 = -skew(SigB.block<3,1>(0,6)) + SigB.block<3,2>(0,4) * skew(e3);
+        Eigen::Matrix3d M106 = SigB.block<3,3> (0,4) * skew(e3);
+
+        // Third block
+        Eigen::Matrix3d M115 = -skew(SigB.block<3,1>(3,1)) + SigB.block<3,3> (3,0) * skew(e1);
+        Eigen::Matrix3d M116 = -skew(SigB.block <6,6> (4 ,6));
+        Eigen::Matrix3d M125 = -skew(SigB.block <6,7> (5 ,7)) + SigB.block <6 ,7> (5 ,7) * skew(e2);
+        Eigen::Matrix3d M126 = -skew(SigB.block <6,7> (5 ,7));
+        Eigen::Matrix3d M135 = -skew(SigB.block <6,8> (6 ,8)) + SigB.block <6 ,8> (6 ,8) * skew(e8);
+        Eigen::Matrix3d M136 = -skew(SigB.block <6,8> (6 ,8));
+
+        // Fourth block
+        Eigen::Matrix3d M145 = -skew(SigB.block<3,1>(0,3)) + SigB.block<3,3>(0,3) * skew(e1);
+        Eigen::Matrix3d M146 = SigB.block<3,3>(0,0) * skew(e1);
+        Eigen::Matrix3d M155 = -skew(SigB.block<3,1>(0,4)) + SigB.block<3,4)(0.5)
+        Eigen::Matrix3d M96 = -skew(SigB.block<3,1>(0,3)) + SigB.block<3,3>(0,3) * skew(e1);
+        Eigen::Matrix3d M105 = -skew(SigB.block<3,1>(0,3)) + SigB.block<3,3>(0,3) * skew(e1);
+        Eigen::Matrix3d M106 = -skew(SigB.block<3,1>(0,3)) + SigB.block<3,3>(0,3) * skew(e1);
+
     }
-
-    // AXB = YCZ
-    // Rotation part
-    Eigen::Matrix3d M11 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e1);
-    Eigen::Matrix3d M13 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e1);
-    Eigen::Matrix3d M15 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e1);
-
-    Eigen::Matrix3d M21 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e2);
-    Eigen::Matrix3d M23 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e2);
-    Eigen::Matrix3d M25 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e2);
-
-    Eigen::Matrix3d M31 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e3);
-    Eigen::Matrix3d M33 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e3);
-    Eigen::Matrix3d M35 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e3);
-
-    // Translation part
-    Eigen::Matrix4d M41 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,1>(0,3));
-    Eigen::Matrix4d M42 = A.block<3,3>(0,0) * X.block<3,3>(0,0);
-    Eigen::Matrix4d M43 = Y.block<3,3>(0,0) * skew(C.block<3,1>(0,2) * Z.block<3,1>(0,3) + C.block<3,1>(0,3));
-    Eigen::Matrix4d M44 = -Y.block<3,3>(0,0);
-    Eigen::Matrix4d M46 = -Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0);
-
-    Eigen::Matrix4d M(9, 12);
-    M << M11, Eigen::Matrix4d::Zero(3, 3), M13, Eigen::Matrix4d::Zero(3, 3), M15, Eigen::Matrix4d::Zero(3, 3),
-            M21, Eigen::Matrix4d::Zero(3, 3), M23, Eigen::Matrix4d::Zero(3, 3), M25, Eigen::Matrix4d::Zero(3, 3),
-            M31,Eigen::Matrix4d::Zero(3,3) ,M33,Eigen::Matrix4d::Zero(3,3) ,M35,Eigen::Matrix4d::Zero (3,3) ,
-            M41,M42,M43,M44,Eigen::Matrix4d::Zero (3,3) ,M46;
-
-    // RHS
-    Eigen::Matrix4d RHS = -A * X * B + Y * C * Z;
-    Eigen::VectorXd b(12);
-    b << RHS.block<1> (1)(03),RHS.block<1> (2)(03),RHS.block<1> (2)(03);
-
-    // SigBi = Ad^{-1}(Z) * SigCi * Ad^{-T}(Z)
-    // First block
-    Eigen::Matrix4d m55=-skew(SigB.block<1> (1)(03))+SigB.block<1> (2)(03)*skew(e1);
-    Eigen::Matrix4d m56 = Eigen::Matrix4d m65 =-skew(SigB.block<2> (2)(03))+SigB.block<2> (2)(03)*skew(e2);
-    Eigen::Matrix4d m66 = Eigen::Matrix4d m75 =-skew(SigB.block<2> (2)(03))+SigB.block<2> (2)(03)*skew(e3);
 
 
 
