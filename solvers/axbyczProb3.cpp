@@ -244,6 +244,7 @@ void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
         M << M1, M2;
         b << b1, b2;
     }
-
-
+    Eigen::Matrix3d M11 = -A.block(0,0,3,3) * X.block(0,0,3,3) * skew(B.block(0,0,3,3)*e1);
     
+
+
