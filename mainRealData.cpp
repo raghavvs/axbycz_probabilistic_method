@@ -41,6 +41,8 @@ The script also defines some supporting functions that convert cell arrays to
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
+#include "matplotlibcpp.h"
+namespace plt = matplotlibcpp;
 
 int main() {
     // Load data
@@ -178,20 +180,20 @@ int main() {
     }
 
     // Plot error v.s. scramble rate
-    std::cout << "Plotting error v.s. scramble rate..." << std::endl;
-    // figure; hold on;
+    plt::figure();
     int fontSize = 20;
     int lineW = 1;
 
-    // plot(r,err1, 'o-r', 'LineWidth', lineW);
-    // plot(r,err2, 'd-g','LineWidth', lineW);
-    // plot(r,err3, '*-b','LineWidth', lineW);
+    plt::plot(r,err1,"o-r",{{"linewidth",lineW}});
+    plt::plot(r,err2,"d-g",{{"linewidth",lineW}});
+    plt::plot(r,err3,"*-b",{{"linewidth",lineW}});
 
-    // lgd = legend('Prob 1', 'Iterative', 'Wang');
-    // lgd.FontSize = fontSize;
-    // xlabel('Scramble Rate (%)', 'FontSize', fontSize)
-    // ylabel('Error', 'FontSize', fontSize)
-    // title('Real Data', 'FontSize', fontSize)
+    auto lgd = plt::legend({"Prob 1","Iterative","Wang"});
+    lgd.attr("fontsize") = fontSize;
+    plt::xlabel("Scramble Rate (%)", {{"fontsize",fontSize}});
+    plt::ylabel("Error",{ {"fontsize",fontSize}});
+
+    plt::title("Real Data",{ {"fontsize",fontSize}});
 
     //-- Supporting functions --//
 
