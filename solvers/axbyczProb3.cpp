@@ -107,4 +107,143 @@ void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
         }
 
         for (int j=0; j<Nj; ++j) {
+            MbMat_2(C2_m[j], Zupdate, B2inv_m[j],
+                    SE3inv(Yupdate), A2_m[j], Xupdate,
+                    SigB2[j], SigA2[j], B2_m[j],
+                    MM[j+Ni], bb[j+Ni]);
+        }
+
+        // Solve for X and Y
+        Eigen::MatrixXd M(12*(Ni+Nj), 12);
+        Eigen::VectorXd b(12*(Ni+Nj));
+
+        for (int i=0; i<Ni+Nj; ++i) {
+            M.block(i*12, 0, 12, 12) = MM[i];
+            b.segment(i*12, 12) = bb[i];
+        }
+
+        xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+
+        Eigen::Matrix4d dX;
+        dX << xi(0), xi(1), xi(2), xi(3),
+                xi(4), xi(5), xi(6), xi(7),
+                xi(8), xi(9), xi(10), xi(11),
+                0, 0, 0, 1;
+
+        Eigen::Matrix4d dY;
+        dY << xi(12), xi(13), xi(14), xi(15),
+                xi(16), xi(17), xi(18), xi(19),
+                xi(20), xi(21), xi(22), xi(23),
+                0, 0, 0, 1;
+
+        Xupdate = Xupdate * dX;
+        Yupdate = Yupdate * dY;
+
+        diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
+               metric(A2,B2,C2,Xupdate,Yupdate,Zupdate);
+
+        ++num;
+
+        // Concatenate M and b matrices together
+        Eigen::MatrixXd M(12*(Ni+Nj), 18);
+        Eigen::VectorXd b(12*(Ni+Nj));
+
+        for (int i=0; i<Ni+Nj; ++i) {
+            M.block(i*12, 0, 12, 18) = MM[i];
+            b.segment(i*12, 12) = bb[i];
+        }
+
+        // Inversion to get xi_X, xi_Y, xi_Z
+        Eigen::VectorXd xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+
+        for (int i=0; i<Ni; ++i) {
+            double diff1 = (A1_m[i] * Xupdate * B1_m[i] - Yupdate * C1_m[i] * Zupdate).norm();
+        }
+
+        for (int j=0; j<Nj; ++j) {
+            double diff2 = (A2_m[j] * Xupdate * B2_m[j] - Yupdate * C2_m[j] * Zupdate).norm();
+        }
+
+        Eigen::Vector3d w_X = xi.segment(0,3);
+        Eigen::Vector3d v_X = xi.segment(3,3);
+        Eigen::Vector3d w_Y = xi.segment(6,3);
+        Eigen::Vector3d v_Y = xi.segment(9,3);
+        Eigen::Vector3d w_Z = xi.segment(12,3);
+        Eigen::Vector3d v_Z = xi.segment(15,3);
+
+        Eigen::Matrix4d X_hat;
+        X_hat << skew(w_X), v_X,
+                Eigen::RowVector4d::Zero();
+
+        Eigen::Matrix4d Y_hat;
+        Y_hat << skew(w_Y), v_Y,
+                Eigen::RowVector4d::Zero();
+
+        Eigen::Matrix4d Z_hat;
+        Z_hat << skew(w_Z), v_Z,
+                Eigen::RowVector4d::Zero();
+
+        X_cal = Xupdate * expm(X_hat);
+        Y_cal = Yupdate * expm(Y_hat);
+        Z_cal = Zupdate * expm(Z_hat);
+
+        // Update
+        Xupdate = X_cal;
+        Yupdate = Y_cal;
+        Zupdate = Z_cal;
+
+        ++num;
+
+        // Error
+        diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
+               metric(A2,B2,C2,Xupdate,Yupdate,Zupdate);
+
     }
+
+    void MbMat_1(const Ref<const MatrixXd>& A,
+                 const Ref<const MatrixXd>& X,
+                 const Ref<const MatrixXd>& B,
+                 const Ref<const MatrixXd>& Y,
+                 const Ref<const MatrixXd>& C,
+                 const Ref<const MatrixXd>& Z,
+                 const Ref<const MatrixXd>& SigB,
+                 const Ref<const MatrixXd>& SigC,
+                 Ref<MatrixXd> M,
+                 Ref<VectorXd> b) {
+        // Construction M and b matrices
+        Eigen::Vector3d e1(1,0,0), e2(0,1,0), e3(0,0,1);
+
+        Eigen::MatrixXd M1 = Eigen::MatrixXd::Zero(12,18);
+        Eigen::VectorXd b1 = Eigen::VectorXd::Zero(12);
+
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<3; ++j) {
+                Eigen::Vector3d Eij = A.block(0,i*4+3,3,1).cross(B.block(j*4+3,0,1,4).transpose()) +
+                                      A.block(0,i*4,j+1,1).cross(B.block(j*4,j+1,i+1,3));
+
+                M1.block(i*3+j*9  , 6+j*6  , 3 , 3) = -SigB(i,j)*skew(Eij);
+                M1.block(i*3+j*9+6 , 6+j*6+3 , 3 , 3) = -SigB(i,j)*Eij;
+
+                b1.segment(i*9+j*27   , 27) += SigB(i,j)*(C.col(j).head<3>().cross(Y.col(j).head<3>()) -
+                                                          skew(C.col(j).head<3>()) * Y.col(j).head<3>() +
+                                                          skew(Y.col(j).head<3>()) * C.col(j).head<>
+                Z.row(i).tail<4>().transpose().cross(X.row(i)) -
+                skew(Z.row(i).tail<4>()) * X.row(i) +
+                skew(X.row(i)) * Z.row(i).tail<4>());
+
+                M2.block((i-2)*9+(j-2)*27   , j-2   , 9 , 1) = SigC((i-2),(j-2))*skew(Eij);
+                M2.block((i-2)*9+(j-2)*27   , j+7   , 9 , 1) = SigC((i-2),(j-2))*Eij;
+
+                b2.segment((i-2)*27+(j-2)*81   ,81) += SigC((i-2),(j-2))*(A.col(j).tail<4>().cross(B.col(j)) -
+                                                                          skew(A.col(j).tail<4>()) * B.col(j) +
+                                                                          skew(B.col(j)) * A.col(j).tail<4>()) +
+                                                       skew(B.col(j)) * A.col(j).tail<4>());
+            }
+        }
+
+        M << M1, M2;
+        b << b1, b2;
+    }
+
+
+    
