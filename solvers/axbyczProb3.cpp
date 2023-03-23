@@ -308,9 +308,9 @@ void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
         Eigen::Matrix3d M106 = SigB.block<3,3> (0,4) * skew(e3);
 
         // Third block
-        Eigen::Matrix3d M115 = -skew(SigB.block<3,1>(3,1)) + SigB.block<3,3> (3,0) * skew(e1);
-        Eigen::Matrix3d M116 = -skew(SigB.block <6,6> (4 ,6));
-        Eigen::Matrix3d M125 = -skew(SigB.block <6,7> (5 ,7)) + SigB.block <6 ,7> (5 ,7) * skew(e2);
+        Eigen::Matrix3d M115 = -skew(SigB.block<3,1>(3,0)) + SigB.block<3,3>(3,0) * skew(e1); //done till here
+        Eigen::Matrix3d M116 = -skew(SigB.block<3,1>(0,0));
+        Eigen::Matrix3d M125 = -skew(SigB.block<3,1>(3,1)) + SigB.block <6 ,7> (5 ,7) * skew(e2);
         Eigen::Matrix3d M126 = -skew(SigB.block <6,7> (5 ,7));
         Eigen::Matrix3d M135 = -skew(SigB.block <6,8> (6 ,8)) + SigB.block <6 ,8> (6 ,8) * skew(e8);
         Eigen::Matrix3d M136 = -skew(SigB.block <6,8> (6 ,8));
