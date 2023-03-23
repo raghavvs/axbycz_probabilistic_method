@@ -244,7 +244,44 @@ void axbyczProb3(const std::vector<Eigen::MatrixXd> &A1,
         M << M1, M2;
         b << b1, b2;
     }
-    Eigen::Matrix3d M11 = -A.block(0,0,3,3) * X.block(0,0,3,3) * skew(B.block(0,0,3,3)*e1);
-    
+
+    // AXB = YCZ
+    // Rotation part
+    Eigen::Matrix3d M11 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e1);
+    Eigen::Matrix3d M13 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e1);
+    Eigen::Matrix3d M15 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e1);
+
+    Eigen::Matrix3d M21 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e2);
+    Eigen::Matrix3d M23 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e2);
+    Eigen::Matrix3d M25 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e2);
+
+    Eigen::Matrix3d M31 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,3>(0,0)*e3);
+    Eigen::Matrix3d M33 = Y.block<3,3>(0,0) * skew(C.block<3,3>(0,0)*Z.block<3,3>(0,0)*e3);
+    Eigen::Matrix3d M35 = Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(e3);
+
+    // Translation part
+    Eigen::Matrix4d M41 = -A.block<3,3>(0,0) * X.block<3,3>(0,0) * skew(B.block<3,1>(0,3));
+    Eigen::Matrix4d M42 = A.block<3,3>(0,0) * X.block<3,3>(0,0);
+    Eigen::Matrix4d M43 = Y.block<3,3>(0,0) * skew(C.block<3,1>(0,2) * Z.block<3,1>(0,3) + C.block<3,1>(0,3));
+    Eigen::Matrix4d M44 = -Y.block<3,3>(0,0);
+    Eigen::Matrix4d M46 = -Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0);
+
+    Eigen::Matrix4d M(9, 12);
+    M << M11, Eigen::Matrix4d::Zero(3, 3), M13, Eigen::Matrix4d::Zero(3, 3), M15, Eigen::Matrix4d::Zero(3, 3),
+            M21, Eigen::Matrix4d::Zero(3, 3), M23, Eigen::Matrix4d::Zero(3, 3), M25, Eigen::Matrix4d::Zero(3, 3),
+            M31,Eigen::Matrix4d::Zero(3,3) ,M33,Eigen::Matrix4d::Zero(3,3) ,M35,Eigen::Matrix4d::Zero (3,3) ,
+            M41,M42,M43,M44,Eigen::Matrix4d::Zero (3,3) ,M46;
+
+    // RHS
+    Eigen::Matrix4d RHS = -A * X * B + Y * C * Z;
+    Eigen::VectorXd b(12);
+    b << RHS.block<1> (1)(03),RHS.block<1> (2)(03),RHS.block<1> (2)(03);
+
+    // SigBi = Ad^{-1}(Z) * SigCi * Ad^{-T}(Z)
+    // First block
+    Eigen::Matrix4d m55=-skew(SigB.block<1> (1)(03))+SigB.block<1> (2)(03)*skew(e1);
+    Eigen::Matrix4d m56 = Eigen::Matrix4d m65 =-skew(SigB.block<2> (2)(03))+SigB.block<2> (2)(03)*skew(e2);
+    Eigen::Matrix4d m66 = Eigen::Matrix4d m75 =-skew(SigB.block<2> (2)(03))+SigB.block<2> (2)(03)*skew(e3);
+
 
 
