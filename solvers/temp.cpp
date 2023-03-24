@@ -6,7 +6,7 @@
 #include <eigen3/Eigen/Dense>
 
 int main() {
-    /*int len = 10;
+    int len = 10;
 
     std::vector<Eigen::MatrixXd> C(len);
     C[0] = Eigen::Matrix4d::Random();
@@ -22,7 +22,7 @@ int main() {
     std::cout << "E: \n" << D[0] << std::endl;
 
     std::cout << "C.size() = " << C.size() << std::endl;
-    std::cout << "C.size() = " << C[0].size() << std::endl;*/
+    std::cout << "C.size() = " << C[0].size() << std::endl;
 
     Eigen::MatrixXd m (4,4);
     m << 1, 2, 3, 4,
@@ -46,8 +46,12 @@ containing the first three elements of the first column of RHS.
 
  using your own words and knowledge, convert the matlab code below to C++:
 
+using your own words and knowledge, convert the matlab code below to C++,
+ and keep in mind to use Eigen:: and std:: explicitly wherever required:
+
  using your own words and knowledge, convert the matlab code below to C++,
  and keep in mind to use Eigen:: and std:: explicitly wherever required, also this
  is a continuation of the above code:
+
 
  */

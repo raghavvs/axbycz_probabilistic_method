@@ -50,7 +50,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 # Create executable
 #add_executable(meanCov util/meanCov.cpp)
 #add_executable(meanCov1 util/meanCov1.cpp)
-#add_executable(meanCov2 util/meanCov2.cpp)
+add_executable(meanCov2 util/meanCov2.cpp)
 #add_executable(meanCov_solvertest util/meanCov_solvertest.cpp)
 #add_executable(meanCov_solvertest solvers/meanCov_solvertest.cpp)
 #add_executable(meanCovTEST test/meanCovTEST.cpp)
@@ -94,7 +94,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(axbyczProb1_v2 solvers/axbyczProb1_v2.cpp)
 #add_executable(axbyczProb1_v3 solvers/axbyczProb1_v3.cpp)
 #add_executable(axbyczProb1_v4 solvers/axbyczProb1_v4.cpp)
-add_executable(axbyczProb3 solvers/axbyczProb3.cpp)
+#add_executable(axbyczProb3 solvers/axbyczProb3.cpp)
 #add_executable(temp solvers/temp.cpp)
 
 # Create a list of libraries to link
@@ -109,7 +109,7 @@ set(LIBRARIES_TO_LINK
 # Link all the targets with the library list
 #target_link_libraries(meanCov ${LIBRARIES_TO_LINK})
 #target_link_libraries(meanCov1 ${LIBRARIES_TO_LINK})
-#target_link_libraries(meanCov2 ${LIBRARIES_TO_LINK})
+target_link_libraries(meanCov2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(meanCov_solvertest ${LIBRARIES_TO_LINK})
 #target_link_libraries(meanCovTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvg ${LIBRARIES_TO_LINK})
@@ -150,5 +150,5 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(axbyczProb1_v2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v4 ${LIBRARIES_TO_LINK})
-target_link_libraries(axbyczProb3 ${LIBRARIES_TO_LINK})
+#target_link_libraries(axbyczProb3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(temp ${LIBRARIES_TO_LINK})

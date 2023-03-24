@@ -11,17 +11,20 @@ expressions for each matrix. The sum of the norms is divided by the total
 number of matrices to compute the average norm.
 */
 
+#ifndef METRIC_H
+#define METRIC_H
+
 #include <iostream>
 #include <cmath>
 #include <vector>
 #include <eigen3/Eigen/Dense>
 
-double metric(const std::vector<Eigen::Matrix3d>& A,
-              const std::vector<Eigen::Matrix3d>& B,
-              const std::vector<Eigen::Matrix3d>& C,
-              const Eigen::Matrix3d& X,
-              const Eigen::Matrix3d& Y,
-              const Eigen::Matrix3d& Z) {
+double metric(const std::vector<Eigen::Matrix4d> &A,
+              const std::vector<Eigen::Matrix4d> &B,
+              const std::vector<Eigen::Matrix4d> &C,
+              const Eigen::Matrix4d &X,
+              const Eigen::Matrix4d &Y,
+              const Eigen::Matrix4d &Z) {
     double diff = 0.0;
     int N = 0;
     for (int i = 0; i < A.size(); ++i) {
@@ -35,8 +38,4 @@ double metric(const std::vector<Eigen::Matrix3d>& A,
     return diff / N;
 }
 
-/* int main()
-{
-    std::cout << "Build successful" << std::endl;
-    return 0;
-}  */
+#endif

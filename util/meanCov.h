@@ -20,6 +20,7 @@ and the mean logarithm and computing their outer product.
 #include <iostream>
 #include <cmath>
 #include <Eigen/Dense>
+#include <vector>
 #include <unsupported/Eigen/MatrixFunctions>
 
 void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean,
