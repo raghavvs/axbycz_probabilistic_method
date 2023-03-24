@@ -42,4 +42,12 @@ int main() {
 This code uses the .block<p,q>(i,j) function to extract a block of size pxq starting
 from row i and column j from the matrix RHS. In this case, it extracts a block of size
 3x1 starting from row 0 and column 0. The resulting submatrix is a column vector
-containing the first three elements of the first column of RHS.*/
+containing the first three elements of the first column of RHS.
+
+ using your own words and knowledge, convert the matlab code below to C++:
+
+ using your own words and knowledge, convert the matlab code below to C++,
+ and keep in mind to use Eigen:: and std:: explicitly wherever required, also this
+ is a continuation of the above code:
+
+ */
