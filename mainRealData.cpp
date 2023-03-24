@@ -56,35 +56,5 @@ int main() {
     Matrix4d Y_init;
     Matrix4d Z_init;
     // Initial guess as Identity if (init_guess == 1) { X_init =
-    Matrix4d::Identity(); Y_init =
-                                  Matrix4d::Identity(); Z_init =
-                                                                Matrix4d::Identity(); } else { //
-Initial guess as approx. measurement X_init <<
-AngleAxisd(-M_PI/2,
-Vector3d::
-UnitX()) * AngleAxisd(M_PI/2,
-Vector3d::
-UnitY()) * AngleAxisd(1.2*M_PI/180,
-Vector3d::
-UnitX()), Vector3d(58.71,0,63.64)/1000; 0,
-0,
-0,
-1; //
-from kinematics data Y_init <<
-AngleAxisd(M_PI,
-Vector3d::
-UnitZ()) * AngleAxisd(M_PI/4,
-Vector3d::
-UnitZ()), Vector3d(400,0,0)/1000; 0,
-0,
-0,
-1; Z_init <<
-AngleAxisd(M_PI,
-Vector3d::
-UnitZ()), Vector3d(0,0,10)/1000; 0,
-0,
-0,
-1; } return
-EXIT_SUCCESS;
-}
+
 }
