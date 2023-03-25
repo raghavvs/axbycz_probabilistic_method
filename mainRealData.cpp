@@ -57,6 +57,13 @@ int main() {
 
     int init_guess = 1;
 
+<<<<<<< HEAD
+    Matrix4d X_init;
+    Matrix4d Y_init;
+    Matrix4d Z_init;
+    // Initial guess as Identity if (init_guess == 1) { X_init =
+
+=======
     Eigen::Matrix4d X_init, Y_init, Z_init;
 
     if (init_guess == 1) {
@@ -230,4 +237,5 @@ int main() {
         }
         return diff/N;
     }
+>>>>>>> dev_mac
 }

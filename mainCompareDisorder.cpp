@@ -2,7 +2,7 @@
 DESCRIPTION:
 
 This code initializes several variables and arrays such as counter, gmean, Cov, k, num, Num, and rate.
- It also calls a function named InitializeXYZ with an input argument of 2 and assigns its outputs to
+ It also calls a function named initializeXYZ with an input argument of 2 and assigns its outputs to
  the variables XActual, YActual, and ZActual.
 
 The code then initializes several error containers as 3D arrays of zeros with dimensions based on the
@@ -34,6 +34,7 @@ Overall, it appears that this code is performing simulations to compare the perf
 
 #include <iostream>
 #include <Eigen/Dense>
+#include "initializeXYZ.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
@@ -49,7 +50,7 @@ int main() {
 
     // generate random X, Y and Z
     int opt_XYZ = 2;
-    auto [XActual, YActual, ZActual] = InitializeXYZ(opt_XYZ);
+    auto [XActual, YActual, ZActual] = initializeXYZ(opt_XYZ);
 
     // Error containers initialization
     Eigen::Tensor<double, 3> Err_1(rate.size(), 6, num);
