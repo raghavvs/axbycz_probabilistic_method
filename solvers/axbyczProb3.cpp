@@ -147,12 +147,12 @@ void MbMat_1(Eigen::MatrixXd &M,
     Eigen::Matrix3d M76 = Eigen::Matrix3d::Zero();
 
     // Second block
-    Eigen::Matrix3d M85 = -skew(SigB.block<3,1>(0,3)) + SigB.block<3,2>(0,4) * skew(e1);
-    Eigen::Matrix3d M86 = SigB.block<3,3>(0,4) * skew(e1);
-    Eigen::Matrix3d M95 = -skew(SigB.block<3,1>(0,5)) + SigB.block<3,2>(0,4) * skew(e2);
-    Eigen::Matrix3d M96 = SigB.block<3,3>(0,4) * skew(e2);
-    Eigen::Matrix3d M105 = -skew(SigB.block<3,1>(0,6)) + SigB.block<3,2>(0,4) * skew(e3);
-    Eigen::Matrix3d M106 = SigB.block<3,3> (0,4) * skew(e3);
+    Eigen::Matrix3d M85 = -skew(SigB.block<3,1>(0,3)) + SigB.block<3,3>(0,3) * skew(e1);
+    Eigen::Matrix3d M86 = SigB.block<3,3>(0,0) * skew(e1);
+    Eigen::Matrix3d M95 = -skew(SigB.block<3,1>(0,4)) + SigB.block<3,3>(0,3) * skew(e2);
+    Eigen::Matrix3d M96 = SigB.block<3,3>(0,0) * skew(e2);
+    Eigen::Matrix3d M105 = -skew(SigB.block<3,1>(0,5)) + SigB.block<3,3>(0,3) * skew(e3);
+    Eigen::Matrix3d M106 = SigB.block<3,3>(0,0) * skew(e3);
 
     // Third block
     Eigen::Matrix3d M115 = -skew(SigB.block<3,1>(3,0)) + SigB.block<3,3>(3,0) * skew(e1);
@@ -329,7 +329,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     }
 
     // invert B2
-    std::vector<Eigen::MatrixXd> B2inv(B2.size());
+    std::vector<Eigen::Matrix4d> B2inv(B2.size());
     for (int i = 0; i < B2.size(); ++i) {
         B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         for (int j = 0; j < B2[i].cols(); ++j) {
@@ -337,10 +337,11 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         }
     }
 
-    Eigen::MatrixXd A2_m, B2_m, C2_m, SigA2, SigB2, SigC2;
+    Eigen::MatrixXd A2_m, B2_m, B2inv_m, C2_m, SigA2, SigB2, SigB2inv, SigC2;
     for (int j = 0; j < Nj; j++) {
         meanCov(A2, Nj, A2_m, SigA2);
         meanCov(B2, Nj, B2_m, SigB2);
+        meanCov(B2inv, Nj, B2inv_m, SigB2inv);
         meanCov(C2, Nj, C2_m, SigC2);
     }
 
@@ -350,79 +351,79 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     diff = 1;
 
     while (xi.norm() >= tol && diff >= tol && num <= max_num) {
-        std::vector<Eigen::MatrixXd> MM(Ni+Nj), bb(Ni+Nj);
-
-        for (int i=0; i<Ni; ++i) {
-            MbMat_1(A1_m[i], Xupdate, B1_m[i],
-                    Yupdate, C1_m[i], Zupdate,
-                    SigB1[i], SigC1[i],
-                    MM[i], bb[i]);
+        std::vector<Eigen::MatrixXd> MM(Ni+Nj);
+        std::vector<Eigen::VectorXd> bb(Ni+Nj);
+        for (int i = 0; i < Ni; i++) {
+            MbMat_1(MM[i], bb[i], A1_m.block(0, 0, 4, 4 * i), Xupdate,
+                    B1_m.block(0, 0, 4, 4 * i),
+                    Yupdate, C1_m.block(0, 0, 4, 4 * i), Zupdate,
+                    SigB1.block(0, 0, SigB1.rows(), SigB1.cols() * i),
+                    SigC1.block(0, 0, SigC1.rows(), SigC1.cols() * i));
+            MbMat_1(MM[i], bb[i], A1_m.block<4,4>(0, 4 * i), Xupdate,
+                    B1_m.block<4,4>(0, 4 * i),
+                    Yupdate, C1_m.block<4,4>(0, 4 * i), Zupdate,
+                    SigB1.block(0, SigB1.cols() * i, SigB1.rows(), SigB1.cols()),
+                    SigC1.block(0, SigC1.cols() * i, SigC1.rows(), SigC1.cols()));
         }
 
-        for (int j=0; j<Nj; ++j) {
-            MbMat_2(C2_m[j], Zupdate, B2inv_m[j],
-                    SE3inv(Yupdate), A2_m[j], Xupdate,
-                    SigB2[j], SigA2[j], B2_m[j],
-                    MM[j+Ni], bb[j+Ni]);
+        for (int j = 0; j < Nj; j++) {
+            MbMat_2(MM[j + Ni], bb[j + Ni],
+                    C2_m.block(0, 0, C2_m.rows(), C2_m.cols() * j), Zupdate,
+                    B2inv_m.block(0, 0, B2inv_m.rows(), B2inv_m.cols() * j),
+                    SE3inv(Yupdate),
+                    A2_m.block(0, 0, A2_m.rows(),A2_m.cols() * j), Xupdate,
+                    SigB2.block(0, 0, SigB2.rows(), SigB2.cols() * j),
+                    SigA2.block(0, 0, SigA2.rows(), SigA2.cols() * j),
+                    B2_m.block(0, 0, B2_m.rows(), B2_m.cols() * j));
         }
 
-        // Solve for X and Y
-        Eigen::MatrixXd M(12*(Ni+Nj), 12);
-        Eigen::VectorXd b(12*(Ni+Nj));
+        Eigen::MatrixXd M;
+        Eigen::VectorXd b;
+        Eigen::MatrixXd M1;
+        Eigen::MatrixXd M2;
+        Eigen::MatrixXd M3;
+        Eigen::MatrixXd M4;
 
-        for (int i=0; i<Ni+Nj; ++i) {
-            M.block(i*12, 0, 12, 12) = MM[i];
-            b.segment(i*12, 12) = bb[i];
+        for (int k = 0; k < Ni + Nj; k++) {
+            M.conservativeResize(M.rows() + MM[k].rows(), MM[k].cols());
+            M.bottomRows(MM[k].rows()) = MM[k];
+            b.conservativeResize(b.size() + bb[k].size());
+            b.tail(bb[k].size()) = bb[k];
         }
 
-        xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
-
-        Eigen::Matrix4d dX;
-        dX << xi(0), xi(1), xi(2), xi(3),
-                xi(4), xi(5), xi(6), xi(7),
-                xi(8), xi(9), xi(10), xi(11),
-                0, 0, 0, 1;
-
-        Eigen::Matrix4d dY;
-        dY << xi(12), xi(13), xi(14), xi(15),
-                xi(16), xi(17), xi(18), xi(19),
-                xi(20), xi(21), xi(22), xi(23),
-                0, 0, 0, 1;
-
-        Xupdate = Xupdate * dX;
-        Yupdate = Yupdate * dY;
-
-        diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
-               metric(A2,B2,C2,Xupdate,Yupdate,Zupdate);
-
-        ++num;
-
-        // Concatenate M and b matrices together
-        Eigen::MatrixXd M(12*(Ni+Nj), 18);
-        Eigen::VectorXd b(12*(Ni+Nj));
-
-        for (int i=0; i<Ni+Nj; ++i) {
-            M.block(i*12, 0, 12, 18) = MM[i];
-            b.segment(i*12, 12) = bb[i];
+        for (int k = 0; k < Ni; k++) {
+            M1.conservativeResize(M1.rows() + MM[k].block(0, 0, 12, MM[k].cols()).rows(), MM[k].cols());
+            M1.bottomRows(MM[k].block(0, 0, 12, MM[k].cols()).rows()) = MM[k].block(0, 0, 12, MM[k].cols());
+            M2.conservativeResize(M2.rows() + MM[k].block(12, 0, 9, MM[k].cols()).rows(), MM[k].cols());
+            M2.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
 
-        // Inversion to get xi_X, xi_Y, xi_Z
-        xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
-
-        for (int i=0; i<Ni; ++i) {
-            double diff1 = (A1_m[i] * Xupdate * B1_m[i] - Yupdate * C1_m[i] * Zupdate).norm();
+        for (int k = Ni; k < Ni + Nj; k++) {
+            M3.conservativeResize(M3.rows() + MM[k].block(0, 0, 12, MM[k].cols()).rows(), MM[k].cols());
+            M3.bottomRows(MM[k].block(0, 0, 12, MM[k].cols()).rows()) = MM[k].block(0, 0, 12, MM[k].cols());
+            M4.conservativeResize(M4.rows() + MM[k].block(12, 0, 9, MM[k].cols()).rows(), MM[k].cols());
+            M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
 
-        for (int j=0; j<Nj; ++j) {
-            double diff2 = (A2_m[j] * Xupdate * B2_m[j] - Yupdate * C2_m[j] * Zupdate).norm();
+        Eigen::VectorXd xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+
+        double diff1 = 0;
+        double diff2 = 0;
+
+        for (int i = 0; i < Ni; i++) {
+            diff1 = (A1_m.block(0, 0, 4, 4 * i) * Xupdate * B1_m.block(0, 0, 4, 4 * i) - Yupdate * C1_m.block(0, 0, 4, 4 * i) * Zupdate).norm();
         }
 
-        Eigen::Vector3d w_X = xi.segment(0,3);
-        Eigen::Vector3d v_X = xi.segment(3,3);
-        Eigen::Vector3d w_Y = xi.segment(6,3);
-        Eigen::Vector3d v_Y = xi.segment(9,3);
-        Eigen::Vector3d w_Z = xi.segment(12,3);
-        Eigen::Vector3d v_Z = xi.segment(15,3);
+        for (int i = 0; i < Nj; i++) {
+            diff2 = (A2_m.block(0, 0, A2_m.rows(), A2_m.cols() * i) * Xupdate * B2_m.block(0, 0, B2_m.rows(), B2_m.cols() * i) - Yupdate * C2_m.block(0, 0, C2_m.rows(), C2_m.cols() * i) * Zupdate).norm();
+        }
+
+        Eigen::Vector3d w_X = xi.head(3);
+        Eigen::Vector3d v_X = xi.segment(3, 3);
+        Eigen::Vector3d w_Y = xi.segment(6, 3);
+        Eigen::Vector3d v_Y = xi.segment(9, 3);
+        Eigen::Vector3d w_Z = xi.segment(12, 3);
+        Eigen::Vector3d v_Z = xi.tail(3);
 
         Eigen::Matrix4d X_hat;
         X_hat << skew(w_X), v_X,

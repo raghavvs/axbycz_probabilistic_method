@@ -23,7 +23,9 @@ and the mean logarithm and computing their outer product.
 #include <vector>
 #include <unsupported/Eigen/MatrixFunctions>
 
-void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean,
+void meanCov(const std::vector<Eigen::Matrix4d> &X,
+             int N,
+             Eigen::MatrixXd &Mean,
              Eigen::MatrixXd &Cov) {
     Mean = Eigen::Matrix4d::Identity();
     Cov = Eigen::Matrix<double, 6, 6>::Zero();
