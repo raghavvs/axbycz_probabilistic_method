@@ -105,6 +105,7 @@ int main()
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    std::vector<double> err1(11), err2(11);
     for (int rk = 0; rk < r.size(); ++rk) {
         // Convert cells to matrices
         std::vector<Eigen::MatrixXd> A;
@@ -140,18 +141,22 @@ int main()
         // Prob 1
         std::cout << "Probabilistic Method 1..." << std::endl;
         axbyczProb1(AA1[0], BBp1, CC1[0],
-                    AA2[0], BBp2, CC2[0], 0, 0, 0,
+                    AA2[0], BBp2, CC2[0],
+                    0, 0, 0,
                     X_cal1, Y_cal1, Z_cal1);
 
         // Initial guess for iterative refinement as the results from prob 1
         if (init_guess == 3) {
-            X_init = X_cal1;
-            Y_init = Y_cal1;
-            Z_init = Z_cal1;
+            X_init = X_cal1[rk];
+            Y_init = Y_cal1[rk];
+            Z_init = Z_cal1[rk];
         }
 
         // Iterative Refinement
         std::cout << "Iterative Refinement..." << std::endl;
+        int num2[rk];
+        std::vector<Eigen::Matrix4d> A1, Bp1, B1, B2, C1, A2, Bp2, C2;
+        Eigen::Matrix4d X_cal2, Y_cal2, Z_cal2;
         axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
                     X_init, Y_init, Z_init,
@@ -160,28 +165,26 @@ int main()
 
         // Verification
         // Prob 1
-        err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
-                   metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+        err1[rk] = metric(A1, B1, C1, X_cal1[rk], Y_cal1[rk], Z_cal1[rk]) +
+                            metric(A2, B2, C2, X_cal1[rk], Y_cal1[rk], Z_cal1[rk]);
 
         // Iterative refinement
         err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
                    metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
     }
 
-
-    // Plot error v.s. scramble rate
+    // Plot error vs scramble rate
     plt::figure();
     int fontSize = 20;
     int lineW = 1;
 
-    plt::plot(r,err1,"o-r",{{"linewidth",lineW}});
-    plt::plot(r,err2,"d-g",{{"linewidth",lineW}});
-    plt::plot(r,err3,"*-b",{{"linewidth",lineW}});
+    plt::plot(r, err1, "o-r", {{"LineWidth", lineW}});
+    plt::plot(r, err2, "d-g", {{"LineWidth", lineW}});
 
-    auto lgd = plt::legend({"Prob 1","Iterative","Wang"});
-    lgd.attr("fontsize") = fontSize;
-    plt::xlabel("Scramble Rate (%)", {{"fontsize",fontSize}});
-    plt::ylabel("Error",{ {"fontsize",fontSize}});
+    auto lgd = plt::legend({"Prob 1", "Iterative"});
+    lgd["fontsize"] = fontSize;
+    plt::xlabel("Scramble Rate (%)", {{"fontsize", fontSize}});
+    plt::ylabel("Error", {{"fontsize", fontSize}});
 
-    plt::title("Real Data",{ {"fontsize",fontSize}});
+    plt::title("Real Data", {{"fontsize", fontSize}});
 }
