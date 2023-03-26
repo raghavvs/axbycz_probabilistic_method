@@ -46,27 +46,20 @@ int main() {
     double k = 0.1;
     int num = 1; // number of simulations
     int Num = 80; // number of data
-    std::vector<int> rate{0, 20, 40, 60, 80, 100};
+    Eigen::VectorXi rate(6);
+    rate << 0, 20, 40, 60, 80, 100;
 
     // generate random X, Y and Z
     int opt_XYZ = 2;
-    auto [XActual, YActual, ZActual] = initializeXYZ(opt_XYZ);
+    Eigen::Matrix4d XActual, YActual, ZActual;
+    initializeXYZ(opt_XYZ, XActual, YActual, ZActual);
 
     // Error containers initialization
-    Eigen::Tensor<double, 3> Err_1(rate.size(), 6, num);
-    Err_1.setZero();
-
-    Eigen::Tensor<double, 3> Err_2(rate.size(), 6, num);
-    Err_2.setZero();
-
-    Eigen::Tensor<double, 3> Err_W(rate.size(), 6, num);
-    Err_W.setZero();
-
-    Eigen::Tensor<double, 3> Err_NP(rate.size(), 6, num);
-    Err_NP.setZero();
-
-    Eigen::Tensor<double, 3> Err_DK(rate.size(), 6, num);
-    Err_DK.setZero();
+    std::vector<std::vector<std::vector<double>>> Err_1(rate.size(), std::vector<std::vector<double>>(6, std::vector<double>(num)));
+    std::vector<std::vector<std::vector<double>>> Err_2(rate.size(), std::vector<std::vector<double>>(6, std::vector<double>(num)));
+    std::vector<std::vector<std::vector<double>>> Err_W(rate.size(), std::vector<std::vector<double>>(6, std::vector<double>(num)));
+    std::vector<std::vector<std::vector<double>>> Err_NP(rate.size(), std::vector<std::vector<double>>(6, std::vector<double>(num)));
+    std::vector<std::vector<std::vector<double>>> Err_DK(rate.size(), std::vector<std::vector<double>>(6, std::vector<double>(num)));
 
     for (int s = 1; s <= num; s++) {
         counter = 0;
