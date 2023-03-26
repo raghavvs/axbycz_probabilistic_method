@@ -41,10 +41,31 @@ The script also defines some supporting functions that convert cell arrays to
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
+#include "fKine.h"
+#include "metric.h"
+#include "scrambleData.h"
+#include "axbyczProb1.h"
+#include "axbyczProb3.h"
 #include "matplotlibcpp.h"
+
 namespace plt = matplotlibcpp;
 
-int main() {
+// Convert data to 3d matrices
+void convertCell2Mat(const std::vector<Eigen::MatrixXd> &headTf,
+                     const std::vector<Eigen::MatrixXd> &handTf,
+                     const std::vector<Eigen::MatrixXd> &tagTf,
+                     std::vector<Eigen::MatrixXd> &A,
+                     std::vector<Eigen::MatrixXd> &B,
+                     std::vector<Eigen::MatrixXd> &C) {
+    for (int i = 0; i < headTf.size(); ++i) {
+        A[i] = headTf[i];
+        B[i] = tagTf[i];
+        C[i] = handTf[i];
+    }
+}
+
+int main()
+{
     // Load data
     // load('real_data/transform_ABC_unified.mat'); // load the experiment data
     // load('real_data/transform_ABC_unified_fixA.mat');
@@ -56,14 +77,6 @@ int main() {
     // data of the robot; 3 for results from Prob 1.
 
     int init_guess = 1;
-
-<<<<<<< HEAD
-    Matrix4d X_init;
-    Matrix4d Y_init;
-    Matrix4d Z_init;
-    // Initial guess as Identity if (init_guess == 1) { X_init =
-
-=======
     Eigen::Matrix4d X_init, Y_init, Z_init;
 
     if (init_guess == 1) {
@@ -71,120 +84,91 @@ int main() {
         Y_init = Eigen::Matrix4d::Identity();
         Z_init = Eigen::Matrix4d::Identity();
     } else {
-        // Initial guess as approx. measurement
-        X_init << rotx(-M_PI / 2) * roty(M_PI / 2) * rotx(1.2 * M_PI / 180), Eigen::Vector3d(58.71,0,63.64)/1000,
-                0,0,0,1;
-        Y_init << rotz(M_PI)*rotz(M_PI/4), Eigen::Vector3d(400,0,0)/1000,
-                0,0,0,1;
-        Z_init << rotz(M_PI), Eigen::Vector3d(0,0,10)/1000,
-                0,0,0,1;
+        Eigen::VectorXd qz1(6);
+        qz1 << M_PI/6, M_PI/3, M_PI/4, M_PI/4, -M_PI/4, 0;
+        Eigen::VectorXd qz2(6);
+        qz2 << M_PI/3, M_PI/4, M_PI/3, -M_PI/4, M_PI/4, 0;
+        Eigen::VectorXd qz3(6);
+        qz3 << M_PI/4, M_PI/3, M_PI/3, M_PI/6, -M_PI/4, 0;
+        X_init = fKine(qz1);
+        Y_init = fKine(qz2);
+        Z_init = fKine(qz3);
     }
 
-    // Choice of scramble rate
+    std::vector<std::vector<Eigen::MatrixXd>> headTf1;
+    std::vector<std::vector<Eigen::MatrixXd>> handTf1;
+    std::vector<std::vector<Eigen::MatrixXd>> tagTf1;
+    std::vector<std::vector<Eigen::MatrixXd>> headTf2;
+    std::vector<std::vector<Eigen::MatrixXd>> handTf2;
+    std::vector<std::vector<Eigen::MatrixXd>> tagTf2;
     bool isRandPerm = true;
+
+    // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-    for (int rk = 0; rk < r.size(); rk++) {
-        // convert cells to matrices
+    for (int rk = 0; rk < r.size(); ++rk) {
+        // Convert cells to matrices
         std::vector<Eigen::MatrixXd> A;
         std::vector<Eigen::MatrixXd> B;
         std::vector<Eigen::MatrixXd> C;
         std::vector<Eigen::MatrixXd> Bp;
-
-        for (int i = 0; i < headTf1.size(); i++) {
+        for (int i = 0; i < headTf1.size(); ++i) {
             // Inputs for Iterative Refinement
-            Eigen::MatrixXd A1_i;
-            Eigen::MatrixXd B1_i;
-            Eigen::MatrixXd C1_i;
-            std::tie(A1_i,B1_i,C1_i) = convertCell2Mat(headTf1[i], handTf1[i], tagTf1[i]);
-
-            Eigen::MatrixXd A2_i;
-            Eigen::MatrixXd B2_i;
-            Eigen::MatrixXd C2_i;
-            std::tie(A2_i,B2_i,C2_i) = convertCell2Mat(headTf2[i], handTf2[i], tagTf2[i]);
-
+            Eigen::MatrixXd A1, B1, C1;
+            convertCell2Mat(headTf1[i], handTf1[i], tagTf1[i], A1, B1, C1);
+            Eigen::MatrixXd A2, B2, C2;
+            convertCell2Mat(headTf2[i], handTf2[i], tagTf2[i], A2, B2, C2);
             if (isRandPerm) {
-                Bp1[i] = scrambleData(B1[i], r[rk]);
-                Bp2[i] = scrambleData(B2[i], r[rk]);
+                Eigen::MatrixXd Bp1 = scrambleData(B1, r[rk]);
+                Eigen::MatrixXd Bp2 = scrambleData(B2, r[rk]);
             }
-
-            // Inputs for Wang
-            Eigen::MatrixXd AA = Eigen::MatrixXd(A1_i.rows(), A1_i.cols(), 2);
-            AA << A1_i, A2_i;
-            Eigen::MatrixXd BB = Eigen::MatrixXd(B1_i.rows(), B1_i.cols(), 2);
-            BB << B1_i, B2_i;
-            Eigen::MatrixXd CC = Eigen::MatrixXd(C1_i.rows(), C1_i.cols(), 2);
-            CC << C1_i, C2_i;
-
-            A.push_back(AA);
-            B.push_back(BB);
-            C.push_back(CC);
         }
 
         // Inputs for Prob 1
-        Eigen::MatrixXd AA1;
-        Eigen::MatrixXd BB1;
-        Eigen::MatrixXd CC1;
-        std::tie(AA1,BB1,CC1) = convertCell2Mat(headTf1[0], handTf1[0], tagTf1[0]);
+        std::vector<Eigen::MatrixXd> AA1(headTf1.size()), BB1(headTf1.size()), CC1(headTf1.size());
+        std::vector<Eigen::MatrixXd> AA2(headTf2.size()), BB2(headTf2.size()), CC2(headTf2.size());
+        std::vector<Eigen::Matrix4d> X_cal1, Y_cal1, Z_cal1;
+        Eigen::MatrixXd BBp1, BBp2;
 
-        Eigen::MatrixXd AA2;
-        Eigen::MatrixXd BB2;
-        Eigen::MatrixXd CC2;
+        convertCell2Mat(headTf1, handTf1, tagTf1, AA1, BB1, CC1);
+        convertCell2Mat(headTf2, handTf2, tagTf2, AA2, BB2, CC2);
 
-        std::tie(AA2,BB2,CC2) = convertCell2Mat(headTf2[0], handTf2[0], tagTf2[0]);
         if (isRandPerm) {
-            Eigen::MatrixXd BBp1 = scrambleData(BB1, r[rk]);
-            Eigen::MatrixXd BBp2 = scrambleData(BB2, r[rk]);
-            Eigen::MatrixXd Bp = scrambleData(B, r[rk]);
+            BBp1 = scrambleData(BB1[0], r[rk]);
+            BBp2 = scrambleData(BB2[0], r[rk]);
+            Bp = scrambleData(B[0], r[rk]);
         }
 
         // Prob 1
         std::cout << "Probabilistic Method 1..." << std::endl;
-        Eigen::Matrix4d X_cal1;
-        Eigen::Matrix4d Y_cal1;
-        Eigen::Matrix4d Z_cal1;
-        std::tie(X_cal1,Y_cal1,Z_cal1) = axbyczProb1(AA1.slice(0), BBp1, CC1,
-                                                     AA2, BBp2, CC2.slice(0), 0, 0, 0);
+        axbyczProb1(AA1[0], BBp1, CC1[0],
+                    AA2[0], BBp2, CC2[0], 0, 0, 0,
+                    X_cal1, Y_cal1, Z_cal1);
 
         // Initial guess for iterative refinement as the results from prob 1
         if (init_guess == 3) {
             X_init = X_cal1;
-            Y_init = Y_call;
-            Z_init = Z_call;
+            Y_init = Y_cal1;
+            Z_init = Z_cal1;
         }
 
         // Iterative Refinement
         std::cout << "Iterative Refinement..." << std::endl;
-        Eigen::Matrix4d X_cal2;
-        Eigen::Matrix4d Y_cal2;
-        Eigen::Matrix4d Z_cal2;
-        int num2_rk;
-        std::tie(X_cal2,Y_cal2,Z_cal2,num2_rk) = axbyczProb3(A1, Bp1, C1,
-                                                             A2, Bp2, C2, X_init, Y_init, Z_init);
-        num2[rk] = num2_rk;
-
-        // Call traditional AXB=YCZ algorithm to solve for X, Y and Z given A, B and C
-        std::cout << "Wang Method..." << std::endl;
-        Eigen::Matrix4d X_cal3;
-        Eigen::Matrix4d Y_cal3;
-        Eigen::Matrix4d Z_cal3;
-        int num3_rk;
-        std::tie(X_cal3,Y_cal3,Z_cal3,num3_rk) = Wang_AXBYCZ(A, Bp, C,
-                                                             X_init, Y_init, Z_init);
-        num3[rk] = num3_rk;
+        axbyczProb3(A1, Bp1, C1,
+                    A2, Bp2, C2,
+                    X_init, Y_init, Z_init,
+                    X_cal2, Y_cal2, Z_cal2,
+                    num2[rk]);
 
         // Verification
         // Prob 1
-        err1[rk] = metric(A1,B1,C1,X_cal1,Y_cal1,Z_cal1) +
-                   metric(A2,B2,C2,X_cal1,Y_cal1,Z_cal1);
+        err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
+                   metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
 
         // Iterative refinement
-        err2[rk] = metric(A1,B1,C1,X_cal2,Y_cal2,Z_cal2) +
-                   metric(A2,B2,C2,X_cal2,Y_cal2,Z_cal2);
-
-        // Wang method
-        err3[rk] = metric(A1,B1,C1,X_cal3,Y_cal3,Z_cal3) +
-                   metric(A2,B2,C2,X_cal3,Y_cal3,Z_cal3);
+        err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
+                   metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
     }
+
 
     // Plot error v.s. scramble rate
     plt::figure();
@@ -201,41 +185,4 @@ int main() {
     plt::ylabel("Error",{ {"fontsize",fontSize}});
 
     plt::title("Real Data",{ {"fontsize",fontSize}});
-
-    //-- Supporting functions --//
-
-    // Convert data to 3d matrices
-    std::tuple<Eigen::MatrixXd,Eigen::MatrixXd,Eigen::MatrixXd>
-            convertCell2Mat(std::vector<Eigen::Matrix4d> headTf,
-                            std::vector<Eigen::Matrix4d> handTf,
-                            std::vector<Eigen::Matrix4d> tagTf) {
-        Eigen::MatrixXd A(headTf[0].rows(), headTf[0].cols(), headTf.size());
-        Eigen::MatrixXd B(tagTf[0].rows(), tagTf[0].cols(), tagTf.size());
-        Eigen::MatrixXd C(handTf[0].rows(), handTf[0].cols(), handTf.size());
-        for (int i = 0; i < headTf.size(); ++i) {
-            A.slice(i) = headTf[i];
-            B.slice(i) = tagTf[i];
-            C.slice(i) = handTf[i];
-        }
-        return std::make_tuple(A,B,C);
-    }
-
-    // Metric for computing errors
-    double metric(std::vector<Eigen::Matrix4d> A,
-                  std::vector<Eigen::Matrix4d> B,
-                  std::vector<Eigen::Matrix4d> C,
-                  Eigen::Matrix4d X,
-                  Eigen::Matrix4d Y,
-                  Eigen::Matrix4d Z) {
-        double diff = 0;
-        int N = 0;
-        for (int i = 0; i < A.size(); ++i) {
-            for (int j = 0; j < A[i].size(); ++j) {
-                diff += (A[i].slice(j)*X*B[i].slice(j)-Y*C[i].slice(j)*Z).norm();
-                N++;
-            }
-        }
-        return diff/N;
-    }
->>>>>>> dev_mac
 }
