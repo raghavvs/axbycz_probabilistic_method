@@ -8,6 +8,9 @@ the value of theta to compute the corresponding skew-symmetric matrix w_hat.
 Finally, the computed w_hat matrix is returned. 
 */
 
+#ifndef SKEWLOG_H
+#define SKEWLOG_H
+
 #include <cmath>
 #include <iostream>
 #include <eigen3/Eigen/Dense>
@@ -37,3 +40,5 @@ Eigen::Matrix3d skewLog(Eigen::Matrix3d R) {
     }
     return w_hat;
 }
+
+#endif

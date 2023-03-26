@@ -23,6 +23,10 @@ obtained by calling the function scrambleData with N and r. The function permFix
 Eigen matrices and blocks to resize and fill the matrices M_perm.
 */
 
+#ifndef PERMFIXABC_H
+#define PERMFIXABC_H
+
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -40,3 +44,5 @@ void permFixABC(const Eigen::MatrixXd& M, const Eigen::MatrixXd& N, const Eigen:
     N_perm = scrambleData(N, r);
     P_perm = P;
 }
+
+#endif

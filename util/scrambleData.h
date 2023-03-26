@@ -8,6 +8,9 @@ s_rate and returns a partially permuted copy of M as output. The program
 uses the C++ standard library chrono and random to generate the random permutation.
 */
 
+#ifndef SCRAMBLEDATA_H
+#define SCRAMBLEDATA_H
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <random>
@@ -35,3 +38,5 @@ Eigen::MatrixXd scrambleData(Eigen::MatrixXd M, double s_rate) {
     }
     return M_perm;
 }
+
+#endif

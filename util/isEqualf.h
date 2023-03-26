@@ -11,6 +11,9 @@ threshold thresh. If the difference is within the threshold, the function
 returns true, otherwise it returns false. 
 */
 
+#ifndef ISEQUAL_H
+#define ISEQUAL_H
+
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -28,8 +31,4 @@ bool isEqualf(double a, double b, double thresh = std::numeric_limits<double>::e
         return true;
 }
 
-/* int main()
-{
-    std::cout << "Build successful" << std::endl;
-    return 0;
-} */
+#endif

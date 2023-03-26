@@ -19,6 +19,9 @@ rotError function returns the angle component of the rotation
 between the two matrices in radians.
 */
 
+#ifndef ROTERROR_H
+#define ROTERROR_H
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 
@@ -31,24 +34,4 @@ double rotError(Eigen::Matrix4d X1, Eigen::Matrix4d X2)
     return aa.angle();
 }
 
-// TEST CASE
-
-/*
-int main()
-{
-    Eigen::Matrix4d X1, X2;
-
-    X1 << 0.7204, -0.0024, -0.6937, -0.7254,
-          0.6936, -0.1371,  0.7070,  0.0161,
-          -0.0092, -0.9905, -0.1375, -0.2605,
-           0.0000,  0.0000,  0.0000,  1.0000;
-    X2 << 0.7185, -0.0045, -0.6955, -0.7225,
-          0.6953, -0.1441,  0.7039,  0.0098,
-          -0.0065, -0.9895, -0.1448, -0.2614,
-           0.0000,  0.0000,  0.0000,  1.0000;
-    
-    std::cout << "Rotation error: " << rotError(X1, X2) << std::endl;
-
-    return 0;
-}
-*/
+#endif

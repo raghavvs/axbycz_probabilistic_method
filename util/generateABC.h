@@ -25,6 +25,9 @@ Input:
                 noise-free data streams with correspondence
 */
 
+#ifndef GENERATEABC_H
+#define GENERATEABC_H
+
 #include <iostream>
 #include <cmath>
 #include <eigen3/Eigen/Dense>
@@ -158,3 +161,5 @@ generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const 
     // Return a tuple of vectors containing the output matrices
     return std::make_tuple(A,B,C);
 }
+
+#endif

@@ -19,7 +19,7 @@ for a 3D pose estimation problem.
 #include <se3Vec.h>
 #include <expm.h>
 
-void InitializeXYZ(int opt, Eigen::Matrix4d& X, Eigen::Matrix4d& Y, Eigen::Matrix4d& Z)
+void initializeXYZ(int opt, Eigen::Matrix4d& X, Eigen::Matrix4d& Y, Eigen::Matrix4d& Z)
 {
     if (opt == 1)
     {

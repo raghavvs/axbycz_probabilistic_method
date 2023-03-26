@@ -10,6 +10,9 @@ transformation matrices Ti for each joint together. Finally, the resulting
 homogeneous transformation matrix T is returned.
 */
 
+#ifndef FKINE_H
+#define FKINE_H
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 
@@ -49,24 +52,4 @@ Eigen::Matrix4d fKine(const Eigen::VectorXd& q)
     return T;
 }
 
-
-/* int main()
-{
-    Eigen::VectorXd q(6);
-    q << 0.1, 0.2, 0.3, 0.4, 0.5, 0.6;  // set joint angles
-    
-    Eigen::Matrix4d T = fKine(q);  // compute forward kinematics
-    
-    std::cout << "Transformation matrix:\n" << T << std::endl;  // print result
-    
-    return 0;
-} */
-
-/*
-Ouput:
-Transformation matrix:
- 0.281856 -0.493417 -0.822859  0.137327
--0.777873 -0.619574  0.105073  0.094313
--0.561667  0.610465 -0.558446 -0.116998
-        0         0         0         1
-*/
+#endif

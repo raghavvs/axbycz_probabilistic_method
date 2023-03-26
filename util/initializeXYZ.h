@@ -12,6 +12,9 @@ The matrices X, Y, and Z represent the ground truth transformations
 for a 3D pose estimation problem.
 */
 
+#ifndef INITIALIZEXYZ_H
+#define INITIALIZEXYZ_H
+
 #include <iostream>
 #include <cmath>
 #include <eigen3/Eigen/Core>
@@ -19,7 +22,7 @@ for a 3D pose estimation problem.
 #include <se3Vec.h>
 #include <expm.h>
 
-void InitializeXYZ(int opt, Eigen::Matrix4d& X, Eigen::Matrix4d& Y, Eigen::Matrix4d& Z)
+void initializeXYZ(int opt, Eigen::Matrix4d& X, Eigen::Matrix4d& Y, Eigen::Matrix4d& Z)
 {
     if (opt == 1)
     {
@@ -70,3 +73,5 @@ void InitializeXYZ(int opt, Eigen::Matrix4d& X, Eigen::Matrix4d& Y, Eigen::Matri
         return;
     }
 }
+
+#endif
