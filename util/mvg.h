@@ -55,7 +55,9 @@ The function first checks that the input arguments meet certain requirements:
 #include <eigen3/Eigen/Cholesky>
 #include <random>
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N) {
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> mvg(const Eigen::VectorXd& mu,
+                                                const Eigen::MatrixXd& Sigma,
+                                                int N) {
     if (mu.size() != Sigma.rows()) {
         std::cerr << "Length(mu) must equal size(Sigma,1)." << std::endl;
         exit(EXIT_FAILURE);

@@ -33,8 +33,12 @@ Eigen matrices and blocks to resize and fill the matrices M_perm.
 #include <algorithm>
 #include <scrambleData.h>
 
-void permFixABC(const Eigen::MatrixXd& M, const Eigen::MatrixXd& N, const Eigen::MatrixXd& P, 
-                double r, Eigen::MatrixXd& M_perm, Eigen::MatrixXd& N_perm, Eigen::MatrixXd& P_perm) {
+void permFixABC(const Eigen::MatrixXd& M,
+                const Eigen::MatrixXd& N,
+                const Eigen::MatrixXd& P,
+                double r, Eigen::MatrixXd& M_perm,
+                Eigen::MatrixXd& N_perm,
+                Eigen::MatrixXd& P_perm) {
 
     int n = N.cols();
     M_perm.resize(M.rows(), M.cols() * n);

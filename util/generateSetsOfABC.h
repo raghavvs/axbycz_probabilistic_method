@@ -40,7 +40,9 @@ struct ABCSets {
     std::vector<Eigen::Matrix4d> C3;
 };
 
-ABCSets generateSetsOfABC(int Num, int optPDF, const Eigen::VectorXd& Mean,
+ABCSets generateSetsOfABC(int Num,
+                          int optPDF,
+                          const Eigen::VectorXd& Mean,
                           const Eigen::MatrixXd& Cov,
                           const Eigen::Matrix4d& XActual,
                           const Eigen::Matrix4d& YActual,

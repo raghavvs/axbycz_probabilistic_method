@@ -25,7 +25,8 @@ Eigen::Matrix3d skew(Eigen::Vector3d v)
     return m;
 }
 
-Eigen::Matrix3d skewExp(Eigen::Vector3d s, double theta = 1)
+Eigen::Matrix3d skewExp(Eigen::Vector3d s,
+                        double theta = 1)
 {
     Eigen::Matrix3d g;
     g.setIdentity();

@@ -19,7 +19,9 @@ returns true, otherwise it returns false.
 #include <limits>
 #include <algorithm>
 
-bool isEqualf(double a, double b, double thresh = std::numeric_limits<double>::epsilon()*100)
+bool isEqualf(double a,
+              double b,
+              double thresh = std::numeric_limits<double>::epsilon()*100)
 {
     if (std::isnan(a) || std::isnan(b)) return false;
 

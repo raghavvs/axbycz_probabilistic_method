@@ -20,7 +20,8 @@ uses the C++ standard library chrono and random to generate the random permutati
 std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-Eigen::MatrixXd scrambleData(Eigen::MatrixXd M, double s_rate) {
+Eigen::MatrixXd scrambleData(Eigen::MatrixXd M,
+                             double s_rate) {
     int n = M.cols();
     std::vector<int> M_index(n);
     for (int i = 0; i < n; i++) {

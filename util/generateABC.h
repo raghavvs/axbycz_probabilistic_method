@@ -42,8 +42,14 @@ Input:
 #include "fKine.h"
 
 std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>>
-generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
-            const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
+generateABC(int length,
+            int optFix,
+            int optPDF,
+            const Eigen::VectorXd& M,
+            const Eigen::MatrixXd& Sig,
+            const Eigen::Matrix4d& X,
+            const Eigen::Matrix4d& Y,
+            const Eigen::Matrix4d& Z)
 {
     int dataGenMode = 3;
     std::vector<Eigen::Matrix4d> A(length), B(length), C(length);
