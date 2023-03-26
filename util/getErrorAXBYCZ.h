@@ -26,8 +26,12 @@ refining the transformation to improve accuracy.
 #include <eigen3/Eigen/Dense>
 #include <cmath>
 
-Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f, const Eigen::Matrix4d& Y_f, const Eigen::Matrix4d& Z_f,
-                               const Eigen::Matrix4d& XActual, const Eigen::Matrix4d& YActual, const Eigen::Matrix4d& ZActual) {
+Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f,
+                               const Eigen::Matrix4d& Y_f,
+                               const Eigen::Matrix4d& Z_f,
+                               const Eigen::Matrix4d& XActual,
+                               const Eigen::Matrix4d& YActual,
+                               const Eigen::Matrix4d& ZActual) {
 
     Eigen::Vector3d xyzError;
 
