@@ -95,12 +95,12 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    std::vector<std::vector<Eigen::MatrixXd>> headTf1;
-    std::vector<std::vector<Eigen::MatrixXd>> handTf1;
-    std::vector<std::vector<Eigen::MatrixXd>> tagTf1;
-    std::vector<std::vector<Eigen::MatrixXd>> headTf2;
-    std::vector<std::vector<Eigen::MatrixXd>> handTf2;
-    std::vector<std::vector<Eigen::MatrixXd>> tagTf2;
+    std::vector<Eigen::MatrixXd> headTf1;
+    std::vector<Eigen::MatrixXd> handTf1;
+    std::vector<Eigen::MatrixXd> tagTf1;
+    std::vector<Eigen::MatrixXd> headTf2;
+    std::vector<Eigen::MatrixXd> handTf2;
+    std::vector<Eigen::MatrixXd> tagTf2;
     bool isRandPerm = true;
 
     // Choice of scramble rate
@@ -110,16 +110,15 @@ int main()
         std::vector<Eigen::MatrixXd> A;
         std::vector<Eigen::MatrixXd> B;
         std::vector<Eigen::MatrixXd> C;
-        std::vector<Eigen::MatrixXd> Bp;
         for (int i = 0; i < headTf1.size(); ++i) {
             // Inputs for Iterative Refinement
-            Eigen::MatrixXd A1, B1, C1;
-            convertCell2Mat(headTf1[i], handTf1[i], tagTf1[i], A1, B1, C1);
-            Eigen::MatrixXd A2, B2, C2;
-            convertCell2Mat(headTf2[i], handTf2[i], tagTf2[i], A2, B2, C2);
+            std::vector<Eigen::MatrixXd> A1, B1, C1;
+            convertCell2Mat(headTf1, handTf1, tagTf1, A1, B1, C1);
+            std::vector<Eigen::MatrixXd> A2, B2, C2;
+            convertCell2Mat(headTf2, handTf2, tagTf2, A2, B2, C2);
             if (isRandPerm) {
-                Eigen::MatrixXd Bp1 = scrambleData(B1, r[rk]);
-                Eigen::MatrixXd Bp2 = scrambleData(B2, r[rk]);
+                Eigen::MatrixXd Bp1 = scrambleData(B1[i], r[rk]);
+                Eigen::MatrixXd Bp2 = scrambleData(B2[i], r[rk]);
             }
         }
 
@@ -127,7 +126,7 @@ int main()
         std::vector<Eigen::MatrixXd> AA1(headTf1.size()), BB1(headTf1.size()), CC1(headTf1.size());
         std::vector<Eigen::MatrixXd> AA2(headTf2.size()), BB2(headTf2.size()), CC2(headTf2.size());
         std::vector<Eigen::Matrix4d> X_cal1, Y_cal1, Z_cal1;
-        Eigen::MatrixXd BBp1, BBp2;
+        Eigen::MatrixXd BBp1, BBp2, Bp;
 
         convertCell2Mat(headTf1, handTf1, tagTf1, AA1, BB1, CC1);
         convertCell2Mat(headTf2, handTf2, tagTf2, AA2, BB2, CC2);
