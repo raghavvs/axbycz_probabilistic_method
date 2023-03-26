@@ -1,14 +1,11 @@
 /*
 DESCRIPTION:
 
-The provided code implements a set of functions that solve a robotics problem 
-involving the transformation matrices of multiple coordinate frames. Specifically, 
-the functions solve for the transformations between three coordinate frames 
-(A, B, and C) given the transformations between A and B and between A and C. 
-The functions use the Eigen library to perform matrix operations such as inversion 
-and SVD decomposition. The main function (axbyczProb1) calls the other two functions 
-(batchSolveXY and randSE3) to generate a set of random transformations and iteratively 
-select those that satisfy certain constraints, in order to estimate the desired transformations.
+This function implements the Prob2 method in the paper
+Prerequisites on the input
+  A1 is constant with B1 and C1 free
+  C2 is constant with A1 adn B1 free
+  B3 is constant with A3 and C3 free
 
 Input:
     A1, B1, C1, A2, B2, C2: Matrices - dim 4x4
@@ -27,29 +24,33 @@ Output:
 #include "rotError.h"
 #include "tranError.h"
 
-void axbyczProb1(const Eigen::Matrix4d &A1,
+void axbyczProb2(const Eigen::Matrix4d &A1,
                  const Eigen::Matrix4d &B1,
                  const Eigen::Matrix4d &C1,
                  const Eigen::Matrix4d &A2,
                  const Eigen::Matrix4d &B2,
                  const Eigen::Matrix4d &C2,
-                 bool opt,
-                 double nstd1,
-                 double nstd2,
+                 const Eigen::Matrix4d &A3,
+                 const Eigen::Matrix4d &B3,
+                 const Eigen::Matrix4d &C3,
                  std::vector<Eigen::Matrix4d> &X_final,
                  std::vector<Eigen::Matrix4d> &Y_final,
                  std::vector<Eigen::Matrix4d> &Z_final) {
 
-    //   A1 is constant with B1 and C1 free
-    //   C2 is constant with A2 and B2 free
+    // A1 fixed, B1 and C1 free
+    std::cout << "Running Prob2 method ... \n";
 
     int len = 8;
-    std::cout << "len: " << len << std::endl;
+    double nstd1 = 0;
+    double nstd2 = 0;
+    bool opt = false;
+
     std::vector<Eigen::Matrix4d> Z_g(len);
     Eigen::MatrixXd MeanA, MeanB, MeanC, SigA, SigB, SigC;
 
     std::vector<Eigen::Matrix4d> A1_vec(len), B1_vec(len), C1_vec(len),
-            A2_vec(len), B2_vec(len), C2_vec(len);
+                                A2_vec(len), B2_vec(len), C2_vec(len),
+                                A3_vec(len), B3_vec(len), C3_vec(len);
     for (int i = 0; i < len; ++i) {
         A1_vec[i] = A1.block(0, 0, 4, 4);
         B1_vec[i] = B1.block(0, 0, 4, 4);
@@ -57,6 +58,9 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
         A2_vec[i] = A2.block(0, 0, 4, 4);
         B2_vec[i] = B2.block(0, 0, 4, 4);
         C2_vec[i] = C2.block(0, 0, 4, 4);
+        A3_vec[i] = A3.block(0, 0, 4, 4);
+        B3_vec[i] = B3.block(0, 0, 4, 4);
+        C3_vec[i] = C3.block(0, 0, 4, 4);
     }
 
     //// ------ using probability methods ------
@@ -78,8 +82,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
             ++Z_index;
         }
     }
-
-    int s_Z = Z_final.size();
 
     std::cout << "works till here - solve for Z? - YES" << std::endl;
 
@@ -117,49 +119,70 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
         }
     }
 
-    int s_X = X.size();
-
     std::cout << "works till here - solve for Z and X? - YES" << std::endl;
 
     //// ------ Solve for Y -------- //
-    // Compute Y using the mean equations
-    size_t dim = 2 * s_X * s_Z;
+    // B3 fixed, A3 and C3 free
 
-    std::vector<Eigen::Matrix4d> Y(dim, Eigen::Matrix4d::Zero());
-    for (int i = 0; i < s_X; ++i) {
-        for (int j = 0; j < s_Z; ++j) {
-            Y[i * s_Z + j] = (A1 * X[i] * MeanB1 * Z_final[j].inverse()) * MeanC1.inverse();
-            Y[i * s_Z + j + s_X * s_Z] = (MeanA2 * X[i] * MeanB2) * Z_final[j].inverse() * C2.inverse();
-        }
+    // ------ Calculate B2^-1 -------
+    std::vector<Eigen::Matrix4d> A3_inv(len);
+    std::vector<Eigen::Matrix4d> C3_inv(len);
+    for (int i = 0; i < len; i++) {
+        A3_inv[i] = A3_vec[i].inverse();
+        C3_inv[i] = C3_vec[i].inverse();
     }
 
-    int s_Y = Y.size();
-    std::cout << "Y: " << std::endl << Y[0] << std::endl;
+    // ------ using probability methods ------
+    // calculate X_g : all guesses of X
+    std::vector<Eigen::Matrix4d> Y_g_inv;
+    batchSolveXY(C3_inv, A3_inv, len, opt, nstd1, nstd2, Y_g_inv, Y_final,
+                 MeanC, MeanA, SigC, SigA);
+
+    // Calculate MeanA2 and MeanC2 for the cost function later
+    Eigen::MatrixXd MeanC3, MeanA3;
+    batchSolveXY(C3_vec, A3_vec, len, opt, nstd1, nstd2, Y_g_inv, Y_final,
+                 MeanC3, MeanA3, SigC, SigA);
+
+    // Keep the candidates of Y that are SE3
+    int Y_index = 1;
+    std::vector<Eigen::Matrix4d> Y(4, Eigen::Matrix4d::Zero());
+    for (int i = 0; i < Y_g_inv.size(); i++) {
+        if (Y_g_inv[i].determinant() > 0) {
+            Y[Y_index] = Y_g_inv[i].inverse();
+            Y_index++;
+        }
+    }
 
     std::cout << "works till here - solve for Z, X and Y? - YES " << std::endl;
 
     //// Find out the optimal (X, Y, Z) that minimizes cost
 
-    Eigen::MatrixXd cost = Eigen::MatrixXd::Zero(s_X, s_Y * s_Z);
-    double weight = 1.5; // weight on the translational error of the cost function
-    for (int i = 0; i < s_X; ++i) {
-        for (int j = 0; j < s_Z; ++j) {
-            for (int m = 0; m < s_Y; ++m) {
-                Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
-                Eigen::MatrixXd right1 = Y[m] * MeanC1 * Z_final[j];
+    int s_Z = Z_final.size();
+    int s_X = X.size();
+    int s_Y = Y.size();
 
-                double diff1 =
-                        rotError(left1, right1) + weight * tranError(left1, right1);
+
+    Eigen::MatrixXd cost = Eigen::MatrixXd::Zero(s_X, s_Y * s_Z);
+    double weight = 1.8; // weight on the translational error of the cost function
+
+    for (int i = 0; i < s_X; i++) {
+        for (int j = 0; j < s_Y; j++) {
+            for (int p = 0; p < s_Z; p++) {
+                Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
+                Eigen::MatrixXd right1 = Y[j] * MeanC1 * Z_final[p];
+                double diff1 = rotError(left1, right1) + weight * tranError(left1, right1);
 
                 Eigen::MatrixXd left2 = MeanA2 * X[i] * MeanB2;
-                Eigen::MatrixXd right2 = Y[m] * C2 * Z_final[j];
-                double diff2 =
-                        rotError(left2, right2) + weight * tranError(left2, right2);
+                Eigen::MatrixXd right2 = Y[j] * C2 * Z_final[p];
+                double diff2 = rotError(left2, right2) + weight * tranError(left2, right2);
 
-                // different error metrics can be picked and this (diff1 +
-                // diff2) is the best one so far. However, it can still be
-                // unstable sometimes and miss the optimal solutions
-                cost(i, j * s_Y + m) = std::norm(diff1) + std::norm(diff2);
+                Eigen::MatrixXd left3 = MeanA3 * X[i] * B3;
+                Eigen::MatrixXd right3 = Y[j] * MeanC3 * Z_final[p];
+                double diff3 = rotError(left3, right3) + weight * tranError(left3, right3);
+
+                // How to better design the cost function is still an open
+                // question
+                cost(i, (j - 1) * s_Z + p) = left1.norm() + left2.norm() + left3.norm();
             }
         }
     }
@@ -168,39 +191,41 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     //// recover the X,Y,Z that minimizes cost
 
+    // recover the X,Y,Z that minimizes cost
     Eigen::MatrixXd::Index minRow, minCol;
     cost.minCoeff(&minRow, &minCol);
-    int I1 = minRow * cost.cols() + minCol;
 
-    int I_row = I1 / cost.cols();
-    int I_col = I1 % cost.cols();
+    int I_row = minRow;
+    int I_col = minCol;
 
     Eigen::Matrix4d X_final_ = X[I_row]; // final X
 
-    int index_Z;
-    if (I_col % s_Y > 0) {
-        index_Z = floor(I_col/s_Y) + 1;
-    } else {
-        index_Z = floor(I_col/s_Y);
-    }
-
-    Eigen::Matrix4d Z_final_ = Z_final[index_Z]; // final Z
-
     int index_Y;
     if (I_col % s_Y > 0) {
-        index_Y = I_col % s_Y;
+        if (I_col % s_Y == s_Z) {
+            index_Y = s_Z;
+        }
+        index_Y = std::floor(I_col / s_Y) + 1;
     } else {
-        index_Y = s_Y;
+        index_Y = std::floor(I_col / s_Y);
     }
 
     Eigen::Matrix4d Y_final_ = Y[index_Y]; // final Y
 
-    std::cout << "X_final_: " << std::endl << X_final_ << std::endl;
-    std::cout << "Y_final_: " << std::endl << Y_final_ << std::endl;
-    std::cout << "Z_final_: " << std::endl << Z_final_ << std::endl;
+    int index_Z;
+    if (I_col % 4 > 0) {
+        index_Z = I_col % 4;
+    } else {
+        index_Z = 4;
+    }
+
+    Eigen::Matrix4d Z_final_ = Z_final[index_Z]; // final Z
 
     std::cout << "works till here - recover X,Y,Z final? - YES" << std::endl;
 
+    std::cout << "X_final_: " << std::endl << X_final_ << std::endl;
+    std::cout << "Y_final_: " << std::endl << Y_final_ << std::endl;
+    std::cout << "Z_final_: " << std::endl << Z_final_ << std::endl;
 }
 
 int main() {
@@ -210,16 +235,15 @@ int main() {
     Eigen::Matrix4d A2 = Eigen::Matrix4d::Random();
     Eigen::Matrix4d B2 = Eigen::Matrix4d::Random();
     Eigen::Matrix4d C2 = Eigen::Matrix4d::Random();
-
-    bool opt = true;
-    double nstd1 = 0.5;
-    double nstd2 = 0.5;
+    Eigen::Matrix4d A3 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d B3 = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d C3 = Eigen::Matrix4d::Random();
 
     std::vector<Eigen::Matrix4d> X_final;
     std::vector<Eigen::Matrix4d> Y_final;
     std::vector<Eigen::Matrix4d> Z_final;
 
-    axbyczProb1(A1,B1,C1,A2,B2,C2,opt,nstd1,nstd2,X_final,Y_final,Z_final);
+    axbyczProb2(A1,B1,C1,A2,B2,C2,A3,B3,C3,X_final,Y_final,Z_final);
 
     std::cout << "Build successful? - YES" <<std::endl;
 

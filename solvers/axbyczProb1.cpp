@@ -44,7 +44,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     //   C2 is constant with A2 and B2 free
 
     int len = 8;
-    std::cout << "len: " << len << std::endl;
     std::vector<Eigen::Matrix4d> Z_g(len);
     Eigen::MatrixXd MeanA, MeanB, MeanC, SigA, SigB, SigC;
 
@@ -80,8 +79,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_Z = Z_final.size();
-
-    std::cout << "works till here - solve for Z? - YES" << std::endl;
 
     //// ------ Solve for X -------- //
     // C2 fixed, A2 and B2 free
@@ -119,8 +116,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     int s_X = X.size();
 
-    std::cout << "works till here - solve for Z and X? - YES" << std::endl;
-
     //// ------ Solve for Y -------- //
     // Compute Y using the mean equations
     size_t dim = 2 * s_X * s_Z;
@@ -134,14 +129,12 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_Y = Y.size();
-    std::cout << "Y: " << std::endl << Y[0] << std::endl;
-
-    std::cout << "works till here - solve for Z, X and Y? - YES " << std::endl;
 
     //// Find out the optimal (X, Y, Z) that minimizes cost
 
     Eigen::MatrixXd cost = Eigen::MatrixXd::Zero(s_X, s_Y * s_Z);
     double weight = 1.5; // weight on the translational error of the cost function
+
     for (int i = 0; i < s_X; ++i) {
         for (int j = 0; j < s_Z; ++j) {
             for (int m = 0; m < s_Y; ++m) {
@@ -163,8 +156,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
             }
         }
     }
-
-    std::cout << "works till here - optimal cost? - YES" << std::endl;
 
     //// recover the X,Y,Z that minimizes cost
 
@@ -198,9 +189,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     std::cout << "X_final_: " << std::endl << X_final_ << std::endl;
     std::cout << "Y_final_: " << std::endl << Y_final_ << std::endl;
     std::cout << "Z_final_: " << std::endl << Z_final_ << std::endl;
-
-    std::cout << "works till here - recover X,Y,Z final? - YES" << std::endl;
-
 }
 
 int main() {
