@@ -38,6 +38,7 @@ Overall, it appears that this code is performing simulations to compare the perf
 #include "permFixABC.h"
 #include "generateSetsOfABC.h"
 #include "axbyczProb1.h"
+#include "axbyczProb2.h"
 #include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
@@ -56,16 +57,59 @@ int main() {
     std::string optPlot = "lineplot"; // Plot the averaged error : 'lineplot' & ''boxplot'
 
     int opt_XYZ = 2; // generate random X, Y and Z
-    // [XActual,YActual,ZActual] = InitializeXYZ(opt_XYZ);
+    Eigen::Matrix4d XActual, YActual, ZActual;
+    initializeXYZ(opt_XYZ, XActual, YActual, ZActual);
 
     // Error container initialization
     if (optPlot == "boxplot") {
         std::vector<Eigen::MatrixXd> Err11(coeff1.size(), Eigen::MatrixXd::Zero(num,6));
         std::vector<Eigen::MatrixXd> Err21(coeff1.size(), Eigen::MatrixXd::Zero(num,6));
     } else if (optPlot == "lineplot") {
-        std::vector<Eigen::MatrixXd> Err11(coeff1.size(), Eigen::MatrixXd::Zero(6,num));
-        std::vector<Eigen::MatrixXd> Err21(coeff1.size(), Eigen::MatrixXd::Zero(6,num));
-        std::vector<Eigen::MatrixXd> Err12(coeff1.size(), Eigen::MatrixXd::Zero(6,num));
-        std::vector<Eigen::MatrixXd> Err22(coeff1.size(), Eigen::MatrixXd::Zero(6,num));
+        std::vector<Eigen::MatrixXd> Err11(coeff1.size(), Eigen::MatrixXd::Zero(6, num));
+        std::vector<Eigen::MatrixXd> Err21(coeff1.size(), Eigen::MatrixXd::Zero(6, num));
+        std::vector<Eigen::MatrixXd> Err12(coeff1.size(), Eigen::MatrixXd::Zero(6, num));
+        std::vector<Eigen::MatrixXd> Err22(coeff1.size(), Eigen::MatrixXd::Zero(6, num));
+    }
+
+    Eigen::MatrixXd A11, B11, C11, A21, B21, C21, A31, B31, C31,
+                    A12, B12, C12, A22, B22, C22, A32, B32, C32,
+                    A13, B13, C13, A23, B23, C23, A33, B33, C33;
+
+    std::vector<Eigen::Matrix4d> X_f11, Y_f11, Z_f11,
+                                X_f12, Y_f12, Z_f12,
+                                X_f13, Y_f13, Z_f13,
+                                X_f21, Y_f21, Z_f21,
+                                X_f22, Y_f22, Z_f22,
+                                X_f23, Y_f23, Z_f23;
+
+    for (double k : coeff1) {
+        counter++;
+        for (int s = 1; s <= num; s++) {
+            // Generate data triples with different distributions
+            int optPDF = 1;
+            std::tie(A11, B11, C11, A21, B21, C21, A31, B31, C31) = generateSetsOfABC(Num, optPDF, gmean, k*Cov,
+                                                                                      XActual, YActual, ZActual);
+
+            optPDF = 2;
+            std::tie(A12, B12, C12, A22, B22, C22, A32, B32, C32) = generateSetsOfABC(Num, optPDF, gmean, k*Cov,
+                                                                                      XActual, YActual, ZActual);
+
+            optPDF = 3;
+            std::tie(A13, B13, C13, A23, B23, C23, A33, B33, C33) = generateSetsOfABC(Num, optPDF, gmean, k*Cov,
+                                                                                      XActual, YActual, ZActual);
+
+            // Solve for X, Y and Z
+            axbyczProb1(A11, B11, C11, A21, B21, C21, 0, 0, 0, X_f11, Y_f11, Z_f11);
+            axbyczProb2(A11, B11, C11, A21, B21, C21, A31, B31, C31, X_f21, Y_f21, Z_f21);
+
+            axbyczProb1(A12, B12, C12, A22, B22, C22, A32, B32, C32, 0, 0, 0, X_f12, Y_f12, Z_f12);
+            axbyczProb2(A11, B11, C11, A21, B21, C21, A31, B31, C31, X_f22, Y_f22, Z_f22);
+
+            axbyczProb1(A13, B13, C13, A23, B23, C23, A33, B33, C33, 0, 0, 0, X_f13, Y_f13, Z_f13);
+            axbyczProb2(A11, B11, C11, A21, B21, C21, A31, B31, C31, X_f23, Y_f23, Z_f23);
+
+
+
+
 }
 

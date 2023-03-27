@@ -69,7 +69,10 @@ int main() {
         int counter = 0;
         int optPDF = 1;
         Eigen::MatrixXd A1, B1, C1, A2, B2, C2, A3, B3, C3;
-        std::tie(A1, B1, C1, A2, B2, C2, A3, B3, C3) = generateSetsOfABC(Num, optPDF, gmean, k*Cov, XActual, YActual, ZActual);
+        std::tie(A1, B1, C1, A2, B2, C2, A3, B3, C3) = generateSetsOfABC(Num, optPDF,
+                                                                                                        gmean, k*Cov,
+                                                                                                        XActual, YActual,
+                                                                                                        ZActual);
         for (double r : rate) {
             counter++;
             Eigen::MatrixXd A1_perm, B1_perm, C1_perm;
@@ -101,9 +104,6 @@ int main() {
     // Compute the averaged errors
     Eigen::MatrixXd Err1_Avg = Err_1.colwise().sum() / num;
     Eigen::MatrixXd Err2_Avg = Err_2.colwise().sum() / num;
-    Eigen::MatrixXd ErrW_Avg = Err_W.colwise().sum() / num;
-    Eigen::MatrixXd ErrNP_Avg = Err_NP.colwise().sum() / num;
-    Eigen::MatrixXd ErrDK_Avg = Err_DK.colwise().sum() / num;
 
     // Plots
     plt::figure();
@@ -124,3 +124,11 @@ int main() {
     return 0;
 }
 
+/*
+std::vector<Eigen::MatrixXd> Err_1, Err_2;
+// Error analysis
+// Prob1 Error
+Err_1[counter-1].col(s-1) = getErrorAXBYCZ(X_f1, Y_f1, Z_f1, XActual, YActual, ZActual);
+// Prob2 Error
+Err_2[counter-1].col(s-1) = getErrorAXBYCZ(X_f2, Y_f2, Z_f2, XActual, YActual, ZActual);
+*/
