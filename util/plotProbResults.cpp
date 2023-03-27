@@ -1,4 +1,5 @@
 #include <iostream>
+#include <Eigen/Dense>
 #include <string>
 #include <vector>
 #include <numeric>
@@ -57,13 +58,13 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std:
         else if (opt == "lineplot")
         {
         // Compute average values
-        VectorXd Err1_Avg = error_1.rowwise().mean();
-        VectorXd Err2_Avg = error_2.rowwise().mean();
+        Eigen::VectorXd Err1_Avg = error_1.rowwise().mean();
+        Eigen::VectorXd Err2_Avg = error_2.rowwise().mean();
         
         // Plot line graphs
         plt::subplot(3, 1, 1);
         plt::plot(point, Err1_Avg.segment(0, 3), "o");
-        plt::hold(true);
+
         plt::plot(point, Err2_Avg.segment(0, 3), "*");
         plt::plot(point, Err1_Avg.segment(0, 3), "b");
         plt::plot(point, Err2_Avg.segment(0, 3), "r");
@@ -72,7 +73,7 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std:
         
         plt::subplot(3, 1, 2);
         plt::plot(point, Err1_Avg.segment(3, 3), "o");
-        plt::hold(true);
+
         plt::plot(point, Err2_Avg.segment(3, 3), "*");
         plt::plot(point, Err1_Avg.segment(3, 3), "b");
         plt::plot(point, Err2_Avg.segment(3, 3), "r");
@@ -81,7 +82,7 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std:
         
         plt::subplot(3, 1, 3);
         plt::plot(point, Err1_Avg.segment(6, 3), "o");
-        plt::hold(true);
+
         plt::plot(point, Err2_Avg.segment(6, 3), "*");
         plt::plot(point, Err1_Avg.segment(6, 3), "b");
         plt::plot(point, Err2_Avg.segment(6, 3), "r");
@@ -91,7 +92,7 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std:
         plt::figure();
         plt::subplot(3, 1, 1);
         plt::plot(point, Err1_Avg.segment(9, 3), "o");
-        plt::hold(true);
+
         plt::plot(point, Err2_Avg.segment(9, 3), "*");
         plt::plot(point, Err1_Avg.segment(9, 3), "b");
         plt::plot(point, Err2_Avg.segment(9, 3), "r");
