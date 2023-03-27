@@ -40,6 +40,7 @@ Overall, it appears that this code is performing simulations to compare the perf
 #include "axbyczProb1.h"
 #include "axbyczProb2.h"
 #include "matplotlibcpp.h"
+#include "plotProbResults.h"
 
 namespace plt = matplotlibcpp;
 
@@ -82,20 +83,22 @@ int main() {
                                 X_f22, Y_f22, Z_f22,
                                 X_f23, Y_f23, Z_f23;
 
+    std::vector<Eigen::MatrixXd> Err_1, Err_2;
+
     for (double k : coeff1) {
         counter++;
         for (int s = 1; s <= num; s++) {
             // Generate data triples with different distributions
             int optPDF = 1;
-            std::tie(A11, B11, C11, A21, B21, C21, A31, B31, C31) = generateSetsOfABC(Num, optPDF, gmean, k*Cov,
+            std::tie(A11, B11, C11, A21, B21, C21, A31, B31, C31) = generateSetsOfABC(Num, optPDF, gmean, k * Cov,
                                                                                       XActual, YActual, ZActual);
 
             optPDF = 2;
-            std::tie(A12, B12, C12, A22, B22, C22, A32, B32, C32) = generateSetsOfABC(Num, optPDF, gmean, k*Cov,
+            std::tie(A12, B12, C12, A22, B22, C22, A32, B32, C32) = generateSetsOfABC(Num, optPDF, gmean, k * Cov,
                                                                                       XActual, YActual, ZActual);
 
             optPDF = 3;
-            std::tie(A13, B13, C13, A23, B23, C23, A33, B33, C33) = generateSetsOfABC(Num, optPDF, gmean, k*Cov,
+            std::tie(A13, B13, C13, A23, B23, C23, A33, B33, C33) = generateSetsOfABC(Num, optPDF, gmean, k * Cov,
                                                                                       XActual, YActual, ZActual);
 
             // Solve for X, Y and Z
@@ -108,8 +111,60 @@ int main() {
             axbyczProb1(A13, B13, C13, A23, B23, C23, A33, B33, C33, 0, 0, 0, X_f13, Y_f13, Z_f13);
             axbyczProb2(A11, B11, C11, A21, B21, C21, A31, B31, C31, X_f23, Y_f23, Z_f23);
 
+            // Error Analysis
+            if (optPlot == "boxplot") {
+                // Prob1 Error
+                Err11[counter - 1].row(s - 1) = getErrorAXBYCZ(X_f1, Y_f1, Z_f1, XActual, YActual, ZActual);
+            } else if (optPlot == "lineplot") {
+                // Prob1 Error with Data of 1st Distribution
+                Err11[counter - 1].col(s - 1) = getErrorAXBYCZ(X_f11, Y_f11, Z_f11, XActual, YActual, ZActual);
+                // Prob1 Error with Data of 2nd Distribution
+                Err12[counter - 1].col(s - 1) = getErrorAXBYCZ(X_f12, Y_f12, Z_f12, XActual, YActual, ZActual);
+                // Prob1 Error with Data of 3rd Distribution
+                Err13[counter - 1].col(s - 1) = getErrorAXBYCZ(X_f13, Y_f13, Z_f13, XActual, YActual, ZActual);
+                // Prob2 Error with Data of 1st Distribution
+                Err21[counter - 1].col(s - 1) = getErrorAXBYCZ(X_f21, Y_f21, Z_f21, XActual, YActual, ZActual);
+                // Prob2 Error with Data of 2nd Distribution
+                Err22[counter - 1].col(s - 1) = getErrorAXBYCZ(X_f22, Y_f22, Z_f22, XActual, YActual, ZActual);
+                // Prob2 Error with Data of 3rd Distribution
+                Err23[counter - 1].col(s - 1) = getErrorAXBYCZ(X_f23, Y_f23, Z_f23, XActual, YActual, ZActual);
+            }
 
+            // Plot X and Y
+            if (false) {
+                try {
+                    plt::figure((counter - 1) * 3 + 1);
+                    // trplot(XActual, 'color', 'r');
+                    // plt::hold_on();
+                    // trplot(X_f11,'color','b');
+                    // plt::axis("auto");
+                    // plt::hold_on();
+                    plt::title("Final X");
 
+                    plt::figure((counter - 1) * 3 + 2);
+                    // trplot(YActual, 'color', 'r');
+                    // plt::hold_on();
+                    // trplot(Y_f11,'color','b');
+                    // plt::axis("auto");
+                    // plt::hold_on();
+                    plt::title("Final Y");
 
+                    plt::figure((counter - 1) * 3 + 3);
+                    // trplot(ZActual, 'color', 'r');
+                    // plt::hold_on();
+                    // trplot(Z_f11,'color','b');
+                    // plt::axis("auto");
+                    // plt::hold_on();
+                    plt::title("Final Z");
+                } catch (...) {
+                    std::cout << Y << std::endl;
+                }
+            }
+        }
+    }
+
+    // Plot the averaged error w.r.t. covariances
+    plotProbResults(Err11, Err21, coeff1, optPlot);
+    plotProbResults(Err12, Err22, coeff1, optPlot);
+    plotProbResults(Err13, Err23, coeff1, optPlot);
 }
-
