@@ -10,6 +10,9 @@ skew-symmetric matrix of s, and the rotation matrix calculated using
 the Rodrigues formula.
 */
 
+#ifndef SKEWEXP_H
+#define SKEWEXP_H
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 
@@ -22,7 +25,8 @@ Eigen::Matrix3d skew(Eigen::Vector3d v)
     return m;
 }
 
-Eigen::Matrix3d skewExp(Eigen::Vector3d s, double theta = 1)
+Eigen::Matrix3d skewExp(Eigen::Vector3d s,
+                        double theta = 1)
 {
     Eigen::Matrix3d g;
     g.setIdentity();
@@ -30,3 +34,5 @@ Eigen::Matrix3d skewExp(Eigen::Vector3d s, double theta = 1)
     g += ss * sin(theta) + ss * ss * (1 - cos(theta));
     return g;
 }
+
+#endif

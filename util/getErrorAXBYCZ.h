@@ -20,11 +20,18 @@ useful for evaluating the accuracy of the transformation and potentially
 refining the transformation to improve accuracy.
 */
 
+#ifndef GETERRORAXBYCZ_H
+#define GETERRORAXBYCZ_H
+
 #include <eigen3/Eigen/Dense>
 #include <cmath>
 
-Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f, const Eigen::Matrix4d& Y_f, const Eigen::Matrix4d& Z_f,
-                               const Eigen::Matrix4d& XActual, const Eigen::Matrix4d& YActual, const Eigen::Matrix4d& ZActual) {
+Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f,
+                               const Eigen::Matrix4d& Y_f,
+                               const Eigen::Matrix4d& Z_f,
+                               const Eigen::Matrix4d& XActual,
+                               const Eigen::Matrix4d& YActual,
+                               const Eigen::Matrix4d& ZActual) {
 
     Eigen::Vector3d xyzError;
 
@@ -39,5 +46,4 @@ Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f, const Eigen::Matrix4d
     return xyzError;
 }
 
-
-// std::acos to calculate the rotational errors, and norm() function to calculate the translational errors.
+#endif

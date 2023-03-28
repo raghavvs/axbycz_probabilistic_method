@@ -19,8 +19,8 @@ value for B3. The free variables in each set are randomly generated
 using the specified options and input parameters.
 */
 
-#ifndef AXBYCZ_PROBABILISTIC_METHOD_GENERATESETSOFABC_H
-#define AXBYCZ_PROBABILISTIC_METHOD_GENERATESETSOFABC_H
+#ifndef GENERATESETSOFABC_H
+#define GENERATESETSOFABC_H
 
 #include <iostream>
 #include <eigen3/Eigen/Dense>
@@ -40,7 +40,9 @@ struct ABCSets {
     std::vector<Eigen::Matrix4d> C3;
 };
 
-ABCSets generateSetsOfABC(int Num, int optPDF, const Eigen::VectorXd& Mean,
+ABCSets generateSetsOfABC(int Num,
+                          int optPDF,
+                          const Eigen::VectorXd& Mean,
                           const Eigen::MatrixXd& Cov,
                           const Eigen::Matrix4d& XActual,
                           const Eigen::Matrix4d& YActual,
@@ -63,4 +65,4 @@ ABCSets generateSetsOfABC(int Num, int optPDF, const Eigen::VectorXd& Mean,
     return result;
 }
 
-#endif //AXBYCZ_PROBABILISTIC_METHOD_GENERATESETSOFABC_H
+#endif

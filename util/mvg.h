@@ -47,12 +47,17 @@ The function first checks that the input arguments meet certain requirements:
     N must be a positive intege
 */
 
+#ifndef MVG_H
+#define MVG_H
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Cholesky>
 #include <random>
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> mvg(const Eigen::VectorXd& mu, const Eigen::MatrixXd& Sigma, int N) {
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> mvg(const Eigen::VectorXd& mu,
+                                                const Eigen::MatrixXd& Sigma,
+                                                int N) {
     if (mu.size() != Sigma.rows()) {
         std::cerr << "Length(mu) must equal size(Sigma,1)." << std::endl;
         exit(EXIT_FAILURE);
@@ -101,31 +106,4 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd> mvg(const Eigen::VectorXd& mu, const
     return {y, R};
 }
 
-// TEST CASE
-
-/* int main() {
-     // Define mean vector
-    Eigen::VectorXd mu(4);
-    mu << 1, 2, 3, 4;
-
-    // Define covariance matrix
-    Eigen::MatrixXd Sigma(4, 4);
-    Sigma << 2, 0.5, -1, 0,
-             0.5, 1, 0, -1,
-             -1, 0, 3, 0.5,
-             0, -1, 0.5, 2;
-
-    int N = 10; // number of samples to be generated
-
-    Eigen::VectorXd y;
-    Eigen::MatrixXd R;
-
-    std::pair<Eigen::VectorXd, Eigen::MatrixXd> result = mvg(mu, Sigma, N);
-    y = result.first;
-    R = result.second;
-
-    std::cout << "Generated samples:\n" << y << std::endl;
-    std::cout << "Cholesky factorization of covariance matrix:\n" << R << std::endl;
-
-    return 0;
-} */
+#endif

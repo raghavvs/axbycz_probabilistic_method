@@ -23,6 +23,9 @@ Finally, the function returns the matrix expA, which should be an
 approximation of exp(A) calculated using the Taylor series expansion method.
 */
 
+#ifndef EXPM_H
+#define EXPM_H
+
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 
@@ -43,3 +46,5 @@ Eigen::MatrixXd expm(const Eigen::MatrixXd& A)
   
     return expA;
 }
+
+#endif

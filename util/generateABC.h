@@ -25,6 +25,9 @@ Input:
                 noise-free data streams with correspondence
 */
 
+#ifndef GENERATEABC_H
+#define GENERATEABC_H
+
 #include <iostream>
 #include <cmath>
 #include <eigen3/Eigen/Dense>
@@ -39,8 +42,14 @@ Input:
 #include "fKine.h"
 
 std::tuple<std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>, std::vector<Eigen::Matrix4d>>
-generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const Eigen::MatrixXd& Sig,
-            const Eigen::Matrix4d& X, const Eigen::Matrix4d& Y, const Eigen::Matrix4d& Z)
+generateABC(int length,
+            int optFix,
+            int optPDF,
+            const Eigen::VectorXd& M,
+            const Eigen::MatrixXd& Sig,
+            const Eigen::Matrix4d& X,
+            const Eigen::Matrix4d& Y,
+            const Eigen::Matrix4d& Z)
 {
     int dataGenMode = 3;
     std::vector<Eigen::Matrix4d> A(length), B(length), C(length);
@@ -158,3 +167,5 @@ generateABC(int length, int optFix, int optPDF, const Eigen::VectorXd& M, const 
     // Return a tuple of vectors containing the output matrices
     return std::make_tuple(A,B,C);
 }
+
+#endif

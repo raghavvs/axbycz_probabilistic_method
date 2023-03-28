@@ -18,6 +18,9 @@ Output:
     X_final, Y_final, Z_final: Matrices - dim 4x4
 */
 
+#ifndef AXBYCZPROB1_H
+#define AXBYCZPROB1_H
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -191,56 +194,4 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     std::cout << "Z_final_: " << std::endl << Z_final_ << std::endl;
 }
 
-int main() {
-    Eigen::Matrix4d A1 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d B1 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d C1 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d A2 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d B2 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d C2 = Eigen::Matrix4d::Random();
-
-    bool opt = true;
-    double nstd1 = 0.5;
-    double nstd2 = 0.5;
-
-    std::vector<Eigen::Matrix4d> X_final;
-    std::vector<Eigen::Matrix4d> Y_final;
-    std::vector<Eigen::Matrix4d> Z_final;
-
-    axbyczProb1(A1,B1,C1,A2,B2,C2,opt,nstd1,nstd2,X_final,Y_final,Z_final);
-
-    std::cout << "Build successful? - YES" <<std::endl;
-
-    return 0;
-}
-
-/*
-Output:
-len: 8
-works till here - solve for Z? - YES
-works till here - solve for Z and X? - YES
-Y:
--2.58501 0.864086  1.20978 -1.80958
- 2.31146 0.523348 0.238907 0.646305
--1.47282 -0.21759  2.77298 -1.66964
--5.26496 -2.34186 0.531769 -1.83458
-works till here - solve for Z, X and Y? - YES
-works till here - optimal cost? - YES
-X_final_:
-          1           0           0           0
-          0   -0.894427   -0.447214 4.80553e-49
-          0    0.447214   -0.894427 9.61107e-49
-          0           0           0           1
-Y_final_:
- -0.808833  -0.843726   -2.20955    1.53485
-  0.458386 -0.0436236   0.150767  -0.366332
-  -1.15638   -2.61803   -1.09865    1.13648
- -0.179155  -0.866537   0.647998    1.02978
-Z_final_:
-         -1           0           0 3.38334e-32
-          0    0.786109   -0.618088 4.90051e-32
-          0   -0.618088   -0.786109  1.0926e-31
-          0           0           0           1
-works till here - recover X,Y,Z final? - YES
-Build successful? - YES
- */
+#endif
