@@ -1,3 +1,6 @@
+#ifndef PLOTPROBRESULTS_h
+#define PLOTPROBRESULTS_h
+
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
@@ -115,3 +118,5 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1,
         plt::show();
     }
 }
+
+#endif
