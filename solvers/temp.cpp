@@ -53,5 +53,9 @@ using your own words and knowledge, convert the matlab code below to C++,
  and keep in mind to use Eigen:: and std:: explicitly wherever required, also this
  is a continuation of the above code:
 
+ using your own words and knowledge, convert the matlab code below to C++,
+ and keep in mind to use Eigen:: and std:: explicitly wherever required, also this
+ is a continuation of the above code and make sure to use matplotlib.cpp wherever necessary:
+
 
  */

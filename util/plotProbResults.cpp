@@ -4,12 +4,14 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
-#include <matplotlibcpp.h> 
+#include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
 
-void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1, std::vector<std::vector<std::vector<double>>> error_2, std::vector<double> point, std::string opt) 
-{
+void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1,
+                     std::vector<std::vector<std::vector<double>>> error_2,
+                     std::vector<double> point,
+                     std::string opt){
     if (opt == "boxplot") {
 
         // Transpose the error matrices

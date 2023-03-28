@@ -46,7 +46,7 @@ The script also defines some supporting functions that convert cell arrays to
 #include "scrambleData.h"
 #include "axbyczProb1.h"
 #include "axbyczProb3.h"
-#include "matplotlibcpp.h"
+#include <matplotlibcpp.h>
 
 namespace plt = matplotlibcpp;
 

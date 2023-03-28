@@ -405,7 +405,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
             M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
 
-        Eigen::VectorXd xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+        xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
 
         double diff1 = 0;
         double diff2 = 0;
