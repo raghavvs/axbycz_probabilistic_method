@@ -333,7 +333,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     for (int i = 0; i < B2.size(); ++i) {
         B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         for (int j = 0; j < B2[i].cols(); ++j) {
-            B2inv[i].col(j) = B2[i].col(j).inverse();
+            B2inv[i].col(j) = (B2[i].col(j)).inverse();
         }
     }
 
@@ -453,4 +453,38 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                metric(A2,B2,C2,Xupdate,Yupdate,Zupdate);
 
     }
+}
+
+int main() {
+    std::vector<Eigen::Matrix4d> A1;
+    std::vector<Eigen::Matrix4d> B1;
+    std::vector<Eigen::Matrix4d> C1;
+    std::vector<Eigen::Matrix4d> A2;
+    std::vector<Eigen::Matrix4d> B2;
+    std::vector<Eigen::Matrix4d> C2;
+
+    for (int i = 0; i < 10; ++i) {
+        A1.push_back(Eigen::Matrix4d::Random());
+        B1.push_back(Eigen::Matrix4d::Random());
+        C1.push_back(Eigen::Matrix4d::Random());
+        A2.push_back(Eigen::Matrix4d::Random());
+        B2.push_back(Eigen::Matrix4d::Random());
+        C2.push_back(Eigen::Matrix4d::Random());
+    }
+
+    Eigen::Matrix4d Xinit = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Yinit = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Zinit = Eigen::Matrix4d::Identity();
+
+    Eigen::Matrix4d X_cal;
+    Eigen::Matrix4d Y_cal;
+    Eigen::Matrix4d Z_cal;
+
+    int num = 10;
+
+    axbyczProb3(A1, B1, C1, A2, B2, C2, Xinit, Yinit, Zinit, X_cal, Y_cal, Z_cal, num);
+
+    std::cout << "Build successful? - YES" <<std::endl;
+
+    return 0;
 }
