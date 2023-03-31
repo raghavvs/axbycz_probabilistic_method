@@ -47,9 +47,49 @@ SE3Adinv computes the inverse of the adjoint representation of an element of SE(
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 #include <vector>
-#include "meanCov.h"
 #include "metric.h"
+
+void meanCov(const std::vector<Eigen::Matrix4d> &X,
+             int N,
+             std::vector<Eigen::MatrixXd> &Mean,
+             std::vector<Eigen::MatrixXd> &Cov) {
+    for(int i = 0; i < N; i++){
+        Mean[i] = Eigen::Matrix4d::Identity();
+        Cov[i] = Eigen::Matrix<double, 6, 6>::Zero();
+    }
+
+    // Initial approximation of Mean
+    Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
+    for (int i = 0; i < N; i++) {
+        sum_se += X[i].log();
+        Mean[i] = ((1.0 / N) * sum_se).exp();
+    }
+
+    // Iterative process to calculate the true Mean
+    Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
+    int max_num = 100;
+    double tol = 1e-5;
+    int count = 1;
+    while (diff_se.norm() >= tol && count <= max_num) {
+        diff_se = Eigen::Matrix4d::Zero();
+        for (int i = 0; i < N; i++) {
+            diff_se += (Mean[i].inverse() * X[i]).log();
+            Mean[i] *= ((1.0 / N)* diff_se).exp();
+        }
+        count++;
+    }
+
+    // Covariance
+    for (int i = 0; i < N; i++) {
+        diff_se = (Mean[i].inverse() * X[i]).log();
+        Eigen::VectorXd diff_vex(6);
+        diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
+        Cov[i] += diff_vex * diff_vex.transpose();
+        Cov[i] /= N;
+    }
+}
 
 // Define a function that takes a vector of size 3 and returns a 3x3 matrix
 Eigen::Matrix3d skew(Eigen::Vector3d v) {
@@ -92,12 +132,12 @@ Eigen::Matrix<double, 6, 6> SE3Ad(const Eigen::Matrix4d& X) {
 
 void MbMat_1(Eigen::MatrixXd &M,
              Eigen::VectorXd &b,
-             const Eigen::Matrix4d &A,
-             const Eigen::Matrix4d &X,
-             const Eigen::Matrix4d &B,
-             const Eigen::Matrix4d &Y,
-             const Eigen::Matrix4d &C,
-             const Eigen::Matrix4d &Z,
+             const Eigen::MatrixXd &A,
+             const Eigen::MatrixXd &X,
+             const Eigen::MatrixXd &B,
+             const Eigen::MatrixXd &Y,
+             const Eigen::MatrixXd &C,
+             const Eigen::MatrixXd &Z,
              const Eigen::MatrixXd &SigB,
              const Eigen::MatrixXd &SigC) {
     // Construction M and b matrices
@@ -298,9 +338,9 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                  const std::vector<Eigen::Matrix4d> &A2,
                  const std::vector<Eigen::Matrix4d> &B2,
                  const std::vector<Eigen::Matrix4d> &C2,
-                 Eigen::Matrix4d Xinit,
-                 Eigen::Matrix4d Yinit,
-                 Eigen::Matrix4d Zinit,
+                 const Eigen::Matrix4d &Xinit,
+                 const Eigen::Matrix4d &Yinit,
+                 const Eigen::Matrix4d &Zinit,
                  Eigen::Matrix4d &X_cal,
                  Eigen::Matrix4d &Y_cal,
                  Eigen::Matrix4d &Z_cal,
@@ -321,30 +361,24 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
-    Eigen::MatrixXd A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
-    for (int i = 0; i < Ni; i++) {
-        meanCov(A1, Ni, A1_m, SigA1);
-        meanCov(B1, Ni, B1_m, SigB1);
-        meanCov(C1, Ni, C1_m, SigC1);
-    }
+    std::vector<Eigen::MatrixXd> A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
+    meanCov(A1, Ni, A1_m, SigA1);
+    meanCov(B1, Ni, B1_m, SigB1);
+    meanCov(C1, Ni, C1_m, SigC1);
 
     // invert B2
     std::vector<Eigen::Matrix4d> B2inv(B2.size());
     for (int i = 0; i < B2.size(); ++i) {
         B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
-        for (int j = 0; j < B2[i].cols(); ++j) {
-            //B2inv[i].col(j) = (B2[i].col(j)).inverse(); // check
-            B2inv[i] = B2[i].inverse();
-        }
+        B2inv[i] = B2[i].inverse();
     }
 
-    Eigen::MatrixXd A2_m, B2_m, B2inv_m, C2_m, SigA2, SigB2, SigB2inv, SigC2;
-    for (int j = 0; j < Nj; j++) {
-        meanCov(A2, Nj, A2_m, SigA2);
-        meanCov(B2, Nj, B2_m, SigB2);
-        meanCov(B2inv, Nj, B2inv_m, SigB2inv);
-        meanCov(C2, Nj, C2_m, SigC2);
-    }
+    std::vector<Eigen::MatrixXd> A2_m, B2_m, B2inv_m, C2_m, SigA2, SigB2, SigB2inv, SigC2;
+    meanCov(A2, Nj, A2_m, SigA2);
+    meanCov(B2, Nj, B2_m, SigB2);
+    meanCov(B2inv, Nj, B2inv_m, SigB2inv);
+    meanCov(C2, Nj, C2_m, SigC2);
+
 
     // Calculate M and b matrices when fixing A and C separately
     double diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
@@ -355,27 +389,16 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         std::vector<Eigen::MatrixXd> MM(Ni+Nj);
         std::vector<Eigen::VectorXd> bb(Ni+Nj);
         for (int i = 0; i < Ni; i++) {
-            MbMat_1(MM[i], bb[i], A1_m.block(0, 0, 4, 4 * i), Xupdate,
-                    B1_m.block(0, 0, 4, 4 * i),
-                    Yupdate, C1_m.block(0, 0, 4, 4 * i), Zupdate,
-                    SigB1.block(0, 0, SigB1.rows(), SigB1.cols() * i),
-                    SigC1.block(0, 0, SigC1.rows(), SigC1.cols() * i));
-            MbMat_1(MM[i], bb[i], A1_m.block<4,4>(0, 4 * i), Xupdate,
-                    B1_m.block<4,4>(0, 4 * i),
-                    Yupdate, C1_m.block<4,4>(0, 4 * i), Zupdate,
-                    SigB1.block(0, SigB1.cols() * i, SigB1.rows(), SigB1.cols()),
-                    SigC1.block(0, SigC1.cols() * i, SigC1.rows(), SigC1.cols()));
+            MbMat_1(MM[i], bb[i], A1_m[i], Xupdate,
+                    B1_m[i], Yupdate, C1_m[i], Zupdate,
+                    SigB1[i], SigC1[i]);
         }
 
         for (int j = 0; j < Nj; j++) {
             MbMat_2(MM[j + Ni], bb[j + Ni],
-                    C2_m.block(0, 0, C2_m.rows(), C2_m.cols() * j), Zupdate,
-                    B2inv_m.block(0, 0, B2inv_m.rows(), B2inv_m.cols() * j),
-                    SE3inv(Yupdate),
-                    A2_m.block(0, 0, A2_m.rows(),A2_m.cols() * j), Xupdate,
-                    SigB2.block(0, 0, SigB2.rows(), SigB2.cols() * j),
-                    SigA2.block(0, 0, SigA2.rows(), SigA2.cols() * j),
-                    B2_m.block(0, 0, B2_m.rows(), B2_m.cols() * j));
+                    C2_m[j], Zupdate, B2inv_m[j],
+                    SE3inv(Yupdate), A2_m[j], Xupdate,
+                    SigB2[j], SigA2[j], B2_m[j]);
         }
 
         Eigen::MatrixXd M;
@@ -412,11 +435,11 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         double diff2 = 0;
 
         for (int i = 0; i < Ni; i++) {
-            diff1 = (A1_m.block(0, 0, 4, 4 * i) * Xupdate * B1_m.block(0, 0, 4, 4 * i) - Yupdate * C1_m.block(0, 0, 4, 4 * i) * Zupdate).norm();
+            diff1 = (A1_m[i] * Xupdate * B1_m[i] - Yupdate * C1_m[i] * Zupdate).norm();
         }
 
         for (int i = 0; i < Nj; i++) {
-            diff2 = (A2_m.block(0, 0, A2_m.rows(), A2_m.cols() * i) * Xupdate * B2_m.block(0, 0, B2_m.rows(), B2_m.cols() * i) - Yupdate * C2_m.block(0, 0, C2_m.rows(), C2_m.cols() * i) * Zupdate).norm();
+            diff2 = (A2_m[i] * Xupdate * B2_m[i] - Yupdate * C2_m[i] * Zupdate).norm();
         }
 
         Eigen::Vector3d w_X = xi.head(3);
@@ -465,12 +488,12 @@ int main() {
     std::vector<Eigen::Matrix4d> C2;
 
     for (int i = 0; i < 10; ++i) {
-        A1.push_back(Eigen::Matrix4d::Random());
-        B1.push_back(Eigen::Matrix4d::Random());
-        C1.push_back(Eigen::Matrix4d::Random());
-        A2.push_back(Eigen::Matrix4d::Random());
-        B2.push_back(Eigen::Matrix4d::Random());
-        C2.push_back(Eigen::Matrix4d::Random());
+        A1.emplace_back(Eigen::Matrix4d::Random());
+        B1.emplace_back(Eigen::Matrix4d::Random());
+        C1.emplace_back(Eigen::Matrix4d::Random());
+        A2.emplace_back(Eigen::Matrix4d::Random());
+        B2.emplace_back(Eigen::Matrix4d::Random());
+        C2.emplace_back(Eigen::Matrix4d::Random());
     }
 
     Eigen::Matrix4d Xinit = Eigen::Matrix4d::Identity();
@@ -481,7 +504,7 @@ int main() {
     Eigen::Matrix4d Y_cal;
     Eigen::Matrix4d Z_cal;
 
-    int num = 10;
+    int num = 1;
 
     axbyczProb3(A1, B1, C1, A2, B2, C2, Xinit, Yinit, Zinit, X_cal, Y_cal, Z_cal, num);
 
