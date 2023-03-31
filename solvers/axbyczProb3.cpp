@@ -333,7 +333,8 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     for (int i = 0; i < B2.size(); ++i) {
         B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         for (int j = 0; j < B2[i].cols(); ++j) {
-            B2inv[i].col(j) = (B2[i].col(j)).inverse();
+            //B2inv[i].col(j) = (B2[i].col(j)).inverse(); // check
+            B2inv[i] = B2[i].inverse();
         }
     }
 
