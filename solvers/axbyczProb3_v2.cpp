@@ -465,7 +465,12 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         Eigen::VectorXd w_Z = xi.segment(12, 3);
         Eigen::VectorXd v_Z = xi.tail(3);
 
-
+        /*Eigen::VectorXd w_X = xi.segment<3>(0);
+        Eigen::VectorXd v_X = xi.segment<3>(3);
+        Eigen::VectorXd w_Y = xi.segment<3>(6);
+        Eigen::VectorXd v_Y = xi.segment<3>(9);
+        Eigen::VectorXd w_Z = xi.segment<3>(12);
+        Eigen::VectorXd v_Z = xi.segment<3>(15);*/
 
 
         Eigen::Matrix4d X_hat;
@@ -497,13 +502,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
 
     }
 }
-
-/*Eigen::VectorXd w_X = xi.segment<3>(0);
-        Eigen::VectorXd v_X = xi.segment<3>(3);
-        Eigen::VectorXd w_Y = xi.segment<3>(6);
-        Eigen::VectorXd v_Y = xi.segment<3>(9);
-        Eigen::VectorXd w_Z = xi.segment<3>(12);
-        Eigen::VectorXd v_Z = xi.segment<3>(15);*/
 
 int main() {
     std::vector<Eigen::Matrix4d> A1;
