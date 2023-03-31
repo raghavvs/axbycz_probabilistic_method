@@ -56,8 +56,8 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
              std::vector<Eigen::MatrixXd> &Mean,
              std::vector<Eigen::MatrixXd> &Cov) {
     for(int i = 0; i < N; i++){
-        Mean[i] = Eigen::Matrix4d::Identity();
-        Cov[i] = Eigen::Matrix<double, 6, 6>::Zero();
+        Mean.emplace_back(Eigen::Matrix4d::Identity());
+        Cov.emplace_back(Eigen::Matrix<double, 6, 6>::Zero());
     }
 
     // Initial approximation of Mean
@@ -91,7 +91,6 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
     }
 }
 
-// Define a function that takes a vector of size 3 and returns a 3x3 matrix
 Eigen::Matrix3d skew(Eigen::Vector3d v) {
     Eigen::Matrix3d M;
 
@@ -131,7 +130,7 @@ Eigen::Matrix<double, 6, 6> SE3Ad(const Eigen::Matrix4d& X) {
 }
 
 void MbMat_1(Eigen::MatrixXd &M,
-             Eigen::VectorXd &b,
+             Eigen::MatrixXd &b,
              const Eigen::MatrixXd &A,
              const Eigen::MatrixXd &X,
              const Eigen::MatrixXd &B,
@@ -166,7 +165,7 @@ void MbMat_1(Eigen::MatrixXd &M,
     Eigen::Matrix3d M44 = -Y.block<3,3>(0,0);
     Eigen::Matrix3d M46 = -Y.block<3,3>(0,0) * C.block<3,3>(0,0) * Z.block<3,3>(0,0);
 
-    M.resize(12, 12);
+    M.resize(12, 18);
     M << M11, Eigen::Matrix3d::Zero(3, 3), M13, Eigen::Matrix3d::Zero(3, 3), M15, Eigen::Matrix3d::Zero(3, 3),
             M21, Eigen::Matrix3d::Zero(3, 3), M23, Eigen::Matrix3d::Zero(3, 3), M25, Eigen::Matrix3d::Zero(3, 3),
             M31, Eigen::Matrix3d::Zero(3,3) , M33, Eigen::Matrix3d::Zero(3,3) , M35, Eigen::Matrix3d::Zero (3,3),
@@ -175,6 +174,7 @@ void MbMat_1(Eigen::MatrixXd &M,
     // RHS
     Eigen::MatrixXd RHS = -A * X * B + Y * C * Z;
 
+    b.resize(12, 1);
     b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1), RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
 
     // SigBi = Ad^{-1}(Z) * SigCi * Ad^{-T}(Z)
@@ -210,28 +210,29 @@ void MbMat_1(Eigen::MatrixXd &M,
     Eigen::Matrix3d M165 = -skew(SigB.block<3,1>(3,5)) + SigB.block<3,3>(3,3) * skew(e3);
     Eigen::Matrix3d M166 = -skew(SigB.block<3,1>(0,5)) + SigB.block<3,3>(3,0) * skew(e3);
 
-    M.conservativeResize(M.rows() + 36, Eigen::NoChange);
-    M.block(M.rows() - 36, 0, 3, 12) << M55, M56;
-    M.block(M.rows() - 33, 0, 3, 12) << M65, M66;
-    M.block(M.rows() - 30, 0, 3, 12) << M75, M76;
-    M.block(M.rows() - 27, 0, 3, 12) << M85, M86;
-    M.block(M.rows() - 24, 0, 3, 12) << M95, M96;
-    M.block(M.rows() - 21, 0, 3, 12) << M105,M106;
-    M.block(M.rows() - 18, 0, 3, 12) << M115,M116;
-    M.block(M.rows() - 15, 0, 3, 12) << M125,M126;
-    M.block(M.rows() - 12, 0, 3, 12) << M135,M136;
-    M.block(M.rows() - 9 , 0, 3, 12) << M145,M146;
-    M.block(M.rows() - 6 , 0, 3, 12) << M155,M156;
+    M.conservativeResize(M.rows() + 36, M.cols() + 9);
+    M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M55,  M56,
+                                                Eigen::Matrix3d::Zero(),  M65,  M66,
+                                                Eigen::Matrix3d::Zero(),  M75,  M76,
+                                                Eigen::Matrix3d::Zero(),  M85,  M86,
+                                                Eigen::Matrix3d::Zero(),  M95,  M96,
+                                                Eigen::Matrix3d::Zero(), M105, M106,
+                                                Eigen::Matrix3d::Zero(), M115, M116,
+                                                Eigen::Matrix3d::Zero(), M125, M126,
+                                                Eigen::Matrix3d::Zero(), M135, M136,
+                                                Eigen::Matrix3d::Zero(), M145, M146,
+                                                Eigen::Matrix3d::Zero(), M155, M156,
+                                                Eigen::Matrix3d::Zero(), M165 ,M166;
 
     Eigen::MatrixXd RHS2 = SE3Adinv(Z) * SigC * SE3Adinv(Z).transpose() - SigB;
     RHS2.resize(3, 12);
 
-    b.conservativeResize(b.size() + 36);
-    b.tail(36) = Eigen::Map<Eigen::VectorXd>(RHS2.data(), 36);
+    b.resize(b.rows() + RHS2.size(), 1);
+    b.bottomRows(RHS2.size()) = Eigen::Map<Eigen::VectorXd>(RHS2.data(), RHS2.size());
 }
 
 void MbMat_2(Eigen::MatrixXd &M,
-             Eigen::VectorXd &b,
+             Eigen::MatrixXd &b,
              const Eigen::MatrixXd &C,
              const Eigen::MatrixXd &Z,
              const Eigen::MatrixXd &Binv,
@@ -260,15 +261,14 @@ void MbMat_2(Eigen::MatrixXd &M,
     Eigen::Matrix3d M33 = -skew(Yinv.topLeftCorner<3,3>() * A.topLeftCorner<3,3>() * X.topLeftCorner<3,3>() * e3);
     Eigen::Matrix3d M35 = -C.topLeftCorner<3,3>() * Z.topLeftCorner<3,3>() * skew(Binv3*e3);
 
-    // Translation part
-    Eigen::Matrix3d M42 = -Yinv.topLeftCorner<3,3>() * A.topLeftCorner<3,3>() * X.topLeftCorner<3,3>();
-    Eigen::Matrix3d M43 = -skew(Yinv.topLeftCorner<3,3>()*A.topLeftCorner<3,3>()*X.col(3) + Yinv.topLeftCorner<3,3>()*A.col(3) + Yinv.col(3));
-    Eigen::Matrix3d M44 = Eigen::MatrixXd::Identity(3, 3);
-    Eigen::Matrix3d M45 = -C.topLeftCorner<3,3>() * Z.topLeftCorner<3,3>() * skew(Binv.col(3));
+    // Translation Part
+    Eigen::Matrix3d M42 = -Yinv.block<3,3>(0,0) * A.block<3,3>(0,0) * X.block<3,3>(0,0);
+    Eigen::Matrix3d M43 = -skew(Yinv.block<3,3>(0,0) * A.block<3,3>(0,0) * X.block<3,1>(0,3) + Yinv.block<3,3>(0,0) * A.block<3,1>(0,3) + Yinv.block<3,1>(0,3));
+    Eigen::Matrix3d M44 = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d M45 = -C.block<3,3>(0,0) * Z.block<3,3>(0,0) * skew(Binv.block<3,1>(0,3));
+    Eigen::Matrix3d M46 = C.block<3,3>(0,0) * Z.block<3,3>(0,0);
 
-    Eigen::Matrix3d M46 = C.topLeftCorner<3,3>() * Z.topLeftCorner<3,3>();
-
-    M.resize(12, 12);
+    M.resize(12, 18);
     M << M11, Eigen::Matrix3d::Zero(), M13, Eigen::Matrix3d::Zero(), M15, Eigen::Matrix3d::Zero(),
             M21, Eigen::Matrix3d::Zero(), M23, Eigen::Matrix3d::Zero(), M25, Eigen::Matrix3d::Zero(),
             M31, Eigen::Matrix3d::Zero(), M33, Eigen::Matrix3d::Zero(), M35, Eigen::Matrix3d::Zero(),
@@ -277,8 +277,12 @@ void MbMat_2(Eigen::MatrixXd &M,
     // RHS
     Eigen::MatrixXd RHS = - C * Z * Binv + Yinv * A * X;
 
-    b.resize(12);
-    b << RHS.block<3,1>(0,0), RHS.block<3,1>(0,1), RHS.block<3,1>(0,2), RHS.block<3,1>(0,3);
+    /*b.resize(12);
+    b << RHS.block<3,1>(0,0), RHS.block<3,1>(0,1), RHS.block<3,1>(0,2), RHS.block<3,1>(0,3);*/
+
+    b.resize(b.rows() + RHS.size(), 1);
+    // Copying the elements of RHS2 into the bottom part of b
+    b.bottomRows(RHS.size()) = Eigen::Map<Eigen::VectorXd>(RHS.data(), RHS.size());
 
     // SigBi^{-1} = Ad^{-1}(X) * SigAi * Ad^{-T}(X)
     // First block
@@ -313,23 +317,25 @@ void MbMat_2(Eigen::MatrixXd &M,
     Eigen::Matrix3d M161 = -skew(SigBinv.block<3,1>(3,5)) + SigBinv.block<3,3>(3,3) * skew(e3);
     Eigen::Matrix3d M162 = -skew(SigBinv.block<3,1>(0,5)) + SigBinv.block<3,3>(3,0) * skew(e3);
 
-    M.conservativeResize(M.rows()+36, Eigen::NoChange);
-    M.block(M.rows()-36,  0, 3, 12) << M51, M52;
-    M.block(M.rows()-33,  0, 3, 12) << M61, M62;
-    M.block(M.rows()-30,  0, 3, 12) << M71, M72;
-    M.block(M.rows()-27,  0, 3, 12) << M81, M82;
-    M.block(M.rows()-24,  0, 3, 12) << M91, M92;
-    M.block(M.rows()-21,  0, 3, 12) << M101,M102;
-    M.block(M.rows()-18,  0, 3, 12) << M111,M112;
-    M.block(M.rows()-15,  0, 3, 12) << M121,M122;
-    M.block(M.rows()-12,  0, 3, 12) << M131,M132;
-    M.block(M.rows()-9 ,  0, 3, 12) << M141,M142;
-    M.block(M.rows()-6 ,  0, 3, 12) << M151,M152;
+    M.conservativeResize(M.rows() + 36, M.cols() + 9);
+    M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M51,  M52,
+                                                Eigen::Matrix3d::Zero(),  M61,  M62,
+                                                Eigen::Matrix3d::Zero(),  M71,  M72,
+                                                Eigen::Matrix3d::Zero(),  M81,  M82,
+                                                Eigen::Matrix3d::Zero(),  M91,  M92,
+                                                Eigen::Matrix3d::Zero(), M101, M102,
+                                                Eigen::Matrix3d::Zero(), M111, M112,
+                                                Eigen::Matrix3d::Zero(), M121, M122,
+                                                Eigen::Matrix3d::Zero(), M131, M132,
+                                                Eigen::Matrix3d::Zero(), M141, M142,
+                                                Eigen::Matrix3d::Zero(), M151, M152,
+                                                Eigen::Matrix3d::Zero(), M161 ,M162;
 
     Eigen::MatrixXd RHS2 = SE3Adinv(X) * SigA * SE3Adinv(X).transpose() - SigBinv;
     RHS2.resize(3, 12);
 
-    b = Eigen::VectorXd::Map(RHS2.data(), RHS2.size());
+    b.resize(b.rows() + RHS2.size(), 1);
+    b.bottomRows(RHS2.size()) = Eigen::Map<Eigen::VectorXd>(RHS2.data(), RHS2.size());
 }
 
 void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
@@ -387,7 +393,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
 
     while (xi.norm() >= tol && diff >= tol && num <= max_num) {
         std::vector<Eigen::MatrixXd> MM(Ni+Nj);
-        std::vector<Eigen::VectorXd> bb(Ni+Nj);
+        std::vector<Eigen::MatrixXd> bb(Ni+Nj);
         for (int i = 0; i < Ni; i++) {
             MbMat_1(MM[i], bb[i], A1_m[i], Xupdate,
                     B1_m[i], Yupdate, C1_m[i], Zupdate,
@@ -402,7 +408,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         }
 
         Eigen::MatrixXd M;
-        Eigen::VectorXd b;
+        Eigen::MatrixXd b;
         Eigen::MatrixXd M1;
         Eigen::MatrixXd M2;
         Eigen::MatrixXd M3;
@@ -411,8 +417,9 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         for (int k = 0; k < Ni + Nj; k++) {
             M.conservativeResize(M.rows() + MM[k].rows(), MM[k].cols());
             M.bottomRows(MM[k].rows()) = MM[k];
-            b.conservativeResize(b.size() + bb[k].size());
-            b.tail(bb[k].size()) = bb[k];
+            b.conservativeResize(b.rows() + bb[k].rows(), b.cols() + bb[k].cols());
+            // Copying the elements of bb[k] into the bottom-right part of b
+            b.bottomRightCorner(bb[k].rows(), bb[k].cols()) = bb[k];
         }
 
         for (int k = 0; k < Ni; k++) {
@@ -429,6 +436,12 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
             M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
 
+        std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
+        std::cout << "M.transpose() has " << M.transpose().rows() << " rows and " << M.transpose().cols() << " columns." << std::endl;
+        std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
+        std::cout << "(M.transpose() * M) has " << (M.transpose() * M).rows() << " rows and " << (M.transpose() * M).cols() << " columns." << std::endl;
+        std::cout << "(M.transpose() * b) has " << (M.transpose() * b).rows() << " rows and " << (M.transpose() * b).cols() << " columns." << std::endl;
+        
         xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
 
         double diff1 = 0;

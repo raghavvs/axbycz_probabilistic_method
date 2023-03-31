@@ -34,8 +34,8 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
              std::vector<Eigen::MatrixXd> &Mean,
              std::vector<Eigen::MatrixXd> &Cov) {
     for(int i = 0; i < N; i++){
-        Mean[i] = Eigen::Matrix4d::Identity();
-        Cov[i] = Eigen::Matrix<double, 6, 6>::Zero();
+        Mean.push_back(Eigen::Matrix4d::Identity());
+        Cov.push_back(Eigen::Matrix<double, 6, 6>::Zero());
     }
 
     // Initial approximation of Mean
