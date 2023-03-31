@@ -414,11 +414,10 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         Eigen::MatrixXd M3;
         Eigen::MatrixXd M4;
 
-        for (int k = 0; k < Ni + Nj; k++) {
+        /*for (int k = 0; k < Ni + Nj; k++) {
             M.conservativeResize(M.rows() + MM[k].rows(), MM[k].cols());
             M.bottomRows(MM[k].rows()) = MM[k];
             b.conservativeResize(b.rows() + bb[k].rows(), b.cols() + bb[k].cols());
-            // Copying the elements of bb[k] into the bottom-right part of b
             b.bottomRightCorner(bb[k].rows(), bb[k].cols()) = bb[k];
         }
 
@@ -435,14 +434,36 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
             M4.conservativeResize(M4.rows() + MM[k].block(12, 0, 9, MM[k].cols()).rows(), MM[k].cols());
             M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
+*/
+        for (int k = 0; k < Ni + Nj; k++) {
+            M = Eigen::MatrixXd(M.rows() + MM[k].rows(), M.cols());
+            M << M, MM[k];
+            b = Eigen::MatrixXd(b.rows() + bb[k].size(), 1);
+            b << b, bb[k];
+        }
+        for (int k = 0; k < Ni; k++) {
+            M1 = Eigen::MatrixXd(M1.rows() + 12, M1.cols());
+            M1 << M1, MM[k].block(0, 0, 12, MM[k].cols());
+            M2 = Eigen::MatrixXd(M2.rows() + 9, M2.cols());
+            M2 << M2, MM[k].block(12, 0, 9, MM[k].cols());
+        }
+        for (int k = Ni; k < Ni + Nj; k++) {
+            M3 = Eigen::MatrixXd(M3.rows() + 12, M3.cols());
+            M3 << M3, MM[k].block(0, 0, 12, MM[k].cols());
+            M4 = Eigen::MatrixXd(M4.rows() + 9, M4.cols());
+            M4 << M4, MM[k].block(12, 0, 9, MM[k].cols());
+        }
 
         std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
         std::cout << "M.transpose() has " << M.transpose().rows() << " rows and " << M.transpose().cols() << " columns." << std::endl;
         std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
         std::cout << "(M.transpose() * M) has " << (M.transpose() * M).rows() << " rows and " << (M.transpose() * M).cols() << " columns." << std::endl;
         std::cout << "(M.transpose() * b) has " << (M.transpose() * b).rows() << " rows and " << (M.transpose() * b).cols() << " columns." << std::endl;
-        
-        xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+
+        // Inversion to get xi_X, xi_Y, xi_Z
+        Eigen::VectorXd xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+
+        //xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
 
         double diff1 = 0;
         double diff2 = 0;
