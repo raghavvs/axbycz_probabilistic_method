@@ -20,7 +20,6 @@ Output:
 
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
@@ -141,6 +140,12 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                 Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
                 Eigen::MatrixXd right1 = Y[m] * MeanC1 * Z_final[j];
 
+                // Print dimensions of left1 and right1
+                std::cout << "left1 (" << i << "," << j << "," << m << "): " << left1.rows() << "x"
+                                                                                << left1.cols() << std::endl;
+                std::cout << "right1 (" << i << "," << j << "," << m << "): " << right1.rows() << "x"
+                                                                                << right1.cols() << std::endl;
+
                 double diff1 =
                         rotError(left1, right1) + weight * tranError(left1, right1);
 
@@ -148,6 +153,8 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                 Eigen::MatrixXd right2 = Y[m] * C2 * Z_final[j];
                 double diff2 =
                         rotError(left2, right2) + weight * tranError(left2, right2);
+
+                std::cout << "diff1 = " << std::norm(diff1) << std::endl;
 
                 // different error metrics can be picked and this (diff1 +
                 // diff2) is the best one so far. However, it can still be
@@ -157,14 +164,52 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
         }
     }
 
+    std::cout << "s_X size: " << s_X << std::endl;
+    std::cout << "s_Y size: " << s_Y << std::endl;
+    std::cout << "s_Z size: " << s_Z << std::endl;
+    std::cout << "cost size: " << cost.size() << std::endl;
+    std::cout << "cost rows: " << cost.rows() << std::endl;
+    std::cout << "cost columns: " << cost.cols() << std::endl;
+    std::cout << "cos(0,0) = " << cost(0, 0) << std::endl;
+
     //// recover the X,Y,Z that minimizes cost
 
-    Eigen::MatrixXd::Index minRow, minCol;
+    /*Eigen::MatrixXd::Index minRow, minCol;
     cost.minCoeff(&minRow, &minCol);
-    int I1 = minRow * cost.cols() + minCol;
+    int I_row = minRow;
+    int I_col = minCol;*/
 
-    int I_row = I1 / cost.cols();
-    int I_col = I1 % cost.cols();
+    /*double min_value = cost(0, 0);
+    Eigen::MatrixXd::Index minRow = 0, minCol = 0;
+
+    for (int i = 0; i < cost.rows(); ++i) {
+        for (int j = 0; j < cost.cols(); ++j) {
+            if (cost(i, j) < min_value) {
+                min_value = cost(i, j);
+                minRow = i;
+                minCol = j;
+            }
+        }
+    }
+
+    int I_row = minRow;
+    int I_col = minCol;*/
+
+    // Find the minimum element and its index in cost
+    double min_cost = 0;
+    int I1 = 0;
+    for (int i = 0; i < s_X; i++) {
+        for (int j = 0; j < s_Y * s_Z; j++) {
+            if (cost(i, j) < min_cost) {
+                min_cost = cost(i, j);
+                I1 = i * s_Y * s_Z + j;
+            }
+        }
+    }
+
+    // Convert the linear index to subscripts
+    int I_row = I1 / (s_Y * s_Z);
+    int I_col = I1 % (s_Y * s_Z);
 
     Eigen::Matrix4d X_final_ = X[I_row]; // final X
 

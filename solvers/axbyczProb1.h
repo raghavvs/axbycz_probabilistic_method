@@ -140,7 +140,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     for (int i = 0; i < s_X; ++i) {
         for (int j = 0; j < s_Z; ++j) {
-            for (int m = 0; m < s_Y; ++m) {
+            for (int m = 0; m < s_Y / 2; ++m) {
                 Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
                 Eigen::MatrixXd right1 = Y[m] * MeanC1 * Z_final[j];
 
@@ -162,12 +162,21 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     //// recover the X,Y,Z that minimizes cost
 
-    Eigen::MatrixXd::Index minRow, minCol;
-    cost.minCoeff(&minRow, &minCol);
-    int I1 = minRow * cost.cols() + minCol;
+    // Find the minimum element and its index in cost
+    double min_cost = 0;
+    int I1 = 0;
+    for (int i = 0; i < s_X; i++) {
+        for (int j = 0; j < s_Y * s_Z; j++) {
+            if (cost(i, j) < min_cost) {
+                min_cost = cost(i, j);
+                I1 = i * s_Y * s_Z + j;
+            }
+        }
+    }
 
-    int I_row = I1 / cost.cols();
-    int I_col = I1 % cost.cols();
+    // Convert the linear index to subscripts
+    int I_row = I1 / (s_Y * s_Z);
+    int I_col = I1 % (s_Y * s_Z);
 
     Eigen::Matrix4d X_final_ = X[I_row]; // final X
 
