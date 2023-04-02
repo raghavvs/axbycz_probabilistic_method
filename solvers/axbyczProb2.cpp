@@ -17,7 +17,6 @@ Output:
 
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
@@ -166,7 +165,7 @@ void axbyczProb2(const Eigen::Matrix4d &A1,
     double weight = 1.8; // weight on the translational error of the cost function
 
     for (int i = 0; i < s_X; i++) {
-        for (int j = 0; j < s_Y; j++) {
+        for (int j = 1; j < s_Y; j++) {
             for (int p = 0; p < s_Z; p++) {
                 Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
                 Eigen::MatrixXd right1 = Y[j] * MeanC1 * Z_final[p];
@@ -182,23 +181,25 @@ void axbyczProb2(const Eigen::Matrix4d &A1,
 
                 // How to better design the cost function is still an open
                 // question
-                cost(i, (j - 1) * s_Z + p) = left1.norm() + left2.norm() + left3.norm();
+                cost(i, (j - 1) * s_Z + p) = std::norm(diff1) + std::norm(diff2) + std::norm(diff3);
             }
         }
     }
 
     std::cout << "works till here - optimal cost? - YES" << std::endl;
 
+    std::cout << "cost.rows(): " << cost.rows() << "cost.cols(): " << cost.cols() << std::endl;
+
     //// recover the X,Y,Z that minimizes cost
 
-    // recover the X,Y,Z that minimizes cost
-    Eigen::MatrixXd::Index minRow, minCol;
-    cost.minCoeff(&minRow, &minCol);
+    Eigen::Map<Eigen::VectorXd> cost_vec(cost.data(), cost.size());
+    Eigen::MatrixXd::Index minIndex;
+    cost_vec.minCoeff(&minIndex);
+    int I1 = static_cast<int>(minIndex);
+    int I_row = I1 / s_Y;
+    int I_col = I1 % s_Y;
 
-    int I_row = minRow;
-    int I_col = minCol;
-
-    Eigen::Matrix4d X_final_ = X[I_row]; // final X
+    Eigen::Matrix4d X_final_ = X[I_row];
 
     int index_Y;
     if (I_col % s_Y > 0) {
