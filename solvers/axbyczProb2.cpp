@@ -165,7 +165,7 @@ void axbyczProb2(const Eigen::Matrix4d &A1,
     double weight = 1.8; // weight on the translational error of the cost function
 
     for (int i = 0; i < s_X; i++) {
-        for (int j = 0; j < s_Y; j++) {
+        for (int j = 1; j < s_Y; j++) {
             for (int p = 0; p < s_Z; p++) {
                 Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
                 Eigen::MatrixXd right1 = Y[j] * MeanC1 * Z_final[p];
@@ -192,26 +192,14 @@ void axbyczProb2(const Eigen::Matrix4d &A1,
 
     //// recover the X,Y,Z that minimizes cost
 
-    Eigen::VectorXd cost_vec = Eigen::Map<Eigen::VectorXd>(cost.data(), cost.size());
-    int I1 = cost_vec.minCoeff();
+    Eigen::Map<Eigen::VectorXd> cost_vec(cost.data(), cost.size());
+    Eigen::MatrixXd::Index minIndex;
+    cost_vec.minCoeff(&minIndex);
+    int I1 = static_cast<int>(minIndex);
     int I_row = I1 / s_Y;
     int I_col = I1 % s_Y;
 
-    /*Eigen::Map<Eigen::VectorXd> cost_vec(cost.data(), cost.size());
-    int I1 = cost_vec.minCoeff();
-
-    int I_row = I1 / (s_Y * s_Z);
-    int I_col = I1 % (s_Y * s_Z);*/
-
     Eigen::Matrix4d X_final_ = X[I_row];
-
-   /* Eigen::MatrixXd::Index minRow, minCol;
-    cost.minCoeff(&minRow, &minCol);
-
-    int I_row = minRow;
-    int I_col = minCol;
-
-    Eigen::Matrix4d X_final_ = X[I_row]; // final X*/
 
     int index_Y;
     if (I_col % s_Y > 0) {
