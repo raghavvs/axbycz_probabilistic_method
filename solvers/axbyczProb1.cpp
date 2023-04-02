@@ -244,9 +244,9 @@ int main() {
     Eigen::Matrix4d B2 = Eigen::Matrix4d::Random();
     Eigen::Matrix4d C2 = Eigen::Matrix4d::Random();
 
-    bool opt = true;
-    double nstd1 = 0.5;
-    double nstd2 = 0.5;
+    bool opt = false;
+    double nstd1 = 0;
+    double nstd2 = 0;
 
     std::vector<Eigen::Matrix4d> X_final;
     std::vector<Eigen::Matrix4d> Y_final;
@@ -260,6 +260,10 @@ int main() {
 }
 
 /*
+ * Problem - doesn't seem to work when:
+ *  opt = false
+ *  nstd1 = 0
+ *  ntdd2 = 0
 Output:
 len: 8
 works till here - solve for Z? - YES

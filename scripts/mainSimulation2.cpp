@@ -101,16 +101,23 @@ int main() {
             }
 
             // Prob 1
-            std::vector<Eigen::Matrix4d> X_final1, Y_final1, Z_final1;
+            std::vector<Eigen::Matrix4d> X_cal1, Y_cal1, Z_cal1;
 
-            axbyczProb1(A1[0], B1[0], C1[0], A2[0], B2[0], C2[0], false, 0, 0,
-                        X_final1, Y_final1, Z_final1);
+            axbyczProb1(A1[0], B1[0], C1[0], A2[0], B2[0], C2[0],
+                        true, 0.001, 0.001,
+                        X_cal1, Y_cal1, Z_cal1);
 
-            if (init_guess == 2) {
-                X_init = X_final1.back();
-                Y_init = Y_final1.back();
-                Z_init = Z_final1.back();
+            std::cout << "X_cal1 size: " << X_cal1.size() << std::endl;
+            std::cout << "Y_cal1 size: " << Y_cal1.size() << std::endl;
+            std::cout << "Z_cal1 size: " << Z_cal1.size() << std::endl;
+
+            if (init_guess == 2 && !X_cal1.empty() && !Y_cal1.empty() && !Z_cal1.empty()) {
+                X_init = X_cal1.back();
+                Y_init = Y_cal1.back();
+                Z_init = Z_cal1.back();
             }
+
+            std::cout << "X_init: " << X_init << std::endl;
 
             Eigen::Matrix4d X_cal2, Y_cal2, Z_cal2;
             int num2;
@@ -119,10 +126,10 @@ int main() {
 
             // Verification
             // Prob 1
-            err_prob = getErrorAXBYCZ(X_final1[0], Y_final1[0], Z_final1[0],
+            err_prob = getErrorAXBYCZ(X_cal1[0], Y_cal1[0], Z_cal1[0],
                                                       X_true, Y_true, Z_true);
-            err1 = metric(A1, B1, C1, X_final1[0], Y_final1[0], Z_final1[0])
-                            + metric(A2, B2, C2, X_final1[0], Y_final1[0], Z_final1[0]);
+            err1 = metric(A1, B1, C1, X_cal1[0], Y_cal1[0], Z_cal1[0])
+                            + metric(A2, B2, C2, X_cal1[0], Y_cal1[0], Z_cal1[0]);
             err1_mat(rk, n) = err1;
 
             // Iterative refinement
