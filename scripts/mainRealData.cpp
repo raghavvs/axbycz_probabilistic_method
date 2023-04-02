@@ -46,7 +46,7 @@ The script also defines some supporting functions that convert cell arrays to
 #include "scrambleData.h"
 #include "axbyczProb1.h"
 #include "axbyczProb3.h"
-#include <matplotlibcpp.h>
+#include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
 
@@ -175,16 +175,17 @@ int main()
 
     // Plot error vs scramble rate
     plt::figure();
-    int fontSize = 20;
-    int lineW = 1;
 
-    plt::plot(r, err1, "o-r", {{"LineWidth", lineW}});
-    plt::plot(r, err2, "d-g", {{"LineWidth", lineW}});
+    plt::plot(r, err1, "o-r");
+    plt::plot(r, err2, "d-g");
 
-    auto lgd = plt::legend({"Prob 1", "Iterative"});
-    lgd["fontsize"] = fontSize;
-    plt::xlabel("Scramble Rate (%)", {{"fontsize", fontSize}});
-    plt::ylabel("Error", {{"fontsize", fontSize}});
+    plt::legend(); // legends need to be fixed
+    plt::xlabel("Scramble Rate (%)");
+    plt::ylabel("Error");
 
-    plt::title("Real Data", {{"fontsize", fontSize}});
+    plt::title("Real Data");
+
+    plt::grid(true);
+
+    plt::show();
 }

@@ -16,27 +16,52 @@ number of matrices to compute the average norm.
 #include <vector>
 #include <eigen3/Eigen/Dense>
 
-double metric(const std::vector<Eigen::Matrix3d>& A,
-              const std::vector<Eigen::Matrix3d>& B,
-              const std::vector<Eigen::Matrix3d>& C,
-              const Eigen::Matrix3d& X,
-              const Eigen::Matrix3d& Y,
-              const Eigen::Matrix3d& Z) {
+double metric(const std::vector<Eigen::Matrix4d>& A,
+              const std::vector<Eigen::Matrix4d>& B,
+              const std::vector<Eigen::Matrix4d>& C,
+              const Eigen::Matrix4d& X,
+              const Eigen::Matrix4d& Y,
+              const Eigen::Matrix4d& Z) {
     double diff = 0.0;
     int N = 0;
-    for (int i = 0; i < A.size(); ++i) {
-        for (int j = 0; j < A[i].rows(); ++j) {
-            for (int k = 0; k < A[i].cols(); ++k) {
-                diff += std::abs((A[i](j, k) * X(k, j) * B[i](j, k) - Y(j, k) * C[i](k, j) * Z(j, k)));
-                ++N;
-            }
+
+    for (size_t i = 0; i < A.size(); ++i) {
+        for (int j = 0; j < A[i].cols() / 4; ++j) { // divide by 4 to avoid out-of-bounds block access
+            Eigen::Matrix4d lhs = A[i].block(0, j * 4, 4, 4) * X *
+                                  B[i].block(0, j * 4, 4, 4);
+            Eigen::Matrix4d rhs = Y * C[i].block(0, j * 4, 4, 4) * Z;
+            diff += (lhs - rhs).norm();
+            N++;
         }
     }
-    return diff / N;
+
+    diff /= static_cast<double>(N);
+    return diff;
 }
 
-/* int main()
-{
-    std::cout << "Build successful" << std::endl;
+int main() {
+    // Set the number of A, B, and C matrices
+    int num_matrices = 3;
+
+    // Create random 4x4 matrices for A, B, C, X, Y, and Z
+    std::vector<Eigen::Matrix4d> A(num_matrices);
+    std::vector<Eigen::Matrix4d> B(num_matrices);
+    std::vector<Eigen::Matrix4d> C(num_matrices);
+    Eigen::Matrix4d X = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d Y = Eigen::Matrix4d::Random();
+    Eigen::Matrix4d Z = Eigen::Matrix4d::Random();
+
+    for (int i = 0; i < num_matrices; ++i) {
+        A[i] = Eigen::Matrix4d::Random();
+        B[i] = Eigen::Matrix4d::Random();
+        C[i] = Eigen::Matrix4d::Random();
+    }
+
+    // Compute the metric value
+    double metric_value = metric(A, B, C, X, Y, Z);
+
+    // Output the result
+    std::cout << "Metric value: " << metric_value << std::endl;
+
     return 0;
-}  */
+}
