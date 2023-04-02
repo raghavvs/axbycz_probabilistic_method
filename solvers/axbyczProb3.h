@@ -45,6 +45,9 @@ SE3Adinv computes the inverse of the adjoint representation of an element of SE(
  spatial motion vectors from one coordinate frame to another, in the opposite direction as SE3Ad(X).
 */
 
+#ifndef AXBYCZPROB3_H
+#define AXBYCZPROB3_H
+
 #include <iostream>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
@@ -509,36 +512,4 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     }
 }
 
-int main() {
-    std::vector<Eigen::Matrix4d> A1;
-    std::vector<Eigen::Matrix4d> B1;
-    std::vector<Eigen::Matrix4d> C1;
-    std::vector<Eigen::Matrix4d> A2;
-    std::vector<Eigen::Matrix4d> B2;
-    std::vector<Eigen::Matrix4d> C2;
-
-    for (int i = 0; i < 10; ++i) {
-        A1.emplace_back(Eigen::Matrix4d::Random());
-        B1.emplace_back(Eigen::Matrix4d::Random());
-        C1.emplace_back(Eigen::Matrix4d::Random());
-        A2.emplace_back(Eigen::Matrix4d::Random());
-        B2.emplace_back(Eigen::Matrix4d::Random());
-        C2.emplace_back(Eigen::Matrix4d::Random());
-    }
-
-    Eigen::Matrix4d Xinit = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d Yinit = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d Zinit = Eigen::Matrix4d::Identity();
-
-    Eigen::Matrix4d X_cal;
-    Eigen::Matrix4d Y_cal;
-    Eigen::Matrix4d Z_cal;
-
-    int num = 1;
-
-    axbyczProb3(A1, B1, C1, A2, B2, C2, Xinit, Yinit, Zinit, X_cal, Y_cal, Z_cal, num);
-
-    std::cout << "Build successful? - YES" <<std::endl;
-
-    return 0;
-}
+#endif
