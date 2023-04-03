@@ -47,9 +47,11 @@ int main() {
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     int num_trials = 20;
 
-    Eigen::Vector3d err_prob, err_iter;
+    Eigen::VectorXd err_prob, err_iter;
     double err1, err2;
-    Eigen::MatrixXd err1_mat, err2_mat;
+    //Eigen::MatrixXd err1_mat, err2_mat;
+    Eigen::MatrixXd err1_mat = Eigen::MatrixXd::Zero(r.size(), num_trials);
+    Eigen::MatrixXd err2_mat = Eigen::MatrixXd::Zero(r.size(), num_trials);
 
     for (int n = 0; n < num_trials; ++n) {
         Eigen::Matrix4d X_true, Y_true, Z_true;
@@ -101,43 +103,40 @@ int main() {
             }
 
             // Prob 1
-            std::vector<Eigen::Matrix4d> X_cal1, Y_cal1, Z_cal1;
+            Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
 
-            axbyczProb1(A1[0], B1[0], C1[0], A2[0], B2[0], C2[0],
+            axbyczProb1(AA1, BBp1, CC1, AA2, BBp2, CC2,
                         true, 0.001, 0.001,
                         X_cal1, Y_cal1, Z_cal1);
 
-            std::cout << "X_cal1 size: " << X_cal1.size() << std::endl;
-            std::cout << "Y_cal1 size: " << Y_cal1.size() << std::endl;
-            std::cout << "Z_cal1 size: " << Z_cal1.size() << std::endl;
-
-            if (init_guess == 2 && !X_cal1.empty() && !Y_cal1.empty() && !Z_cal1.empty()) {
-                X_init = X_cal1.back();
-                Y_init = Y_cal1.back();
-                Z_init = Z_cal1.back();
+            if (init_guess == 2) {
+                X_init = X_cal1;
+                Y_init = Y_cal1;
+                Z_init = Z_cal1;
             }
 
-            std::cout << "X_init: " << X_init << std::endl;
 
             Eigen::Matrix4d X_cal2, Y_cal2, Z_cal2;
             int num2;
 
-            axbyczProb3(A1, B1, C1, A2, B2, C2, X_init, Y_init, Z_init, X_cal2, Y_cal2, Z_cal2, num2);
+            axbyczProb3(A1, B1, C1, A2, B2, C2,
+                        X_init, Y_init, Z_init,
+                        X_cal2, Y_cal2, Z_cal2, num2);
 
             // Verification
             // Prob 1
-            err_prob = getErrorAXBYCZ(X_cal1[0], Y_cal1[0], Z_cal1[0],
-                                                      X_true, Y_true, Z_true);
-            err1 = metric(A1, B1, C1, X_cal1[0], Y_cal1[0], Z_cal1[0])
-                            + metric(A2, B2, C2, X_cal1[0], Y_cal1[0], Z_cal1[0]);
-            err1_mat(rk, n) = err1;
+            err_prob = getErrorAXBYCZ(X_cal1, Y_cal1, Z_cal1,
+                                      X_true, Y_true, Z_true);
+            err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1)
+                            + metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+            err1_mat.coeffRef(rk, n) = err1;
 
             // Iterative refinement
             err_iter = getErrorAXBYCZ(X_cal2, Y_cal2, Z_cal2,
                                                       X_true, Y_true, Z_true);
             err2 = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2)
                             + metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
-            err2_mat(rk, n) = err2;
+            err2_mat.coeffRef(rk, n) = err2;
         }
     }
 
@@ -148,7 +147,12 @@ int main() {
     Eigen::VectorXd err1_avg = err1_mat.rowwise().sum() / num_trials;
     Eigen::VectorXd err2_avg = err2_mat.rowwise().sum() / num_trials;
 
-    // Plot error v.s. scramble rate
+//    std::cout << "err1_avg: " << err1_avg << std::endl;
+//    std::cout << "err2_avg: " << err2_avg << std::endl;
+
+    /*
+     * ///// PLOTS
+     * // Plot error v.s. scramble rate
     // Errors with ground truth
     plt::figure();
     int fontSize = 20;
@@ -187,5 +191,5 @@ int main() {
     plt::legend();
     plt::xlabel("Scramble Rate (%)");
     plt::ylabel("Error");
-    plt::show();
+    plt::show();*/
 }

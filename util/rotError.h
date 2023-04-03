@@ -24,25 +24,15 @@ between the two matrices in radians.
 
 #include <iostream>
 #include <eigen3/Eigen/Dense>
-#include <cmath>
-
-Eigen::Matrix3d skewlog(const Eigen::Matrix3d& R) {
-    double theta = acos((R.trace() - 1) / 2);
-    Eigen::Matrix3d omega = (R - R.transpose()) / (2 * sin(theta));
-
-    return theta * omega;
-}
-
-Eigen::Vector3d so3_vec(const Eigen::Matrix3d& omega) {
-    return Eigen::Vector3d(omega(2, 1), omega(0, 2), omega(1, 0));
-}
+#include "so3Vec.h"
+#include "skewLog.h"
 
 double rotError(const Eigen::Matrix4d& X1, const Eigen::Matrix4d& X2) {
     Eigen::Matrix3d R1 = X1.block<3, 3>(0, 0);
     Eigen::Matrix3d R2 = X2.block<3, 3>(0, 0);
     Eigen::Matrix3d R12 = R1.transpose() * R2;
 
-    Eigen::Vector3d err_vec = so3_vec(skewlog(R12));
+    Eigen::Vector3d err_vec = so3Vec(skewLog(R12));
 
     return err_vec.norm();
 }
