@@ -20,7 +20,6 @@ Output:
 
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
 #include "rotError.h"

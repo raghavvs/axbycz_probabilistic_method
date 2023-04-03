@@ -140,6 +140,8 @@ int main() {
         }
     }
 
+    std::cout << "works till here?" << std::endl;
+
     // Compute the averaged errors
     Eigen::MatrixXd err_prob_avg = err_prob.colwise().sum() / num_trials;
     Eigen::MatrixXd err_iter_avg = err_iter.colwise().sum() / num_trials;
