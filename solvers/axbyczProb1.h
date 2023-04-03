@@ -196,11 +196,7 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
         index_Y = s_Y;
     }
 
-    Eigen::Matrix4d Y_final_ = Y[index_Y]; // final Y
-
-    std::cout << "X_final_: " << std::endl << X_final_ << std::endl;
-    std::cout << "Y_final_: " << std::endl << Y_final_ << std::endl;
-    std::cout << "Z_final_: " << std::endl << Z_final_ << std::endl;
+    Eigen::Matrix4d Y_final_ = Y[index_Y]; // final Y;
 }
 
 #endif
