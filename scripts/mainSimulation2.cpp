@@ -140,8 +140,6 @@ int main() {
         }
     }
 
-    std::cout << "works till here?" << std::endl;
-
     // Compute the averaged errors
     Eigen::MatrixXd err_prob_avg = err_prob.colwise().sum() / num_trials;
     Eigen::MatrixXd err_iter_avg = err_iter.colwise().sum() / num_trials;
@@ -149,12 +147,16 @@ int main() {
     Eigen::VectorXd err1_avg = err1_mat.rowwise().sum() / num_trials;
     Eigen::VectorXd err2_avg = err2_mat.rowwise().sum() / num_trials;
 
-//    std::cout << "err1_avg: " << err1_avg << std::endl;
-//    std::cout << "err2_avg: " << err2_avg << std::endl;
+    std::cout << "works till here? - YES" << std::endl;
 
-    /*
-     * ///// PLOTS
-     * // Plot error v.s. scramble rate
+    std::cout << "err1_avg: " << err1_avg << std::endl;
+    std::cout << "err2_avg: " << err2_avg << std::endl;
+
+    std::cout << "works till here?" << std::endl;
+
+     ///// PLOTS
+
+     // Plot error v.s. scramble rate
     // Errors with ground truth
     plt::figure();
     int fontSize = 20;
@@ -172,6 +174,7 @@ int main() {
         auto y_data = err_prob_avg.col(i).cast<double>();
         std::vector<double> x_data_vec(x_data.data(), x_data.data() + x_data.size());
         std::vector<double> y_data_vec(y_data.data(), y_data.data() + y_data.size());
+        std::cout << "Size of x_data_vec: " << x_data_vec.size() << ", Size of y_data_vec: " << y_data_vec.size() << std::endl;
         plt::plot(x_data_vec, y_data_vec, "o-r");
 
         // Set axis labels
@@ -193,5 +196,5 @@ int main() {
     plt::legend();
     plt::xlabel("Scramble Rate (%)");
     plt::ylabel("Error");
-    plt::show();*/
+    plt::show();
 }

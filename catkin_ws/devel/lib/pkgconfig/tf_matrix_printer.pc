@@ -1,0 +1,8 @@
+prefix=/home/raghav/cws/axbycz_probabilistic_method/catkin_ws/devel
+
+Name: tf_matrix_printer
+Description: Description of tf_matrix_printer
+Version: 0.0.1
+Cflags: -I/home/raghav/cws/axbycz_probabilistic_method/catkin_ws/src/tf_matrix_printer/include
+Libs: -L${prefix}/lib -ltf_matrix_printer
+Requires: roscpp tf

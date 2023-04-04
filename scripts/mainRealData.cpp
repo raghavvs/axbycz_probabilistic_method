@@ -126,7 +126,7 @@ int main()
         // Inputs for Prob 1
         std::vector<Eigen::MatrixXd> AA1(headTf1.size()), BB1(headTf1.size()), CC1(headTf1.size());
         std::vector<Eigen::MatrixXd> AA2(headTf2.size()), BB2(headTf2.size()), CC2(headTf2.size());
-        std::vector<Eigen::Matrix4d> X_cal1, Y_cal1, Z_cal1;
+        Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
         Eigen::MatrixXd BBp1, BBp2, Bp;
 
         convertCell2Mat(headTf1, handTf1, tagTf1, AA1, BB1, CC1);
@@ -147,9 +147,9 @@ int main()
 
         // Initial guess for iterative refinement as the results from prob 1
         if (init_guess == 3) {
-            X_init = X_cal1[rk];
-            Y_init = Y_cal1[rk];
-            Z_init = Z_cal1[rk];
+            X_init = X_cal1;
+            Y_init = Y_cal1;
+            Z_init = Z_cal1;
         }
 
         // Iterative Refinement
@@ -165,8 +165,8 @@ int main()
 
         // Verification
         // Prob 1
-        err1[rk] = metric(A1, B1, C1, X_cal1[rk], Y_cal1[rk], Z_cal1[rk]) +
-                            metric(A2, B2, C2, X_cal1[rk], Y_cal1[rk], Z_cal1[rk]);
+        err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
+                            metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
 
         // Iterative refinement
         err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
