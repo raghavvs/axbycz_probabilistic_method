@@ -8,7 +8,13 @@
 #include <vector>
 
 int main() {
-    std::ifstream file("data/tf_echo.txt");
+    std::ifstream file("tf_echo.txt");
+
+    if (!file.is_open()) {
+        std::cerr << "Error: unable to open file 'tf_echo.txt'" << std::endl;
+        return 1;
+    }
+
     std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     std::regex translation_pattern("Translation: \\[(.+?)\\]");
