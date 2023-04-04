@@ -45,6 +45,9 @@ SE3Adinv computes the inverse of the adjoint representation of an element of SE(
  spatial motion vectors from one coordinate frame to another, in the opposite direction as SE3Ad(X).
 */
 
+#ifndef AXBYCZPROB3_H
+#define AXBYCZPROB3_H
+
 #include <iostream>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
@@ -171,16 +174,11 @@ void MbMat_1(Eigen::MatrixXd &M,
             M31, Eigen::Matrix3d::Zero(3,3) , M33, Eigen::Matrix3d::Zero(3,3) , M35, Eigen::Matrix3d::Zero (3,3),
             M41, M42,                          M43, M44,                        Eigen::Matrix3d::Zero (3,3), M46;
 
-    std::cout << "MbMat_1" << std::endl;
-    std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
-
     // RHS
     Eigen::MatrixXd RHS = -A * X * B + Y * C * Z;
-    std::cout << "RHS has " << RHS.rows() << " rows and " << RHS.cols() << " columns." << std::endl;
 
     b.resize(12, 1);
     b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1), RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
-    std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
 
     // SigBi = Ad^{-1}(Z) * SigCi * Ad^{-T}(Z)
     // First block
@@ -279,16 +277,12 @@ void MbMat_2(Eigen::MatrixXd &M,
             M31, Eigen::Matrix3d::Zero(), M33, Eigen::Matrix3d::Zero(), M35, Eigen::Matrix3d::Zero(),
             Eigen::Matrix3d::Zero(), M42, M43, M44, M45, M46;
 
-    std::cout << "MbMat_2" << std::endl;
-    std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
-
     // RHS
     Eigen::MatrixXd RHS = - C * Z * Binv + Yinv * A * X;
-    std::cout << "RHS has " << RHS.rows() << " rows and " << RHS.cols() << " columns." << std::endl;
 
     b.resize(12, 1);
-    b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1), RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
-    std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
+    b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1),
+            RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
 
     // SigBi^{-1} = Ad^{-1}(X) * SigAi * Ad^{-T}(X)
     // First block
@@ -372,10 +366,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     int max_num = 500;
     double tol = 1e-5;
 
-    std::cout << "Ni = " << Ni << std::endl;
-    std::cout << "Nj = " << Nj << std::endl;
-    std::cout << "xi = " << xi.rows() << std::endl;
-
     // Calculate mean and covariance of varying data
     std::vector<Eigen::MatrixXd> A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
     meanCov(A1, Ni, A1_m, SigA1);
@@ -388,9 +378,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         B2inv[i] = B2[i].inverse();
     }
-
-    std::cout << "B2.size() = " << B2.size() << std::endl;
-    std::cout << "B2inv.size() = " << B2inv.size() << std::endl;
 
     std::vector<Eigen::MatrixXd> A2_m, B2_m, B2inv_m, C2_m, SigA2, SigB2, SigB2inv, SigC2;
     meanCov(A2, Nj, A2_m, SigA2);
@@ -418,9 +405,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                     SE3inv(Yupdate), A2_m[j], Xupdate,
                     SigB2[j], SigA2[j], B2_m[j]);
         }
-
-        std::cout << "MM has " << MM[0].rows() << " rows and " << MM[0].cols() << " columns." << std::endl;
-        std::cout << "bb has " << bb[0].rows() << " rows and " << bb[0].cols() << " columns." << std::endl;
 
         Eigen::MatrixXd M;
         Eigen::MatrixXd b;
@@ -450,16 +434,9 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
             M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
 
-        std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
-        std::cout << "M.transpose() has " << M.transpose().rows() << " rows and " << M.transpose().cols() << " columns." << std::endl;
-        std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
-        std::cout << "(M.transpose() * M) has " << (M.transpose() * M).rows() << " rows and " << (M.transpose() * M).cols() << " columns." << std::endl;
-        std::cout << "(M.transpose() * b) has " << (M.transpose() * b).rows() << " rows and " << (M.transpose() * b).cols() << " columns." << std::endl;
-
         // Inversion to get xi_X, xi_Y, xi_Z
         //xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
         Eigen::MatrixXd xi_new = (M.transpose() * M).ldlt().solve(M.transpose() * b);
-        std::cout << "xi_new has " << xi_new.rows() << " rows and " << xi_new.cols() << " columns." << std::endl;
 
         double diff1 = 0;
         double diff2 = 0;
@@ -509,36 +486,4 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     }
 }
 
-int main() {
-    std::vector<Eigen::Matrix4d> A1;
-    std::vector<Eigen::Matrix4d> B1;
-    std::vector<Eigen::Matrix4d> C1;
-    std::vector<Eigen::Matrix4d> A2;
-    std::vector<Eigen::Matrix4d> B2;
-    std::vector<Eigen::Matrix4d> C2;
-
-    for (int i = 0; i < 10; ++i) {
-        A1.emplace_back(Eigen::Matrix4d::Random());
-        B1.emplace_back(Eigen::Matrix4d::Random());
-        C1.emplace_back(Eigen::Matrix4d::Random());
-        A2.emplace_back(Eigen::Matrix4d::Random());
-        B2.emplace_back(Eigen::Matrix4d::Random());
-        C2.emplace_back(Eigen::Matrix4d::Random());
-    }
-
-    Eigen::Matrix4d Xinit = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d Yinit = Eigen::Matrix4d::Identity();
-    Eigen::Matrix4d Zinit = Eigen::Matrix4d::Identity();
-
-    Eigen::Matrix4d X_cal;
-    Eigen::Matrix4d Y_cal;
-    Eigen::Matrix4d Z_cal;
-
-    int num = 1;
-
-    axbyczProb3(A1, B1, C1, A2, B2, C2, Xinit, Yinit, Zinit, X_cal, Y_cal, Z_cal, num);
-
-    std::cout << "Build successful? - YES" <<std::endl;
-
-    return 0;
-}
+#endif

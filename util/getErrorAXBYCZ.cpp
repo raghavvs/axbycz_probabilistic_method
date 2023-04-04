@@ -20,24 +20,55 @@ useful for evaluating the accuracy of the transformation and potentially
 refining the transformation to improve accuracy.
 */
 
+#include <iostream>
 #include <eigen3/Eigen/Dense>
-#include <cmath>
+#include "rotError.h"
+#include "tranError.h"
 
-Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f, const Eigen::Matrix4d& Y_f, const Eigen::Matrix4d& Z_f,
-                               const Eigen::Matrix4d& XActual, const Eigen::Matrix4d& YActual, const Eigen::Matrix4d& ZActual) {
+Eigen::VectorXd getErrorAXBYCZ(const Eigen::Matrix4d& X_f, 
+                               const Eigen::Matrix4d& Y_f, 
+                               const Eigen::Matrix4d& Z_f,
+                               const Eigen::Matrix4d& XActual, 
+                               const Eigen::Matrix4d& YActual, 
+                               const Eigen::Matrix4d& ZActual) {
+    Eigen::VectorXd xyzError(6);
+    
+    xyzError(0) = rotError(X_f, XActual);
+    xyzError(1) = rotError(Y_f, YActual);
+    xyzError(2) = rotError(Z_f, ZActual);
 
-    Eigen::Vector3d xyzError;
-
-    xyzError(0) = std::acos(0.5 * (X_f.block(0, 0, 3, 3).trace() - XActual.block(0, 0, 3, 3).trace()));
-    xyzError(1) = std::acos(0.5 * (Y_f.block(0, 0, 3, 3).trace() - YActual.block(0, 0, 3, 3).trace()));
-    xyzError(2) = std::acos(0.5 * (Z_f.block(0, 0, 3, 3).trace() - ZActual.block(0, 0, 3, 3).trace()));
-
-    xyzError(3) = (X_f.block(0, 3, 3, 1) - XActual.block(0, 3, 3, 1)).norm();
-    xyzError(4) = (Y_f.block(0, 3, 3, 1) - YActual.block(0, 3, 3, 1)).norm();
-    xyzError(5) = (Z_f.block(0, 3, 3, 1) - ZActual.block(0, 3, 3, 1)).norm();
+    xyzError(3) = tranError(X_f, XActual);
+    xyzError(4) = tranError(Y_f, YActual);
+    xyzError(5) = tranError(Z_f, ZActual);
 
     return xyzError;
 }
 
-
 // std::acos to calculate the rotational errors, and norm() function to calculate the translational errors.
+
+int main() {
+    Eigen::Matrix4d X_f = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Y_f = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Z_f = Eigen::Matrix4d::Identity();
+
+    Eigen::Matrix4d XActual = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d YActual = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d ZActual = Eigen::Matrix4d::Identity();
+
+    // Introduce some differences
+    XActual(0, 0) += 0.1;
+    XActual(0, 1) += 0.8;
+    YActual(1, 1) += 0.2;
+    YActual(2, 1) += 0.7;
+    ZActual(2, 2) += 0.3;
+
+    XActual(0, 3) += 0.4;
+    YActual(1, 3) += 0.5;
+    ZActual(2, 3) += 0.6;
+
+    Eigen::VectorXd xyzError = getErrorAXBYCZ(X_f, Y_f, Z_f, XActual, YActual, ZActual);
+
+    std::cout << "Error vector: \n" << xyzError << std::endl;
+
+    return 0;
+}

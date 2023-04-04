@@ -24,24 +24,24 @@ refining the transformation to improve accuracy.
 #define GETERRORAXBYCZ_H
 
 #include <eigen3/Eigen/Dense>
-#include <cmath>
+#include "rotError.h"
+#include "tranError.h"
 
-Eigen::Vector3d getErrorAXBYCZ(const Eigen::Matrix4d& X_f,
+Eigen::VectorXd getErrorAXBYCZ(const Eigen::Matrix4d& X_f,
                                const Eigen::Matrix4d& Y_f,
                                const Eigen::Matrix4d& Z_f,
                                const Eigen::Matrix4d& XActual,
                                const Eigen::Matrix4d& YActual,
                                const Eigen::Matrix4d& ZActual) {
+    Eigen::VectorXd xyzError(6);
 
-    Eigen::Vector3d xyzError;
+    xyzError(0) = rotError(X_f, XActual);
+    xyzError(1) = rotError(Y_f, YActual);
+    xyzError(2) = rotError(Z_f, ZActual);
 
-    xyzError(0) = std::acos(0.5 * (X_f.block(0, 0, 3, 3).trace() - XActual.block(0, 0, 3, 3).trace()));
-    xyzError(1) = std::acos(0.5 * (Y_f.block(0, 0, 3, 3).trace() - YActual.block(0, 0, 3, 3).trace()));
-    xyzError(2) = std::acos(0.5 * (Z_f.block(0, 0, 3, 3).trace() - ZActual.block(0, 0, 3, 3).trace()));
-
-    xyzError(3) = (X_f.block(0, 3, 3, 1) - XActual.block(0, 3, 3, 1)).norm();
-    xyzError(4) = (Y_f.block(0, 3, 3, 1) - YActual.block(0, 3, 3, 1)).norm();
-    xyzError(5) = (Z_f.block(0, 3, 3, 1) - ZActual.block(0, 3, 3, 1)).norm();
+    xyzError(3) = tranError(X_f, XActual);
+    xyzError(4) = tranError(Y_f, YActual);
+    xyzError(5) = tranError(Z_f, ZActual);
 
     return xyzError;
 }

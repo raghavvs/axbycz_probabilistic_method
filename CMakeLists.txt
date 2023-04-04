@@ -6,10 +6,10 @@ set(CMAKE_BUILD_TYPE "Debug")
 add_compile_options(-g)
 
 ####----Uncomment when compiling on wall-e-----###
-#set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
+set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
 
 ####----Uncomment when compiling on mac---######
-set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
+#set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
 
 # Find Eigen3 library
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
@@ -38,12 +38,12 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 # Include headers
 
 ####----Uncomment when compiling on wall-e-----###
-#include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
-#include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
+include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
+include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
 
 ####----Uncomment when compiling on mac---######
-include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
-include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
+#include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
+#include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
 
 include_directories(${axbycz_probabilistic_method}/util)
 
@@ -57,6 +57,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(meanCovTEST test/meanCovTEST.cpp)
 #add_executable(mvg util/mvg.cpp)
 #add_executable(mvgTEST test/mvgTEST.cpp)
+#add_executable(getErrorAXBYCZ util/getErrorAXBYCZ.cpp)
 #add_executable(getErrorAXBYCZTEST test/getErrorAXBYCZTEST.cpp)
 #add_executable(initializeXYZTEST test/initializeXYZTEST.cpp)
 #add_executable(initializeXYZTEST test/initializeXYZTEST.cpp util/initializeXYZ.cpp)
@@ -66,6 +67,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(generateSetsOfABC1 util/generateSetsOfABC1.cpp)
 #add_executable(isEqualf util/isEqualf.cpp)
 #add_executable(isEqualfTEST test/isEqualfTEST.cpp)
+#add_executable(rotError util/rotError.cpp)
 #add_executable(metric util/metric.cpp)
 #add_executable(metricTEST test/metricTEST.cpp)
 #add_executable(tranErrorTEST test/tranErrorTEST.cpp)
@@ -93,12 +95,15 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(batchSolveXY2 solvers/batchSolveXY2.cpp)
 #add_executable(batchSolveXY3 solvers/batchSolveXY3.cpp)
 #add_executable(axbyczProb1 solvers/axbyczProb1.cpp)
-add_executable(axbyczProb2 solvers/axbyczProb2.cpp)
+#add_executable(axbyczProb2 solvers/axbyczProb2.cpp)
 #add_executable(axbyczProb1_v2 solvers/axbyczProb1_v2.cpp)
 #add_executable(axbyczProb1_v3 solvers/axbyczProb1_v3.cpp)
 #add_executable(axbyczProb1_v4 solvers/axbyczProb1_v4.cpp)
+#add_executable(axbyczProb1_v5 solvers/axbyczProb1_v5.cpp)
 #add_executable(axbyczProb3 solvers/axbyczProb3.cpp)
 #add_executable(temp solvers/temp.cpp)
+#add_executable(mainSimulation scripts/mainSimulation.cpp)
+add_executable(mainSimulation2 scripts/mainSimulation2.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -118,6 +123,7 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(meanCovTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvg ${LIBRARIES_TO_LINK})
 #target_link_libraries(mvgTEST ${LIBRARIES_TO_LINK})
+#target_link_libraries(getErrorAXBYCZ ${LIBRARIES_TO_LINK})
 #target_link_libraries(getErrorAXBYCZTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(initializeXYZTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(generateABC ${LIBRARIES_TO_LINK})
@@ -125,6 +131,7 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(generateSetsOfABC ${LIBRARIES_TO_LINK})
 #target_link_libraries(generateSetsOfABC1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(isEqualf ${LIBRARIES_TO_LINK})
+#target_link_libraries(rotError ${LIBRARIES_TO_LINK})
 #target_link_libraries(metric ${LIBRARIES_TO_LINK})
 #target_link_libraries(metricTEST ${LIBRARIES_TO_LINK})
 #target_link_libraries(tranErrorTEST ${LIBRARIES_TO_LINK})
@@ -152,9 +159,12 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(batchSolveXY2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(batchSolveXY3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1 ${LIBRARIES_TO_LINK})
-target_link_libraries(axbyczProb2 ${LIBRARIES_TO_LINK})
+#target_link_libraries(axbyczProb2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v4 ${LIBRARIES_TO_LINK})
+#target_link_libraries(axbyczProb1_v5 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(temp ${LIBRARIES_TO_LINK})
+#target_link_libraries(mainSimulation ${LIBRARIES_TO_LINK})
+target_link_libraries(mainSimulation2 ${LIBRARIES_TO_LINK})

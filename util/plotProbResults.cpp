@@ -2,7 +2,9 @@
 #include <string>
 #include <vector>
 #include "matplotlibcpp.h"
+#include <pybind11/embed.h>
 
+namespace py = pybind11;
 namespace plt = matplotlibcpp;
 
 void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1,
@@ -32,8 +34,10 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1,
                 data2.push_back(error_2_perm[j][i]);
             }
 
-            plt::figure();
-            plt::boxplot(data1, point);
+            // Call Python function plot_boxplot() to plot the boxplot
+            py::scoped_interpreter guard{};
+            py::module boxplot_module = py::module::import("boxplot");
+            boxplot_module.attr("plot_boxplot")(data1, point);
         }
     } else if (opt == "lineplot") {
         // Calculate averages
@@ -67,47 +71,39 @@ void plotProbResults(std::vector<std::vector<std::vector<double>>> error_1,
 
         plt::figure();
         plt::subplot(3, 1, 1);
-        plt::plot(point_vec, Err1_Avg_row0, "o");
-        plt::plot(point_vec, Err2_Avg_row0, "*");
+        plt::named_plot("Error 1", point_vec, Err1_Avg_row0, "o");
+        plt::named_plot("Error 2", point_vec, Err2_Avg_row0, "*");
         plt::ylabel("$\\bf E_{R_{X}}$", {{"fontsize", "14"}, {"interpreter", "latex"}});
         plt::legend();
 
         plt::subplot(3, 1, 2);
-        plt::plot(point_vec, Err1_Avg_row1, "o");
-        plt::plot(point_vec, Err2_Avg_row1, "*");
+        plt::named_plot("Error 1", point_vec, Err1_Avg_row1, "o");
+        plt::named_plot("Error 2", point_vec, Err2_Avg_row1, "*");
         plt::ylabel("$\\bf E_{R_{Y}}$", {{"fontsize", "14"}, {"interpreter", "latex"}});
         plt::legend();
 
         plt::subplot(3, 1, 3);
-        plt::plot(point_vec, Err1_Avg_row2, "o");
-        plt::plot(point_vec, Err1_Avg_row2, "o");
-        plt::plot(point_vec, Err2_Avg_row2, "*");
+        plt::named_plot("Error 1", point_vec, Err1_Avg_row2, "o");
+        plt::named_plot("Error 2", point_vec, Err2_Avg_row2, "*");
         plt::ylabel("$\\bf E_{R_{Z}}$", {{"fontsize", "14"}, {"interpreter", "latex"}});
         plt::legend();
 
         plt::figure();
         plt::subplot(3, 1, 1);
-        plt::plot(point_vec, Err1_Avg_row3, "o");
-        plt::plot(point_vec, Err2_Avg_row3, "*");
+        plt::named_plot("Error 1", point_vec, Err1_Avg_row3, "o");
+        plt::named_plot("Error 2", point_vec, Err2_Avg_row3, "*");
         plt::ylabel("$\\bf E_{t_{Z}}$", {{"fontsize", "14"}, {"interpreter", "latex"}});
         plt::legend();
 
-        // Create plot
         plt::subplot(3, 1, 2);
-        plt::plot(point_vec, Err1_Avg_row4, "o");
-        plt::plot(point_vec, Err2_Avg_row4, "*");
-        plt::plot(point_vec, Err1_Avg_row4, "b");
-        plt::plot(point_vec, Err2_Avg_row4, "r");
+        plt::named_plot("Error 1", point_vec, Err1_Avg_row4, "o");
+        plt::named_plot("Error 2", point_vec, Err2_Avg_row4, "*");
         plt::ylabel("$\\bf E_{t_{Z}}$", {{"fontsize", "14"}, {"interpreter", "latex"}});
         plt::legend();
 
-
-        // Create second plot
         plt::subplot(3, 1, 3);
-        plt::plot(point_vec, Err1_Avg_row5, "o");
-        plt::plot(point_vec, Err2_Avg_row5, "*");
-        plt::plot(point_vec, Err1_Avg_row5, "b");
-        plt::plot(point_vec, Err2_Avg_row5, "r");
+        plt::named_plot("Error 1", point_vec, Err1_Avg_row5, "o");
+        plt::named_plot("Error 2", point_vec, Err2_Avg_row5, "*");
         plt::ylabel("$\\bf E_{t_{Z}}$", {{"fontsize", "14"}, {"interpreter", "latex"}});
         plt::legend();
 
