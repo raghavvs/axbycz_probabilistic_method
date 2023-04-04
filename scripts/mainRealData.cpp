@@ -46,30 +46,28 @@ The script also defines some supporting functions that convert cell arrays to
 #include "scrambleData.h"
 #include "axbyczProb1.h"
 #include "axbyczProb3.h"
+#include "loadMatrices.h"
 #include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
 
-// Convert data to 3d matrices
-void convertCell2Mat(const std::vector<Eigen::MatrixXd> &headTf,
-                     const std::vector<Eigen::MatrixXd> &handTf,
-                     const std::vector<Eigen::MatrixXd> &tagTf,
-                     std::vector<Eigen::MatrixXd> &A,
-                     std::vector<Eigen::MatrixXd> &B,
-                     std::vector<Eigen::MatrixXd> &C) {
-    for (int i = 0; i < headTf.size(); ++i) {
-        A[i] = headTf[i];
-        B[i] = tagTf[i];
-        C[i] = handTf[i];
-    }
-}
-
 int main()
 {
-    // Load data
-    // load('real_data/transform_ABC_unified.mat'); // load the experiment data
-    // load('real_data/transform_ABC_unified_fixA.mat');
-    // load('real_data/transform_ABC_unified_fixC.mat');
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
+
+    std::vector<std::string> A1_files = {"data/000.txt"};
+    std::vector<std::string> B1_files = {/* file paths for B matrices */};
+    std::vector<std::string> C1_files = {"data/000_m.txt"};
+    std::vector<std::string> A2_files = {"data/001.txt"};
+    std::vector<std::string> B2_files = {/* file paths for B matrices */};
+    std::vector<std::string> C2_files = {"data/001_m.txt"};
+
+    loadMatrices(A1_files, A1);
+    loadMatrices(B1_files, B1);
+    loadMatrices(C1_files, C1);
+    loadMatrices(A2_files, A2);
+    loadMatrices(B2_files, B2);
+    loadMatrices(C2_files, C2);
 
     // Generate Data
     // Initial guesses:
@@ -107,16 +105,11 @@ int main()
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     std::vector<double> err1(11), err2(11);
     for (int rk = 0; rk < r.size(); ++rk) {
-        // Convert cells to matrices
         std::vector<Eigen::MatrixXd> A;
         std::vector<Eigen::MatrixXd> B;
         std::vector<Eigen::MatrixXd> C;
         for (int i = 0; i < headTf1.size(); ++i) {
             // Inputs for Iterative Refinement
-            std::vector<Eigen::MatrixXd> A1, B1, C1;
-            convertCell2Mat(headTf1, handTf1, tagTf1, A1, B1, C1);
-            std::vector<Eigen::MatrixXd> A2, B2, C2;
-            convertCell2Mat(headTf2, handTf2, tagTf2, A2, B2, C2);
             if (isRandPerm) {
                 Eigen::MatrixXd Bp1 = scrambleData(B1[i], r[rk]);
                 Eigen::MatrixXd Bp2 = scrambleData(B2[i], r[rk]);
@@ -128,9 +121,6 @@ int main()
         std::vector<Eigen::MatrixXd> AA2(headTf2.size()), BB2(headTf2.size()), CC2(headTf2.size());
         Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
         Eigen::MatrixXd BBp1, BBp2, Bp;
-
-        convertCell2Mat(headTf1, handTf1, tagTf1, AA1, BB1, CC1);
-        convertCell2Mat(headTf2, handTf2, tagTf2, AA2, BB2, CC2);
 
         if (isRandPerm) {
             BBp1 = scrambleData(BB1[0], r[rk]);
@@ -155,7 +145,7 @@ int main()
         // Iterative Refinement
         std::cout << "Iterative Refinement..." << std::endl;
         int num2[rk];
-        std::vector<Eigen::Matrix4d> A1, Bp1, B1, B2, C1, A2, Bp2, C2;
+        std::vector<Eigen::Matrix4d> Bp1, Bp2;
         Eigen::Matrix4d X_cal2, Y_cal2, Z_cal2;
         axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
@@ -189,3 +179,19 @@ int main()
 
     plt::show();
 }
+
+
+/*
+// Convert data to 3d matrices
+void convertCell2Mat(const std::vector<Eigen::MatrixXd> &headTf,
+                     const std::vector<Eigen::MatrixXd> &handTf,
+                     const std::vector<Eigen::MatrixXd> &tagTf,
+                     std::vector<Eigen::MatrixXd> &A,
+                     std::vector<Eigen::MatrixXd> &B,
+                     std::vector<Eigen::MatrixXd> &C) {
+    for (int i = 0; i < headTf.size(); ++i) {
+        A[i] = headTf[i];
+        B[i] = tagTf[i];
+        C[i] = handTf[i];
+    }
+}*/

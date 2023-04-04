@@ -108,7 +108,8 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(mainSimulation2 scripts/mainSimulation2.cpp)
 #add_executable(tf_echo_to_numbers scripts/tf_echo_to_numbers.cpp)
 #add_executable(temp scripts/temp.cpp)
-add_executable(readMatrices scripts/readMatrices.cpp)
+#add_executable(readMatrices scripts/readMatrices.cpp)
+add_executable(loadMatrices scripts/loadMatrices.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -175,4 +176,5 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(mainSimulation2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(tf_echo_to_numbers ${LIBRARIES_TO_LINK})
 #target_link_libraries(temp ${LIBRARIES_TO_LINK})
-target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
+#target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
+target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})

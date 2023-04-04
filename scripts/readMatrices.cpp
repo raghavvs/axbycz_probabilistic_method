@@ -39,17 +39,3 @@ int main() {
 
     return 0;
 }
-
-
-/*
-int main() {
-    std::ifstream file("data.txt");
-    std::vector<Eigen::Matrix4d> MatA;
-    for (int k = 0; k < 10; ++k) {
-        Eigen::Matrix4d mat;
-        for (int i = 0; i < 4; ++i)
-            for (int j = 0; j < 4; ++j)
-                file >> mat(i,j);
-        MatA.push_back(mat);
-    }
-}*/
