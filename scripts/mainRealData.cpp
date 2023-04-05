@@ -56,18 +56,23 @@ int main()
     std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
     std::vector<std::string> A1_files = {"data/000.txt"};
-    std::vector<std::string> B1_files = {/* file paths for B matrices */};
+    //std::vector<std::string> B1_files = {/* file paths for B matrices */};
     std::vector<std::string> C1_files = {"data/000_m.txt"};
     std::vector<std::string> A2_files = {"data/001.txt"};
-    std::vector<std::string> B2_files = {/* file paths for B matrices */};
+    //std::vector<std::string> B2_files = {/* file paths for B matrices */};
     std::vector<std::string> C2_files = {"data/001_m.txt"};
 
     loadMatrices(A1_files, A1);
-    loadMatrices(B1_files, B1);
+    //loadMatrices(B1_files, B1);
     loadMatrices(C1_files, C1);
     loadMatrices(A2_files, A2);
-    loadMatrices(B2_files, B2);
+    //loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
+
+    for (int i = 0; i < B1.size(); ++i){
+        B1[i] = Eigen::Matrix4d::Random();
+        B2[i] = Eigen::Matrix4d::Random();
+    }
 
     // Generate Data
     // Initial guesses:
@@ -76,6 +81,7 @@ int main()
 
     int init_guess = 1;
     Eigen::Matrix4d X_init, Y_init, Z_init;
+    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2;
 
     if (init_guess == 1) {
         X_init = Eigen::Matrix4d::Identity();
@@ -93,13 +99,7 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    std::vector<Eigen::MatrixXd> headTf1;
-    std::vector<Eigen::MatrixXd> handTf1;
-    std::vector<Eigen::MatrixXd> tagTf1;
-    std::vector<Eigen::MatrixXd> headTf2;
-    std::vector<Eigen::MatrixXd> handTf2;
-    std::vector<Eigen::MatrixXd> tagTf2;
-    bool isRandPerm = true;
+    bool isRandPerm = false;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -108,7 +108,7 @@ int main()
         std::vector<Eigen::MatrixXd> A;
         std::vector<Eigen::MatrixXd> B;
         std::vector<Eigen::MatrixXd> C;
-        for (int i = 0; i < headTf1.size(); ++i) {
+        for (int i = 0; i < A1.size(); ++i) {
             // Inputs for Iterative Refinement
             if (isRandPerm) {
                 Eigen::MatrixXd Bp1 = scrambleData(B1[i], r[rk]);
@@ -117,10 +117,9 @@ int main()
         }
 
         // Inputs for Prob 1
-        std::vector<Eigen::MatrixXd> AA1(headTf1.size()), BB1(headTf1.size()), CC1(headTf1.size());
-        std::vector<Eigen::MatrixXd> AA2(headTf2.size()), BB2(headTf2.size()), CC2(headTf2.size());
-        Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
-        Eigen::MatrixXd BBp1, BBp2, Bp;
+        std::vector<Eigen::Matrix4d> AA1(A1.size()), BB1(A1.size()), CC1(A1.size());
+        std::vector<Eigen::Matrix4d> AA2(A2.size()), BB2(A2.size()), CC2(A2.size());
+        Eigen::Matrix4d BBp1, BBp2, Bp;
 
         if (isRandPerm) {
             BBp1 = scrambleData(BB1[0], r[rk]);
@@ -146,7 +145,6 @@ int main()
         std::cout << "Iterative Refinement..." << std::endl;
         int num2[rk];
         std::vector<Eigen::Matrix4d> Bp1, Bp2;
-        Eigen::Matrix4d X_cal2, Y_cal2, Z_cal2;
         axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
                     X_init, Y_init, Z_init,
@@ -162,6 +160,15 @@ int main()
         err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
                    metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
     }
+
+    std::cout << "Probability Method 1" << std::endl;
+    std::cout << "X_cal1: " << X_cal1 << std::endl;
+    std::cout << "Y_cal1: " << Y_cal1 << std::endl;
+    std::cout << "Z_cal1: " << Z_cal1 << std::endl;
+    std::cout << "Probability Method 3 - Iterative Refinement" << std::endl;
+    std::cout << "X_cal2: " << X_cal2 << std::endl;
+    std::cout << "Y_cal2: " << Y_cal2 << std::endl;
+    std::cout << "Z_cal2: " << Z_cal2 << std::endl;
 
     // Plot error vs scramble rate
     plt::figure();
