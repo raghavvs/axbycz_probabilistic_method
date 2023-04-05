@@ -46,6 +46,7 @@ The script also defines some supporting functions that convert cell arrays to
 #include "metric.h"
 #include "scrambleData.h"
 #include "axbyczProb1.h"
+#include "axbyczProb2.h"
 #include "axbyczProb3.h"
 #include "loadMatrices.h"
 #include "matplotlibcpp.h"
@@ -54,14 +55,17 @@ namespace plt = matplotlibcpp;
 
 int main()
 {
-    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2, A3, B3, C3;
 
-    std::vector<std::string> A1_files = {"data/001.txt"};
-    std::vector<std::string> B1_files = {"data/004.txt"};
-    std::vector<std::string> C1_files = {"data/001_m.txt"};
-    std::vector<std::string> A2_files = {"data/002.txt"};
-    std::vector<std::string> B2_files = {"data/004_m.txt"};
-    std::vector<std::string> C2_files = {"data/002_m.txt"};
+    std::vector<std::string> A1_files = {"data/006.txt"};
+    std::vector<std::string> B1_files = {"data/006_board.txt"};
+    std::vector<std::string> C1_files = {"data/006_m.txt"};
+    std::vector<std::string> A2_files = {"data/007.txt"};
+    std::vector<std::string> B2_files = {"data/007_board.txt"};
+    std::vector<std::string> C2_files = {"data/007_m.txt"};
+    std::vector<std::string> A3_files = {"data/008.txt"};
+    std::vector<std::string> B3_files = {"data/008_board.txt"};
+    std::vector<std::string> C3_files = {"data/008_m.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -69,6 +73,9 @@ int main()
     loadMatrices(A2_files, A2);
     loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
+    loadMatrices(A3_files, A3);
+    loadMatrices(B3_files, B3);
+    loadMatrices(C3_files, C3);
 
     // Generate Data
     // Initial guesses:
@@ -77,9 +84,9 @@ int main()
 
     int init_guess = 1;
     Eigen::Matrix4d X_init, Y_init, Z_init;
-    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2;
+    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
-    if (init_guess == 1) {
+    if (init_guess == 3) {
         X_init = Eigen::Matrix4d::Identity();
         Y_init = Eigen::Matrix4d::Identity();
         Z_init = Eigen::Matrix4d::Identity();
@@ -99,7 +106,7 @@ int main()
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-    std::vector<double> err1(11), err2(11);
+    std::vector<double> err1(11), err2(11), err3(11);
     for (int rk = 0; rk < r.size(); ++rk) {
         std::vector<Eigen::MatrixXd> A;
         std::vector<Eigen::MatrixXd> B;
@@ -136,6 +143,14 @@ int main()
                     X_cal1, Y_cal1, Z_cal1);
 
 
+        // Prob 2
+        std::cout << "Probabilistic Method 2..." << std::endl;
+        axbyczProb2(A1[0], B1[0], C1[0],
+                    A2[0], B2[0], C2[0],
+                    A3[0], B3[0], C3[0],
+                    X_cal2, Y_cal2, Z_cal2);
+
+
 
         // Initial guess for iterative refinement as the results from prob 1
         if (init_guess == 3) {
@@ -151,7 +166,7 @@ int main()
         axbyczProb3(A1, B1, C1,
                     A2, B2, C2,
                     X_init, Y_init, Z_init,
-                    X_cal2, Y_cal2, Z_cal2,
+                    X_cal3, Y_cal3, Z_cal3,
                     num2[rk]);
 
         /*axbyczProb3(A1, Bp1, C1,
@@ -164,20 +179,15 @@ int main()
         // Prob 1
         err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
                             metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+        // Prob 2
+        err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
+                   metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2) +
+                   metric(A3, B3, C3, X_cal2, Y_cal2, Z_cal2);
 
         // Iterative refinement
-        err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
-                   metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
+        err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3) +
+                   metric(A2, B2, C2, X_cal3, Y_cal3,Z_cal3);
     }
-
-    std::cout << "Probability Method 1" << std::endl;
-    std::cout << "X_cal1: " << X_cal1 << std::endl;
-    std::cout << "Y_cal1: " << Y_cal1 << std::endl;
-    std::cout << "Z_cal1: " << Z_cal1 << std::endl;
-    std::cout << "Probability Method 3 - Iterative Refinement" << std::endl;
-    std::cout << "X_cal2: " << X_cal2 << std::endl;
-    std::cout << "Y_cal2: " << Y_cal2 << std::endl;
-    std::cout << "Z_cal2: " << Z_cal2 << std::endl;
 
     std::ofstream outFile("results/XYZ.txt", std::ios_base::app);
 
@@ -185,10 +195,14 @@ int main()
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
     outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
     outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
-    outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
+    outFile << "Probability Method 2" << std::endl;
     outFile << "X_cal2: " << std::endl << X_cal2 << std::endl;
     outFile << "Y_cal2: " << std::endl << Y_cal2 << std::endl;
     outFile << "Z_cal2: " << std::endl << Z_cal2 << std::endl;
+    outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
+    outFile << "X_cal3: " << std::endl << X_cal3 << std::endl;
+    outFile << "Y_cal3: " << std::endl << Y_cal3 << std::endl;
+    outFile << "Z_cal3: " << std::endl << Z_cal3 << std::endl;
 
     outFile.close();
 
@@ -197,8 +211,18 @@ int main()
 
     plt::plot(r, err1, "o-r");
     plt::plot(r, err2, "d-g");
+    plt::plot(r, err3, "s-b");
 
-    plt::legend(); // legends need to be fixed
+    // Choose appropriate x and y coordinates for the labels
+    double label_x = r.back() * 1.05;
+    double label_y1 = err1.back();
+    double label_y2 = err2.back();
+    double label_y3 = err3.back();
+
+    plt::text(label_x, label_y1, "Method 1");
+    plt::text(label_x, label_y2, "Method 2");
+    plt::text(label_x, label_y3, "Method 3");
+
     plt::xlabel("Scramble Rate (%)");
     plt::ylabel("Error");
 
@@ -206,23 +230,7 @@ int main()
 
     plt::grid(true);
 
-    plt::save("results/Error_vs_Scramble_Rate_3.png");
+    plt::save("results/Error_vs_Scramble_Rate_10.png");
 
     plt::show();
 }
-
-
-/*
-// Convert data to 3d matrices
-void convertCell2Mat(const std::vector<Eigen::MatrixXd> &headTf,
-                     const std::vector<Eigen::MatrixXd> &handTf,
-                     const std::vector<Eigen::MatrixXd> &tagTf,
-                     std::vector<Eigen::MatrixXd> &A,
-                     std::vector<Eigen::MatrixXd> &B,
-                     std::vector<Eigen::MatrixXd> &C) {
-    for (int i = 0; i < headTf.size(); ++i) {
-        A[i] = headTf[i];
-        B[i] = tagTf[i];
-        C[i] = handTf[i];
-    }
-}*/
