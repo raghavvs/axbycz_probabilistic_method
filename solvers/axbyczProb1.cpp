@@ -47,9 +47,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 
     std::vector<Eigen::Matrix4d> A1_vec(len), B1_vec(len), C1_vec(len),
             A2_vec(len), B2_vec(len), C2_vec(len);
-
-    std::cout << "A1: " << A1 << std::endl;
-
     for (int i = 0; i < len; ++i) {
         A1_vec[i] = A1;
         B1_vec[i] = B1;
@@ -58,8 +55,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
         B2_vec[i] = B2;
         C2_vec[i] = C2;
     }
-
-    std::cout << "A1_vec: " << A1_vec[0] << std::endl;
 
     //// ------ using probability methods ------
     // calculate Z_g : all guesses of Z
@@ -82,8 +77,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_Z = Z.size();
-    std::cout << "s_Z: " << std::endl << s_Z << std::endl;
-    std::cout << "Z: " << Z[0] << std::endl;
 
     //// ------ Solve for X -------- //
     // C2 fixed, A2 and B2 free
@@ -119,8 +112,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_X = X.size();
-    std::cout << "s_X: " << std::endl << s_X << std::endl;
-    std::cout << "X: " << X[0] << std::endl;
 
     //// ------ Solve for Y -------- //
     // Compute Y using the mean equations
@@ -133,8 +124,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     }
 
     int s_Y = Y.size();
-    std::cout << "s_Y: " << std::endl << s_Y << std::endl;
-    std::cout << "Y: " << Y[0] << std::endl;
 
     //// Find out the optimal (X, Y, Z) that minimizes cost
 
@@ -160,10 +149,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                 double current_cost = diff1 + diff2;
                 cost(i, j * s_Y + m) = current_cost;
 
-                /*std::cout << "X[" << i << "]:\n" << X[i] << std::endl;
-                std::cout << "Y[" << m << "]:\n" << Y[m] << std::endl;
-                std::cout << "Z[" << j << "]:\n" << Z[j] << std::endl;*/
-
                 if (current_cost < min_cost) {
                     min_cost = current_cost;
                     min_i = i;
@@ -173,16 +158,6 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
             }
         }
     }
-
-    std::cout << "Minimum cost: " << min_cost << std::endl;
-    std::cout << "Indices (min_i, min_j, min_m): (" << min_i << ", " << min_j << ", " << min_m << ")" << std::endl;
-
-    std::cout << "X_final: " << std::endl << X[1] << std::endl;
-    std::cout << "Y_final: " << std::endl << Y[1] << std::endl;
-    std::cout << "Z_final: " << std::endl << Z[1] << std::endl;
-    std::cout << "X_final: " << std::endl << X[2] << std::endl;
-    std::cout << "Y_final: " << std::endl << Y[2] << std::endl;
-    std::cout << "Z_final: " << std::endl << Z[2] << std::endl;
 
     //// recover the X,Y,Z that minimizes cost
     X_final = X[min_i];

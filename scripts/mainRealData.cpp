@@ -39,6 +39,7 @@ The script also defines some supporting functions that convert cell arrays to
  */
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <Eigen/Dense>
 #include "fKine.h"
@@ -55,24 +56,19 @@ int main()
 {
     std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
-    std::vector<std::string> A1_files = {"data/000.txt"};
-    //std::vector<std::string> B1_files = {/* file paths for B matrices */};
-    std::vector<std::string> C1_files = {"data/000_m.txt"};
-    std::vector<std::string> A2_files = {"data/001.txt"};
-    //std::vector<std::string> B2_files = {/* file paths for B matrices */};
-    std::vector<std::string> C2_files = {"data/001_m.txt"};
+    std::vector<std::string> A1_files = {"data/001.txt"};
+    std::vector<std::string> B1_files = {"data/004.txt"};
+    std::vector<std::string> C1_files = {"data/001_m.txt"};
+    std::vector<std::string> A2_files = {"data/002.txt"};
+    std::vector<std::string> B2_files = {"data/004_m.txt"};
+    std::vector<std::string> C2_files = {"data/002_m.txt"};
 
     loadMatrices(A1_files, A1);
-    //loadMatrices(B1_files, B1);
+    loadMatrices(B1_files, B1);
     loadMatrices(C1_files, C1);
     loadMatrices(A2_files, A2);
-    //loadMatrices(B2_files, B2);
+    loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
-
-    for (int i = 0; i < B1.size(); ++i){
-        B1[i] = Eigen::Matrix4d::Random();
-        B2[i] = Eigen::Matrix4d::Random();
-    }
 
     // Generate Data
     // Initial guesses:
@@ -129,10 +125,17 @@ int main()
 
         // Prob 1
         std::cout << "Probabilistic Method 1..." << std::endl;
-        axbyczProb1(AA1[0], BBp1, CC1[0],
+        /*axbyczProb1(AA1[0], BBp1, CC1[0],
                     AA2[0], BBp2, CC2[0],
                     0, 0, 0,
+                    X_cal1, Y_cal1, Z_cal1);*/
+
+        axbyczProb1(A1[0], B1[0], C1[0],
+                    A2[0], B2[0], C2[0],
+                    0, 0, 0,
                     X_cal1, Y_cal1, Z_cal1);
+
+
 
         // Initial guess for iterative refinement as the results from prob 1
         if (init_guess == 3) {
@@ -145,11 +148,17 @@ int main()
         std::cout << "Iterative Refinement..." << std::endl;
         int num2[rk];
         std::vector<Eigen::Matrix4d> Bp1, Bp2;
-        axbyczProb3(A1, Bp1, C1,
-                    A2, Bp2, C2,
+        axbyczProb3(A1, B1, C1,
+                    A2, B2, C2,
                     X_init, Y_init, Z_init,
                     X_cal2, Y_cal2, Z_cal2,
                     num2[rk]);
+
+        /*axbyczProb3(A1, Bp1, C1,
+                    A2, Bp2, C2,
+                    X_init, Y_init, Z_init,
+                    X_cal2, Y_cal2, Z_cal2,
+                    num2[rk]);*/
 
         // Verification
         // Prob 1
@@ -170,6 +179,19 @@ int main()
     std::cout << "Y_cal2: " << Y_cal2 << std::endl;
     std::cout << "Z_cal2: " << Z_cal2 << std::endl;
 
+    std::ofstream outFile("results/XYZ.txt", std::ios_base::app);
+
+    outFile << "Probability Method 1" << std::endl;
+    outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
+    outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
+    outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
+    outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
+    outFile << "X_cal2: " << std::endl << X_cal2 << std::endl;
+    outFile << "Y_cal2: " << std::endl << Y_cal2 << std::endl;
+    outFile << "Z_cal2: " << std::endl << Z_cal2 << std::endl;
+
+    outFile.close();
+
     // Plot error vs scramble rate
     plt::figure();
 
@@ -183,6 +205,8 @@ int main()
     plt::title("Real Data");
 
     plt::grid(true);
+
+    plt::save("results/Error_vs_Scramble_Rate_3.png");
 
     plt::show();
 }
