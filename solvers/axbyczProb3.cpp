@@ -171,16 +171,11 @@ void MbMat_1(Eigen::MatrixXd &M,
             M31, Eigen::Matrix3d::Zero(3,3) , M33, Eigen::Matrix3d::Zero(3,3) , M35, Eigen::Matrix3d::Zero (3,3),
             M41, M42,                          M43, M44,                        Eigen::Matrix3d::Zero (3,3), M46;
 
-    std::cout << "MbMat_1" << std::endl;
-    std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
-
     // RHS
     Eigen::MatrixXd RHS = -A * X * B + Y * C * Z;
-    std::cout << "RHS has " << RHS.rows() << " rows and " << RHS.cols() << " columns." << std::endl;
 
     b.resize(12, 1);
     b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1), RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
-    std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
 
     // SigBi = Ad^{-1}(Z) * SigCi * Ad^{-T}(Z)
     // First block
@@ -217,17 +212,17 @@ void MbMat_1(Eigen::MatrixXd &M,
 
     M.conservativeResize(M.rows() + 36, M.cols() + 9);
     M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M55,  M56,
-                                                Eigen::Matrix3d::Zero(),  M65,  M66,
-                                                Eigen::Matrix3d::Zero(),  M75,  M76,
-                                                Eigen::Matrix3d::Zero(),  M85,  M86,
-                                                Eigen::Matrix3d::Zero(),  M95,  M96,
-                                                Eigen::Matrix3d::Zero(), M105, M106,
-                                                Eigen::Matrix3d::Zero(), M115, M116,
-                                                Eigen::Matrix3d::Zero(), M125, M126,
-                                                Eigen::Matrix3d::Zero(), M135, M136,
-                                                Eigen::Matrix3d::Zero(), M145, M146,
-                                                Eigen::Matrix3d::Zero(), M155, M156,
-                                                Eigen::Matrix3d::Zero(), M165 ,M166;
+            Eigen::Matrix3d::Zero(),  M65,  M66,
+            Eigen::Matrix3d::Zero(),  M75,  M76,
+            Eigen::Matrix3d::Zero(),  M85,  M86,
+            Eigen::Matrix3d::Zero(),  M95,  M96,
+            Eigen::Matrix3d::Zero(), M105, M106,
+            Eigen::Matrix3d::Zero(), M115, M116,
+            Eigen::Matrix3d::Zero(), M125, M126,
+            Eigen::Matrix3d::Zero(), M135, M136,
+            Eigen::Matrix3d::Zero(), M145, M146,
+            Eigen::Matrix3d::Zero(), M155, M156,
+            Eigen::Matrix3d::Zero(), M165 ,M166;
 
     Eigen::MatrixXd RHS2 = SE3Adinv(Z) * SigC * SE3Adinv(Z).transpose() - SigB;
     RHS2.resize(3, 12);
@@ -279,16 +274,12 @@ void MbMat_2(Eigen::MatrixXd &M,
             M31, Eigen::Matrix3d::Zero(), M33, Eigen::Matrix3d::Zero(), M35, Eigen::Matrix3d::Zero(),
             Eigen::Matrix3d::Zero(), M42, M43, M44, M45, M46;
 
-    std::cout << "MbMat_2" << std::endl;
-    std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
-
     // RHS
     Eigen::MatrixXd RHS = - C * Z * Binv + Yinv * A * X;
-    std::cout << "RHS has " << RHS.rows() << " rows and " << RHS.cols() << " columns." << std::endl;
 
     b.resize(12, 1);
-    b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1), RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
-    std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
+    b << RHS.block<3, 1>(0, 0), RHS.block<3, 1>(0, 1),
+            RHS.block<3, 1>(0, 2), RHS.block<3, 1>(0, 3);
 
     // SigBi^{-1} = Ad^{-1}(X) * SigAi * Ad^{-T}(X)
     // First block
@@ -325,17 +316,17 @@ void MbMat_2(Eigen::MatrixXd &M,
 
     M.conservativeResize(M.rows() + 36, M.cols() + 9);
     M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M51,  M52,
-                                                Eigen::Matrix3d::Zero(),  M61,  M62,
-                                                Eigen::Matrix3d::Zero(),  M71,  M72,
-                                                Eigen::Matrix3d::Zero(),  M81,  M82,
-                                                Eigen::Matrix3d::Zero(),  M91,  M92,
-                                                Eigen::Matrix3d::Zero(), M101, M102,
-                                                Eigen::Matrix3d::Zero(), M111, M112,
-                                                Eigen::Matrix3d::Zero(), M121, M122,
-                                                Eigen::Matrix3d::Zero(), M131, M132,
-                                                Eigen::Matrix3d::Zero(), M141, M142,
-                                                Eigen::Matrix3d::Zero(), M151, M152,
-                                                Eigen::Matrix3d::Zero(), M161 ,M162;
+            Eigen::Matrix3d::Zero(),  M61,  M62,
+            Eigen::Matrix3d::Zero(),  M71,  M72,
+            Eigen::Matrix3d::Zero(),  M81,  M82,
+            Eigen::Matrix3d::Zero(),  M91,  M92,
+            Eigen::Matrix3d::Zero(), M101, M102,
+            Eigen::Matrix3d::Zero(), M111, M112,
+            Eigen::Matrix3d::Zero(), M121, M122,
+            Eigen::Matrix3d::Zero(), M131, M132,
+            Eigen::Matrix3d::Zero(), M141, M142,
+            Eigen::Matrix3d::Zero(), M151, M152,
+            Eigen::Matrix3d::Zero(), M161 ,M162;
 
     Eigen::MatrixXd RHS2 = SE3Adinv(X) * SigA * SE3Adinv(X).transpose() - SigBinv;
     RHS2.resize(3, 12);
@@ -358,8 +349,8 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                  Eigen::Matrix4d &Z_cal,
                  int& num) {
     // Initiation
-    int Ni = A1[0].cols();
-    int Nj = C2[0].cols();
+    int Ni = A1.size();
+    int Nj = C2.size();
     X_cal = Xinit;
     Y_cal = Yinit;
     Z_cal = Zinit;
@@ -371,10 +362,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
 
     int max_num = 500;
     double tol = 1e-5;
-
-    std::cout << "Ni = " << Ni << std::endl;
-    std::cout << "Nj = " << Nj << std::endl;
-    std::cout << "xi = " << xi.rows() << std::endl;
 
     // Calculate mean and covariance of varying data
     std::vector<Eigen::MatrixXd> A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
@@ -388,9 +375,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         B2inv[i] = B2[i].inverse();
     }
-
-    std::cout << "B2.size() = " << B2.size() << std::endl;
-    std::cout << "B2inv.size() = " << B2inv.size() << std::endl;
 
     std::vector<Eigen::MatrixXd> A2_m, B2_m, B2inv_m, C2_m, SigA2, SigB2, SigB2inv, SigC2;
     meanCov(A2, Nj, A2_m, SigA2);
@@ -418,9 +402,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                     SE3inv(Yupdate), A2_m[j], Xupdate,
                     SigB2[j], SigA2[j], B2_m[j]);
         }
-
-        std::cout << "MM has " << MM[0].rows() << " rows and " << MM[0].cols() << " columns." << std::endl;
-        std::cout << "bb has " << bb[0].rows() << " rows and " << bb[0].cols() << " columns." << std::endl;
 
         Eigen::MatrixXd M;
         Eigen::MatrixXd b;
@@ -450,16 +431,9 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
             M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
         }
 
-        std::cout << "M has " << M.rows() << " rows and " << M.cols() << " columns." << std::endl;
-        std::cout << "M.transpose() has " << M.transpose().rows() << " rows and " << M.transpose().cols() << " columns." << std::endl;
-        std::cout << "b has " << b.rows() << " rows and " << b.cols() << " columns." << std::endl;
-        std::cout << "(M.transpose() * M) has " << (M.transpose() * M).rows() << " rows and " << (M.transpose() * M).cols() << " columns." << std::endl;
-        std::cout << "(M.transpose() * b) has " << (M.transpose() * b).rows() << " rows and " << (M.transpose() * b).cols() << " columns." << std::endl;
-
         // Inversion to get xi_X, xi_Y, xi_Z
         //xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
         Eigen::MatrixXd xi_new = (M.transpose() * M).ldlt().solve(M.transpose() * b);
-        std::cout << "xi_new has " << xi_new.rows() << " rows and " << xi_new.cols() << " columns." << std::endl;
 
         double diff1 = 0;
         double diff2 = 0;

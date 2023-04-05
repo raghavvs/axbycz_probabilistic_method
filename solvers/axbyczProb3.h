@@ -66,7 +66,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
     // Initial approximation of Mean
     Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
     for (int i = 0; i < N; i++) {
-        sum_se += X[i].log();
+            sum_se += X[i].log();
         Mean[i] = ((1.0 / N) * sum_se).exp();
     }
 
@@ -352,8 +352,8 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                  Eigen::Matrix4d &Z_cal,
                  int& num) {
     // Initiation
-    int Ni = A1[0].cols();
-    int Nj = C2[0].cols();
+    int Ni = A1.size();
+    int Nj = C2.size();
     X_cal = Xinit;
     Y_cal = Yinit;
     Z_cal = Zinit;

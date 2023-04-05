@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(axbycz_probabilistic_method)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE "Debug")
 
 add_compile_options(-g)
@@ -103,7 +105,12 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(axbyczProb3 solvers/axbyczProb3.cpp)
 #add_executable(temp solvers/temp.cpp)
 #add_executable(mainSimulation scripts/mainSimulation.cpp)
-add_executable(mainSimulation2 scripts/mainSimulation2.cpp)
+#add_executable(mainSimulation2 scripts/mainSimulation2.cpp)
+#add_executable(tf_echo_to_numbers scripts/tf_echo_to_numbers.cpp)
+#add_executable(temp scripts/temp.cpp)
+#add_executable(readMatrices scripts/readMatrices.cpp)
+#add_executable(loadMatrices scripts/loadMatrices.cpp)
+add_executable(mainRealData scripts/mainRealData.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -167,4 +174,9 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(axbyczProb3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(temp ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainSimulation ${LIBRARIES_TO_LINK})
-target_link_libraries(mainSimulation2 ${LIBRARIES_TO_LINK})
+#target_link_libraries(mainSimulation2 ${LIBRARIES_TO_LINK})
+#target_link_libraries(tf_echo_to_numbers ${LIBRARIES_TO_LINK})
+#target_link_libraries(temp ${LIBRARIES_TO_LINK})
+#target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
+#target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})
+target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})

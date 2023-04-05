@@ -28,118 +28,133 @@ The script generates data by setting initial guesses for X, Y, and Z to
 #include "getErrorAXBYCZ.h"
 #include "metric.h"
 #include "axbyczProb1.h"
+#include "axbyczProb3.h"
 #include "matplotlibcpp.h"
 
 namespace plt = matplotlibcpp;
 
 int main() {
-    // Generate Data
-    // Initial guesses:
-    // 1 for identity; 2 for results from Prob 1.
     int init_guess = 2;
     Eigen::Matrix4d X_init, Y_init, Z_init;
-    // Initial guess as Identity
+
     if (init_guess == 1) {
-        X_init = Eigen::Matrix4d::Identity();
-        Y_init = Eigen::Matrix4d::Identity();
-        Z_init = Eigen::Matrix4d::Identity();
+        X_init.setIdentity();
+        Y_init.setIdentity();
+        Z_init.setIdentity();
     }
 
-    // Choice of scramble rate
     bool isRandPerm = true;
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     int num_trials = 20;
 
-    for (int n = 1; n <= num_trials; ++n) {
-        std::cout << "Num of trials: " << n << std::endl;
-        // True values for simulations
+    Eigen::VectorXd err_prob, err_iter;
+    double err1, err2;
+    //Eigen::MatrixXd err1_mat, err2_mat;
+    Eigen::MatrixXd err1_mat = Eigen::MatrixXd::Zero(r.size(), num_trials);
+    Eigen::MatrixXd err2_mat = Eigen::MatrixXd::Zero(r.size(), num_trials);
+
+    for (int n = 0; n < num_trials; ++n) {
         Eigen::Matrix4d X_true, Y_true, Z_true;
-        std::tie(X_true, Y_true, Z_true) = initializeXYZ(1);
+        initializeXYZ(1, X_true, Y_true, Z_true);
 
         for (int rk = 0; rk < r.size(); ++rk) {
             int length = 100;
-            Eigen::VectorXd Mean(6);
-            Mean << 0, 0, 0, 0, 0, 0;
+            Eigen::VectorXd Mean = Eigen::VectorXd::Zero(6);
             Eigen::MatrixXd Cov = 0.1 * Eigen::MatrixXd::Identity(6, 6);
 
-            std::vector<Eigen::MatrixXd> A, B, C, Bp;
-            std::vector<std::vector<Eigen::MatrixXd>> A1(5), B1(5), C1(5), A2(5), B2(5), C2(5);
+            std::vector<Eigen::Matrix4d> A, B, C, Bp;
 
-            // Generate A, B, C using different data distribution and noise level
+            std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
+
             for (int i = 0; i < 5; ++i) {
-                std::tie(A1[i], B1[i], C1[i]) = generateABC(length, 1, 1, Mean, Cov, X_true, Y_true, Z_true);
-                std::tie(A2[i], B2[i], C2[i]) = generateABC(length, 3, 1, Mean, Cov, X_true, Y_true, Z_true);
+                std::tie(A1, B1, C1) = generateABC(length, 1, 1, Mean, Cov,
+                                                   X_true, Y_true, Z_true);
+                std::tie(A2, B2, C2) = generateABC(length, 3, 1, Mean, Cov,
+                                                   X_true, Y_true, Z_true);
 
-                Eigen::MatrixXd AA(A1[i].rows(), A1[i].cols(), A1[i].size() + A2[i].size());
-                AA << A1[i], A2[i];
-                Eigen::MatrixXd BB(B1[i].rows(), B1[i].cols(), B1[i].size() + B2[i].size());
-                BB << B1[i], B2[i];
-                Eigen::MatrixXd CC(C1[i].rows(), C1[i].cols(), C1[i].size() + C2[i].size());
-                CC << C1[i], C2[i];
+                A.insert(A.end(), A1.begin(), A1.end());
+                A.insert(A.end(), A2.begin(), A2.end());
 
-                A.push_back(AA);
-                B.push_back(BB);
-                C.push_back(CC);
+                B.insert(B.end(), B1.begin(), B1.end());
+                B.insert(B.end(), B2.begin(), B2.end());
+
+                C.insert(C.end(), C1.begin(), C1.end());
+                C.insert(C.end(), C2.begin(), C2.end());
 
                 if (isRandPerm) {
-                    Eigen::MatrixXd Bp1 = scrambleData(B1[i], r[rk]);
-                    Eigen::MatrixXd Bp2 = scrambleData(B2[i], r[rk]);
+                    Bp.emplace_back(scrambleData(B1[i], r[rk]));
+                    Bp.emplace_back(scrambleData(B2[i], r[rk]));
                 }
             }
 
             // Inputs for Prob 1
-            Eigen::MatrixXd AA1 = A1[0];
-            Eigen::MatrixXd BB1 = B1[0];
-            Eigen::MatrixXd CC1 = C1[0];
-            Eigen::MatrixXd AA2 = A2[0];
-            Eigen::MatrixXd BB2 = B2[0];
-            Eigen::MatrixXd CC2 = C2[0];
-            Eigen::MatrixXd BBp1, BBp2, Bp;
+            Eigen::Matrix4d AA1 = A1[0];
+            Eigen::Matrix4d BB1 = B1[0];
+            Eigen::Matrix4d CC1 = C1[0];
+            Eigen::Matrix4d AA2 = A2[0];
+            Eigen::Matrix4d BB2 = B2[0];
+            Eigen::Matrix4d CC2 = C2[0];
+            Eigen::MatrixXd BBp1, BBp2;
+
             if (isRandPerm) {
                 BBp1 = scrambleData(BB1, r[rk]);
                 BBp2 = scrambleData(BB2, r[rk]);
-                Bp = scrambleData(B, r[rk]);
+                Bp.emplace_back(scrambleData(BB1, r[rk]));
             }
 
             // Prob 1
-            std::cout << "Probabilistic Method 1..." << std::endl;
             Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
-            std::tie(X_cal1, Y_cal1, Z_cal1) = axbyczProb1(AA1.block(0, 0, AA1.rows(), AA1.cols()), BBp1,
-                                                           CC1.block(0, 0, CC1.rows(), CC1.cols()), AA2, BBp2,
-                                                           CC2.block(0, 0, CC2.rows(), CC2.cols()), 0, 0, 0);
 
-            // Initial guess for iterative refinement as the results from prob 1
+            axbyczProb1(AA1, BBp1, CC1, AA2, BBp2, CC2,
+                        true, 0.001, 0.001,
+                        X_cal1, Y_cal1, Z_cal1);
+
             if (init_guess == 2) {
                 X_init = X_cal1;
                 Y_init = Y_cal1;
                 Z_init = Z_cal1;
             }
 
-            // Iterative Refinement
-            std::cout << "Iterative Refinement..." << std::endl;
+
             Eigen::Matrix4d X_cal2, Y_cal2, Z_cal2;
             int num2;
-            std::tie(X_cal2, Y_cal2, Z_cal2, num2) = axbyczProb3(A1, Bp1, C1, A2, Bp2, C2, X_init, Y_init, Z_init);
+
+            axbyczProb3(A1, B1, C1, A2, B2, C2,
+                        X_init, Y_init, Z_init,
+                        X_cal2, Y_cal2, Z_cal2, num2);
 
             // Verification
             // Prob 1
-            Eigen::Vector3d err_prob = getErrorAXBYCZ(X_cal1, Y_cal1, Z_cal1, X_true, Y_true, Z_true);
-            double err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) + metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+            err_prob = getErrorAXBYCZ(X_cal1, Y_cal1, Z_cal1,
+                                      X_true, Y_true, Z_true);
+            err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1)
+                   + metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+            err1_mat.coeffRef(rk, n) = err1;
 
             // Iterative refinement
-            Eigen::Vector3d err_iter = getErrorAXBYCZ(X_cal2, Y_cal2, Z_cal2, X_true, Y_true, Z_true);
-            double err2 = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) + metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
+            err_iter = getErrorAXBYCZ(X_cal2, Y_cal2, Z_cal2,
+                                      X_true, Y_true, Z_true);
+            err2 = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2)
+                   + metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2);
+            err2_mat.coeffRef(rk, n) = err2;
         }
     }
 
     // Compute the averaged errors
     Eigen::MatrixXd err_prob_avg = err_prob.colwise().sum() / num_trials;
     Eigen::MatrixXd err_iter_avg = err_iter.colwise().sum() / num_trials;
-    Eigen::MatrixXd err_wang_avg = err_wang.colwise().sum() / num_trials;
 
-    Eigen::VectorXd err1_avg = err1.rowwise().sum() / num_trials;
-    Eigen::VectorXd err2_avg = err2.rowwise().sum() / num_trials;
-    Eigen::VectorXd err3_avg = err3.rowwise().sum() / num_trials;
+    Eigen::VectorXd err1_avg = err1_mat.rowwise().sum() / num_trials;
+    Eigen::VectorXd err2_avg = err2_mat.rowwise().sum() / num_trials;
+
+    std::cout << "works till here? - YES" << std::endl;
+
+    std::cout << "err1_avg: " << err1_avg << std::endl;
+    std::cout << "err2_avg: " << err2_avg << std::endl;
+
+    std::cout << "works till here?" << std::endl;
+
+    ///// PLOTS
 
     // Plot error v.s. scramble rate
     // Errors with ground truth
@@ -149,24 +164,36 @@ int main() {
     std::vector<std::string> y_lb = {"$R_{X}$", "$R_{Y}$", "$R_{Z}$",
                                      "${\\bf t_{X}}$", "${\\bf t_{Y}}$", "${\\bf t_{Z}}$"};
 
-    for (int i = 0; i < 6; ++i) {
-        // Subplot 1
-        plt::subplot(2, 3, i + 1);
-        plt::plot(r, err_prob_avg.col(i), "o-r", {{"linewidth", lineW}});
-        plt::plot(r, err_iter_avg.col(i), "d-g", {{"linewidth", lineW}});
-        plt::plot(r, err_wang_avg.col(i), "*-b", {{"linewidth", lineW}});
+    auto x_data = Eigen::Map<const Eigen::VectorXd>(reinterpret_cast<const double *>(r.data()), r.size());
 
-        plt::legend({"Prob1", "Iterative", "Wang"});
-        plt::ylabel(y_lb[i]);
+    for (int i = 0; i < 6; ++i) { //
+
+        plt::subplot(2, 3, i+1);
+
+        // Plot data
+        auto y_data = err_prob_avg.col(i).cast<double>();
+        std::vector<double> x_data_vec(x_data.data(), x_data.data() + x_data.size());
+        std::vector<double> y_data_vec(y_data.data(), y_data.data() + y_data.size());
+        std::cout << "Size of x_data_vec: " << x_data_vec.size() << ", Size of y_data_vec: " << y_data_vec.size() << std::endl;
+        plt::plot(x_data_vec, y_data_vec, "o-r");
+
+        // Set axis labels
         plt::xlabel("Scramble Rate / %");
+        plt::ylabel(y_lb[i]);
+
+        // Set legend
+        plt::legend();
     }
+
     // Errors between two sides of calibration equations
     plt::figure();
-    plt::plot(r, err1_avg, "o-r", {{"linewidth", lineW}});
-    plt::plot(r, err2_avg, "d-g", {{"linewidth", lineW}});
-    plt::plot(r, err3_avg, "*-b", {{"linewidth", lineW}});
+    std::vector<double> r_vec(r.begin(), r.end());
+    std::vector<double> err1_avg_vec(err1_avg.data(), err1_avg.data() + err1_avg.size());
+    std::vector<double> err2_avg_vec(err2_avg.data(), err2_avg.data() + err2_avg.size());
+    plt::plot(r_vec, err1_avg_vec, "o-r");
+    plt::plot(r_vec, err2_avg_vec, "d-g");
 
-    plt::legend({"Prob 1", "Iterative", "Wang"});
+    plt::legend();
     plt::xlabel("Scramble Rate (%)");
     plt::ylabel("Error");
     plt::show();
