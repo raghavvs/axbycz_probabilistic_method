@@ -1054,3 +1054,387 @@ Z_cal3:
 -0.0334936  -0.435596  -0.899519  -0.149427
  -0.883883   0.433013  -0.176777   0.102293
          0          0          0          1
+Probability Method 1
+X_cal1: 
+4.6862e-310           1           0         nan
+          0           0           1         nan
+          1           0           0         nan
+          0           0           0           1
+Y_cal1: 
+nan nan nan nan
+nan nan nan nan
+nan nan nan nan
+nan nan nan nan
+Z_cal1: 
+4.6862e-310   0.0228602 -0.00651868   -0.706748
+          0    0.999399   0.0262166  0.00643867
+ 0.00711408  -0.0260614    0.999635   -0.616166
+         -0          -0          -0           1
+Probability Method 2
+X_cal2: 
+4.6862e-310  -0.0226473  0.00714581    0.711084
+          0    0.999398  -0.0261256 -0.00632753
+-0.00654983   0.0262814    0.999633    0.611185
+          0           0           0           1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+4.6862e-310    -0.32492   -0.192556    0.381543
+          0    0.679255    0.633722   -0.327411
+ -0.0751141    0.658058   -0.749212    0.725874
+          0           0           0           1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Probability Method 1
+X_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Probability Method 2
+X_cal2: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+   0.729434    0.512047   -0.453578   -0.221837
+  -0.156211   -0.520866   -0.839224   -0.112014
+  -0.665976    0.683013    -0.29995 -0.00465155
+          0           0           0           1
+Y_cal3: 
+ -0.839224   0.520866   0.156211 -0.0853968
+ -0.453578  -0.512047  -0.729434  -0.120088
+  -0.29995  -0.683013   0.665976   0.208089
+         0          0          0          1
+Z_cal3: 
+  0.466506   0.789149  -0.399519  -0.200609
+-0.0334936  -0.435596  -0.899519  -0.149427
+ -0.883883   0.433013  -0.176777   0.102293
+         0          0          0          1
+Probability Method 1
+X_cal1: 
+6.91815e-310            0            0            0
+6.91815e-310            0            0            0
+ 4.6367e-310            0            0            0
+ 4.6367e-310            0            0            0
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+6.91815e-310            0            0            0
+6.91815e-310            0            0            0
+ 4.6367e-310            0            0            0
+ 4.6367e-310            0            0            0
+Probability Method 2
+X_cal2: 
+4.6367e-310  -0.0226473  0.00714581    0.711084
+          0    0.999398  -0.0261256 -0.00632753
+-0.00654983   0.0262814    0.999633    0.611185
+          0           0           0           1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+4.6367e-310    -0.32492   -0.192556    0.381543
+          0    0.679255    0.633722   -0.327411
+ -0.0751141    0.658058   -0.749212    0.725874
+          0           0           0           1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Y_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Z_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Probability Method 1
+X_cal1: 
+6.95335e-310            0            0            0
+6.95335e-310            0            0            0
+4.63557e-310            0            0            0
+4.63557e-310            0            0            0
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+6.95335e-310            0            0            0
+6.95335e-310            0            0            0
+4.63557e-310            0            0            0
+4.63557e-310            0            0            0
+Probability Method 2
+X_cal2: 
+  0.594803    0.76989  -0.231256  -0.225062
+-0.0744264    -0.2337  -0.969456   0.464324
+ -0.800419   0.593847 -0.0817056  -0.242576
+        -0         -0          0          1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+           0      0.93607  8.48191e-05     0.351814
+5.14322e-321            0            0            0
+    0.351794   -0.0109067    -0.936014     0.326822
+  0.00375772     0.999941   -0.0102392   0.00354407
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan -nan  nan -nan
+-nan -nan  nan -nan
+-nan -nan  nan -nan
+-nan -nan  nan -nan
+Z_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Probability Method 1
+X_cal1: 
+6.91735e-310            0            0            0
+6.91735e-310            0            0            0
+4.65743e-310            0            0            0
+4.65743e-310            0            0            0
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+6.91735e-310            0            0            0
+6.91735e-310            0            0            0
+4.65743e-310            0            0            0
+4.65743e-310            0            0            0
+Probability Method 2
+X_cal2: 
+4.65743e-310   -0.0226473   0.00714581     0.711084
+           0     0.999398   -0.0261256  -0.00632753
+ -0.00654983    0.0262814     0.999633     0.611185
+           0            0            0            1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+4.65743e-310     -0.32492    -0.192556     0.381543
+           0     0.679255     0.633722    -0.327411
+  -0.0751141     0.658058    -0.749212     0.725874
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Y_cal3: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Probability Method 1
+X_cal1: 
+6.95335e-310            0            0            0
+6.95335e-310            0            0            0
+4.63557e-310            0            0            0
+4.63557e-310            0            0            0
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+6.95335e-310            0            0            0
+6.95335e-310            0            0            0
+4.63557e-310            0            0            0
+4.63557e-310            0            0            0
+Probability Method 2
+X_cal2: 
+  0.594803    0.76989  -0.231256  -0.225062
+-0.0744264    -0.2337  -0.969456   0.464324
+ -0.800419   0.593847 -0.0817056  -0.242576
+        -0         -0          0          1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+           0      0.93607  8.48191e-05     0.351814
+5.14322e-321            0            0            0
+    0.351794   -0.0109067    -0.936014     0.326822
+  0.00375772     0.999941   -0.0102392   0.00354407
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan -nan
+-nan  nan -nan -nan
+-nan  nan -nan -nan
+-nan  nan -nan -nan
+Y_cal3: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Probability Method 1
+X_cal1: 
+6.92933e-310            0            0            0
+6.92933e-310            0            0            0
+4.67068e-310            0            0            0
+4.67068e-310            0            0            0
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+6.92933e-310            0            0            0
+6.92933e-310            0            0            0
+4.67068e-310            0            0            0
+4.67068e-310            0            0            0
+Probability Method 2
+X_cal2: 
+  0.813269   0.578595  0.0618197    1.14006
+ -0.578891    0.81527 -0.0148305  -0.116085
+-0.0589806 -0.0237257   0.997977     0.8028
+         0          0          0          1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+4.67068e-310     0.990629    0.0957151     0.152627
+           0     0.134421    -0.556983     0.512734
+    -0.56463    0.0241797     -0.82499     0.747839
+          -0           -0           -0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Y_cal3: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Probability Method 1
+X_cal1: 
+6.95335e-310            0            0            0
+6.95335e-310            0            0            0
+4.63557e-310            0            0            0
+4.63557e-310            0            0            0
+Y_cal1: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal1: 
+6.95335e-310            0            0            0
+6.95335e-310            0            0            0
+4.63557e-310            0            0            0
+4.63557e-310            0            0            0
+Probability Method 2
+X_cal2: 
+ 0.0765065 -0.0216581   0.996834  -0.727079
+   0.01043   0.999727  0.0209205 -0.0131606
+ -0.997015  0.0087964  0.0767115   0.249515
+        -0         -0         -0          1
+Y_cal2: 
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+Z_cal2: 
+           0     0.996844    0.0210297    0.0765493
+5.14322e-321            0            0            0
+   0.0763398    0.0105924    -0.997026     0.304522
+   -0.021778     0.999723   0.00895353  -0.00480594
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+Y_cal3: 
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+-nan -nan -nan -nan
+Z_cal3: 
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
+ nan -nan  nan -nan
