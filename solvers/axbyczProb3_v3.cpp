@@ -50,7 +50,46 @@ SE3Adinv computes the inverse of the adjoint representation of an element of SE(
 #include <unsupported/Eigen/MatrixFunctions>
 #include <vector>
 #include "metric.h"
-#include "meanCov.h"
+
+void meanCov(const std::vector<Eigen::Matrix4d> &X,
+             int N,
+             std::vector<Eigen::MatrixXd> &Mean,
+             std::vector<Eigen::MatrixXd> &Cov) {
+    for(int i = 0; i < N; i++){
+        Mean.emplace_back(Eigen::Matrix4d::Identity());
+        Cov.emplace_back(Eigen::Matrix<double, 6, 6>::Zero());
+    }
+
+    // Initial approximation of Mean
+    Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
+    for (int i = 0; i < N; i++) {
+        sum_se += X[i].log();
+        Mean[i] = ((1.0 / N) * sum_se).exp();
+    }
+
+    // Iterative process to calculate the true Mean
+    Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
+    int max_num = 100;
+    double tol = 1e-5;
+    int count = 1;
+    while (diff_se.norm() >= tol && count <= max_num) {
+        diff_se = Eigen::Matrix4d::Zero();
+        for (int i = 0; i < N; i++) {
+            diff_se += (Mean[i].inverse() * X[i]).log();
+            Mean[i] *= ((1.0 / N)* diff_se).exp();
+        }
+        count++;
+    }
+
+    // Covariance
+    for (int i = 0; i < N; i++) {
+        diff_se = (Mean[i].inverse() * X[i]).log();
+        Eigen::VectorXd diff_vex(6);
+        diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
+        Cov[i] += diff_vex * diff_vex.transpose();
+        Cov[i] /= N;
+    }
+}
 
 Eigen::Matrix3d skew(Eigen::Vector3d v) {
     Eigen::Matrix3d M;
@@ -325,14 +364,10 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
-    std::vector<Eigen::Matrix4d> A1_m(Ni), B1_m(Ni), C1_m(Ni);
-    std::vector<Eigen::Matrix<double, 6, 6>> SigA1(Ni), SigB1(Ni), SigC1(Ni);
-
-    for (int i = 0; i < Ni; ++i) {
-        meanCov(A1, A1_m[i], SigA1[i]);
-        meanCov(B1, B1_m[i], SigB1[i]);
-        meanCov(C1, C1_m[i], SigC1[i]);
-    }
+    std::vector<Eigen::MatrixXd> A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
+    meanCov(A1, Ni, A1_m, SigA1);
+    meanCov(B1, Ni, B1_m, SigB1);
+    meanCov(C1, Ni, C1_m, SigC1);
 
     // invert B2
     std::vector<Eigen::Matrix4d> B2inv(B2.size());
@@ -341,15 +376,11 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         B2inv[i] = B2[i].inverse();
     }
 
-    std::vector<Eigen::Matrix4d> A2_m(Nj), B2_m(Nj), B2inv_m(Nj), C2_m(Nj);
-    std::vector<Eigen::Matrix<double, 6, 6>> SigA2(Nj), SigB2(Nj), SigB2inv(Nj), SigC2(Nj);
-
-    for (int j = 0; j < Nj; ++j) {
-        meanCov(A2, A2_m[j], SigA2[j]);
-        meanCov(B2, B2_m[j], SigB2[j]);
-        meanCov(B2inv, B2inv_m[j], SigB2inv[j]);
-        meanCov(C2, C2_m[j], SigC2[j]);
-    }
+    std::vector<Eigen::MatrixXd> A2_m, B2_m, B2inv_m, C2_m, SigA2, SigB2, SigB2inv, SigC2;
+    meanCov(A2, Nj, A2_m, SigA2);
+    meanCov(B2, Nj, B2_m, SigB2);
+    meanCov(B2inv, Nj, B2inv_m, SigB2inv);
+    meanCov(C2, Nj, C2_m, SigC2);
 
     // Calculate M and b matrices when fixing A and C separately
     double diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
@@ -448,6 +479,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         // Error
         diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
                metric(A2,B2,C2,Xupdate,Yupdate,Zupdate);
+
     }
 }
 
@@ -481,7 +513,7 @@ int main()
     Eigen::Matrix4d Y_cal;
     Eigen::Matrix4d Z_cal;
 
-    int num = 5;
+    int num = 498;
 
     axbyczProb3(A1, B1, C1, A2, B2, C2, Xinit, Yinit, Zinit, X_cal, Y_cal, Z_cal, num);
 
@@ -496,7 +528,8 @@ int main()
 
 /*
  * Output:
- * Build successful? - YES
+ * For num = 1
+ *Build successful? - YES
 X_cal:
 -0.533143  0.494036  0.686795  -18.2323
  0.445966  0.853957 -0.268089  0.622805
@@ -513,20 +546,21 @@ Z_cal:
   -0.118275  0.00685857    0.992957    -43.2199
           0           0           0           1
 
-Build successful? - YES
+          For num = 498
+          Build successful? - YES
 X_cal:
--0.205649   0.86458  0.458486  -8.17887
--0.948059 -0.292187  0.125744  -40.0269
- 0.242679 -0.408813  0.879761   96.1951
-        0         0         0         1
+   0.99633 -0.0817667  0.0253113 -0.0299885
+ 0.0812699    0.99649  0.0200713 -0.0443827
+-0.0268636 -0.0179406   0.999478   0.123884
+         0          0          0          1
 Y_cal:
-  0.607344  -0.750147  -0.261558   -46.5999
-  -0.19978    0.17444  -0.964188    4.80309
-  0.768909   0.637848 -0.0439189    34.7721
+  0.998988 -0.0197064 -0.0404223   -0.49697
+ 0.0205008   0.999603  0.0193309  -0.159766
+ 0.0400253   -0.02014   0.998996    0.14369
          0          0          0          1
 Z_cal:
--0.777332  -0.59986  0.189536  -215.174
--0.624572  0.699841 -0.346601    61.419
-0.0752673 -0.387803 -0.918664  -11.5001
-        0         0         0         1
+    0.999988  0.000772751   0.00478018    0.0491359
+-0.000784425     0.999997   0.00244064    0.0580345
+ -0.00477828  -0.00244436     0.999986     0.189999
+           0            0            0            1
  */

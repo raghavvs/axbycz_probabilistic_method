@@ -46,7 +46,6 @@ The script also defines some supporting functions that convert cell arrays to
 #include "metric.h"
 #include "scrambleData.h"
 #include "axbyczProb1.h"
-//#include "axbyczProb2.h"
 #include "axbyczProb3.h"
 #include "loadMatrices.h"
 #include "matplotlibcpp.h"
@@ -84,7 +83,7 @@ int main()
 
     int init_guess = 3;
     Eigen::Matrix4d X_init, Y_init, Z_init;
-    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
+    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal3, Y_cal3, Z_cal3;
 
     if (init_guess == 1) {
         X_init = Eigen::Matrix4d::Identity();
@@ -102,22 +101,13 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    double err1, err2, err3;
+    double err1, err3;
 
+    std::cout << "Probability Method 1..." << std::endl;
     axbyczProb1(A1, B1, C1,
                 A2, B2, C2,
                 0, 0, 0,
                 X_cal1, Y_cal1, Z_cal1);
-
-
-    // Prob 2
-    /*std::cout << "Probabilistic Method 2..." << std::endl;
-    axbyczProb2(A1[0], B1[0], C1[0],
-                A2[0], B2[0], C2[0],
-                A3[0], B3[0], C3[0],
-                X_cal2, Y_cal2, Z_cal2);*/
-
-
 
     // Initial guess for iterative refinement as the results from prob 1
     if (init_guess == 3) {
@@ -128,8 +118,7 @@ int main()
 
     // Iterative Refinement
     std::cout << "Iterative Refinement..." << std::endl;
-    int num = 2;
-    std::vector<Eigen::Matrix4d> Bp1, Bp2;
+    int num = 1;
     axbyczProb3(A1, B1, C1,
                 A2, B2, C2,
                 X_init, Y_init, Z_init,
@@ -140,10 +129,6 @@ int main()
     // Prob 1
     err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
                         metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
-   /* // Prob 2
-    err2 = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
-               metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2) +
-               metric(A3, B3, C3, X_cal2, Y_cal2, Z_cal2);*/
 
     // Iterative refinement
     err3 = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3) +
@@ -156,10 +141,6 @@ int main()
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
     outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
     outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
-    outFile << "Probability Method 2" << std::endl;
-    outFile << "X_cal2: " << std::endl << X_cal2 << std::endl;
-    outFile << "Y_cal2: " << std::endl << Y_cal2 << std::endl;
-    outFile << "Z_cal2: " << std::endl << Z_cal2 << std::endl;
     outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
     outFile << "X_cal3: " << std::endl << X_cal3 << std::endl;
     outFile << "Y_cal3: " << std::endl << Y_cal3 << std::endl;
@@ -168,6 +149,5 @@ int main()
     outFile.close();
 
     std::cout << "Error 1: " << err1 << std::endl;
-    std::cout << "Error 2: " << err2 << std::endl;
     std::cout << "Error 3: " << err3 << std::endl;
 }
