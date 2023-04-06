@@ -38,109 +38,85 @@ Output:
 #include "meanCov.h"
 #include "so3Vec.h"
 
-void batchSolveXY(const Eigen::Matrix4d& A,
-                  const Eigen::Matrix4d& B,
-                  int len,
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <vector>
+
+void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
+                  const std::vector<Eigen::Matrix4d> &B,
                   bool opt,
                   double nstd_A,
                   double nstd_B,
-                  std::vector<Eigen::MatrixXd> &X,
-                  std::vector<Eigen::MatrixXd> &Y,
-                  Eigen::MatrixXd& MeanA,
-                  Eigen::MatrixXd& MeanB,
-                  Eigen::MatrixXd& SigA,
-                  Eigen::MatrixXd& SigB) {
+                  std::vector<Eigen::Matrix4d> &X,
+                  std::vector<Eigen::Matrix4d> &Y,
+                  Eigen::Matrix4d &MeanA,
+                  Eigen::Matrix4d &MeanB,
+                  Eigen::Matrix<double, 6, 6> &SigA,
+                  Eigen::Matrix<double, 6, 6> &SigB) {
 
-    std::vector<Eigen::Matrix4d> X_candidate(8), Y_candidate(8);
+    X.resize(8);
+    Y.resize(8);
 
-    /*std::vector<Eigen::Matrix4d> A_arr(len, A);
-    //std::cout << "A_arr: " << A_arr[0] << std::endl;
-    std::vector<Eigen::Matrix4d> B_arr(len, B);
-    std::fill(A_arr.begin(), A_arr.end(), A);
-    std::fill(B_arr.begin(), B_arr.end(), B);
+    // Compute Mean and Covariance for A and B
+    meanCov(A, MeanA, SigA);
+    meanCov(B, MeanB, SigB);
 
-    std::cout << "A: " << A << std::endl;
-    std::cout << "A_arr: " << A_arr[0] << std::endl;
-    std::cout << "A_arr: " << A_arr.data() << std::endl;*/
-
-    // Calculate mean and covariance for A and B
-    meanCov(A, len, MeanA, SigA);
-    meanCov(B, len, MeanB, SigB);
-
-    // update SigA and SigB if nstd_A and nstd_B are known
+    // Update SigA and SigB if nstd_A and nstd_B are known
     if (opt) {
         SigA -= nstd_A * Eigen::MatrixXd::Identity(6, 6);
         SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
-    // Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
+    // Compute eigenvectors of SigA and SigB
+    Eigen::Matrix3d VA = SigA.block<3, 3>(0, 0).eigenvalues().real().asDiagonal();
+    Eigen::Matrix3d VB = SigB.block<3, 3>(0, 0).eigenvalues().real().asDiagonal();
 
-    auto const& VA = eig_solver_A.eigenvectors();
-    auto const& VB = eig_solver_B.eigenvectors();
+    // Define the Q matrices
+    Eigen::Matrix3d Q1 = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d Q2; Q2 << -1, 0, 0, 0, -1, 0, 0, 0, 1;
+    Eigen::Matrix3d Q3; Q3 << -1, 0, 0, 0, 1, 0, 0, 0, -1;
+    Eigen::Matrix3d Q4; Q4 << 1, 0, 0, 0, -1, 0, 0, 0, -1;
 
-    // Define Q matrices
-    Eigen::MatrixXd Q1, Q2, Q3, Q4;
-    Q1 = Eigen::MatrixXd::Identity(3, 3);
-    Q2 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
-    Q3 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
-    Q4 = (Eigen::MatrixXd(3, 3) << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
+    std::vector<Eigen::Matrix3d> Rx_solved(8);
 
-    Eigen::Matrix3d Rx_solved[8];
-
-    // There are eight possibilities for Rx
-    Rx_solved[0] = VA * Q1 * VB.transpose();
-    Rx_solved[1] = VA * Q2 * VB.transpose();
-    Rx_solved[2] = VA * Q3 * VB.transpose();
-    Rx_solved[3] = VA * Q4 * VB.transpose();
-    Rx_solved[4] = VA * (-Q1) * VB.transpose();
-    Rx_solved[5] = VA * (-Q2) * VB.transpose();
-    Rx_solved[6] = VA * (-Q3) * VB.transpose();
-    Rx_solved[7] = VA * (-Q4) * VB.transpose();
-
-    X.resize(8);
-    Y.resize(8);
-
+    // Compute 8 possible Rx matrices
     for (int i = 0; i < 8; i++) {
-        // block SigA and SigB to 3x3 sub-matrices
-        Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
-        Eigen::Matrix3d sigB_33 = SigB.block<3, 3>(0, 3);
+        Rx_solved[i] = VA * (i < 4 ? Q1 : -Q1) * VB.transpose();
+        Q1 = (i % 4 == 0) ? Q2 : ((i % 4 == 1) ? Q3 : ((i % 4 == 2) ? Q4 : Q1));
+    }
 
-        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * sigA_33 * Rx_solved[i]).inverse() *
-                               (sigB_33 - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
-
+    // Compute X and Y candidates
+    for (int i = 0; i < 8; i++) {
+        Eigen::Matrix3d temp = ((Rx_solved[i].transpose() * SigA.block<3, 3>(0, 0) *
+                                Rx_solved[i]).inverse() * (SigB.block<3, 3>(0, 3) -
+                                Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) *
+                                Rx_solved[i])).transpose();
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
-
-        // Construct X and Y candidates
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector3d::Zero().transpose(), 1;
-        Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
-
-        // Set the output X and Y
-        X[i] = X_candidate[i];
-        Y[i] = Y_candidate[i];
+        Eigen::Vector3d tx = -Rx_solved[i] * tx_temp;
+        X[i] << Rx_solved[i], tx, 0, 0, 0, 1;
+        Y[i] = MeanA * X[i] * MeanB.inverse();
     }
-
-    // Set the output MeanA, MeanB, SigA, and SigB
-    for (int i = 0; i < 8; i++) {
-        MeanA = MeanA * X[i] * MeanB.inverse();
-    }
-    MeanB = Eigen::Matrix4d::Identity();
-    SigA = SigA.block<3, 3>(0, 0);
-    SigB = SigB.block<3, 3>(0, 3);
 }
 
+
 int main() {
-    Eigen::Matrix4d A = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d B = Eigen::Matrix4d::Random();
     int len = 10;
     bool opt = true;
     double nstd_A = 0.1;
     double nstd_B = 0.2;
-    std::vector<Eigen::MatrixXd> X(len), Y(len);
-    Eigen::MatrixXd MeanA(4, 4), MeanB(4, 4), SigA(6, 6), SigB(6, 6);
+    srand(12345);
 
-    batchSolveXY(A, B, len, opt, nstd_A, nstd_B,
+    std::vector<Eigen::Matrix4d> A(len), B(len);
+    for(int i = 0; i < len; i++){
+        A[i] = Eigen::Matrix4d::Random();
+        B[i] = Eigen::Matrix4d::Random();
+    }
+
+    std::vector<Eigen::Matrix4d> X(len), Y(len);
+    Eigen::Matrix4d MeanA, MeanB;
+    Eigen::Matrix<double, 6, 6> SigA, SigB;
+
+    batchSolveXY(A, B, opt, nstd_A, nstd_B,
                  X,Y,
                  MeanA,
                  MeanB,

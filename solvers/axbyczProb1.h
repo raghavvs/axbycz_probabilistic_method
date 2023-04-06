@@ -16,6 +16,14 @@ Input:
     nstd1, nst2: standard deviation
 Output:
     X_final, Y_final, Z_final: Matrices - dim 4x4
+
+In the case of two robotic arms:
+     A - robot 1's base to end effector transformation (forward kinematics)
+     B - camera to calibration target transformation
+     C - robot 2's base to end effector transformation (forward kinematics)
+     X - end effector of robot 1 to camera transformation
+     Y - robot 1's base to robot 2's base transformation
+     Z - end effector of robot 2 to calibration target transformation
 */
 
 
