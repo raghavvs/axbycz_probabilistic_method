@@ -54,17 +54,14 @@ namespace plt = matplotlibcpp;
 
 int main()
 {
-    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2, A3, B3, C3;
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
-    std::vector<std::string> A1_files = {"data/009.txt"};
-    std::vector<std::string> B1_files = {"data/009_board.txt"};
-    std::vector<std::string> C1_files = {"data/009_m.txt"};
-    std::vector<std::string> A2_files = {"data/010.txt"};
-    std::vector<std::string> B2_files = {"data/010_board.txt"};
-    std::vector<std::string> C2_files = {"data/010_m.txt"};
-    std::vector<std::string> A3_files = {"data/011.txt"};
-    std::vector<std::string> B3_files = {"data/011_board.txt"};
-    std::vector<std::string> C3_files = {"data/011_m.txt"};
+    std::vector<std::string> A1_files = {"data/C_fixed/r1_tf.txt"};
+    std::vector<std::string> B1_files = {"data/C_fixed/c2b_tf.txt"};
+    std::vector<std::string> C1_files = {"data/C_fixed/r2_tf.txt"};
+    std::vector<std::string> A2_files = {"data/A_fixed/r1_tf.txt"};
+    std::vector<std::string> B2_files = {"data/A_fixed/c2b_tf.txt"};
+    std::vector<std::string> C2_files = {"data/A_fixed/r2_tf.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -72,16 +69,13 @@ int main()
     loadMatrices(A2_files, A2);
     loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
-    loadMatrices(A3_files, A3);
-    loadMatrices(B3_files, B3);
-    loadMatrices(C3_files, C3);
 
     // Generate Data
     // Initial guesses:
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 3;
+    int init_guess = 1;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal3, Y_cal3, Z_cal3;
 
@@ -103,11 +97,11 @@ int main()
 
     double err1, err3;
 
-    std::cout << "Probability Method 1..." << std::endl;
+    /*std::cout << "Probability Method 1..." << std::endl;
     axbyczProb1(A1, B1, C1,
                 A2, B2, C2,
                 0, 0, 0,
-                X_cal1, Y_cal1, Z_cal1);
+                X_cal1, Y_cal1, Z_cal1);*/
 
     // Initial guess for iterative refinement as the results from prob 1
     if (init_guess == 3) {
@@ -118,7 +112,7 @@ int main()
 
     // Iterative Refinement
     std::cout << "Iterative Refinement..." << std::endl;
-    int num = 1;
+    int num = 498;
     axbyczProb3(A1, B1, C1,
                 A2, B2, C2,
                 X_init, Y_init, Z_init,
@@ -127,8 +121,8 @@ int main()
 
     // Verification
     // Prob 1
-    err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
-                        metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+    /*err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
+                        metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);*/
 
     // Iterative refinement
     err3 = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3) +
@@ -137,10 +131,10 @@ int main()
 
     std::ofstream outFile("results/XYZ.txt", std::ios_base::app);
 
-    outFile << "Probability Method 1" << std::endl;
+    /*outFile << "Probability Method 1" << std::endl;
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
     outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
-    outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
+    outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;*/
     outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
     outFile << "X_cal3: " << std::endl << X_cal3 << std::endl;
     outFile << "Y_cal3: " << std::endl << Y_cal3 << std::endl;
@@ -148,6 +142,6 @@ int main()
 
     outFile.close();
 
-    std::cout << "Error 1: " << err1 << std::endl;
+    //std::cout << "Error 1: " << err1 << std::endl;
     std::cout << "Error 3: " << err3 << std::endl;
 }

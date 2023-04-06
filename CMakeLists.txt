@@ -113,7 +113,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(readMatrices scripts/readMatrices.cpp)
 #add_executable(loadMatrices scripts/loadMatrices.cpp)
 #add_executable(mainRealData scripts/mainRealData.cpp)
-#add_executable(mainRealData1 scripts/mainRealData1.cpp)
+add_executable(mainRealData1 scripts/mainRealData1.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -185,4 +185,4 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})
-#target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
+target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
