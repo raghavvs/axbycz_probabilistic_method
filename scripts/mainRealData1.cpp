@@ -46,7 +46,7 @@ The script also defines some supporting functions that convert cell arrays to
 #include "metric.h"
 #include "scrambleData.h"
 #include "axbyczProb1.h"
-#include "axbyczProb2.h"
+//#include "axbyczProb2.h"
 #include "axbyczProb3.h"
 #include "loadMatrices.h"
 #include "matplotlibcpp.h"
@@ -104,18 +104,18 @@ int main()
 
     double err1, err2, err3;
 
-    axbyczProb1(A1[0], B1[0], C1[0],
-                A2[0], B2[0], C2[0],
+    axbyczProb1(A1, B1, C1,
+                A2, B2, C2,
                 0, 0, 0,
                 X_cal1, Y_cal1, Z_cal1);
 
 
     // Prob 2
-    std::cout << "Probabilistic Method 2..." << std::endl;
+    /*std::cout << "Probabilistic Method 2..." << std::endl;
     axbyczProb2(A1[0], B1[0], C1[0],
                 A2[0], B2[0], C2[0],
                 A3[0], B3[0], C3[0],
-                X_cal2, Y_cal2, Z_cal2);
+                X_cal2, Y_cal2, Z_cal2);*/
 
 
 
@@ -140,10 +140,10 @@ int main()
     // Prob 1
     err1 = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
                         metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
-    // Prob 2
+   /* // Prob 2
     err2 = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
                metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2) +
-               metric(A3, B3, C3, X_cal2, Y_cal2, Z_cal2);
+               metric(A3, B3, C3, X_cal2, Y_cal2, Z_cal2);*/
 
     // Iterative refinement
     err3 = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3) +

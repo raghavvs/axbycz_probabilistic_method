@@ -69,6 +69,11 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d> &A1,
     batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_temp,
                  MeanC1, MeanB1, SigC, SigB);
 
+    std::cout << "Z_g[0]: " << Z_g[0] << std::endl;
+    std::cout << "Z_g[9]: " << Z_g[9] << std::endl;
+    std::cout << "Y_temp[0]: " << Y_temp[0] << std::endl;
+    std::cout << "Y_temp[9]: " << Y_temp[9] << std::endl;
+
     // Keep the candidates of Z that are SE3
     // Normally there will be four Z \in SE3
     int Z_index = 0;
@@ -99,10 +104,20 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d> &A1,
     batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_temp,
                  MeanA2, MeanB, SigC, SigB);
 
+    std::cout << "X_g[0]: " << X_g[0] << std::endl;
+    std::cout << "X_g[9]: " << X_g[9] << std::endl;
+    std::cout << "Y_temp[0]: " << Y_temp[0] << std::endl;
+    std::cout << "Y_temp[9]: " << Y_temp[9] << std::endl;
+
     // Calculate MeanB for computing Y later
     // Note: can be further simplified by using only the distribution function
     batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_g, Y_temp,
                  MeanA, MeanB2, SigC, SigB);
+
+    std::cout << "X_g[0]: " << X_g[0] << std::endl;
+    std::cout << "X_g[9]: " << X_g[9] << std::endl;
+    std::cout << "Y_temp[0]: " << Y_temp[0] << std::endl;
+    std::cout << "Y_temp[9]: " << Y_temp[9] << std::endl;
 
     // Keep the candidates of X that are SE3å
     // Normally there will be four X \in SE3
