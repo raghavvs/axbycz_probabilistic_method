@@ -136,7 +136,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
                 double diff2 = rotError(left2, right2) + weight *
                                                          tranError(left2, right2);
 
-                double current_cost = diff1 + diff2;
+                double current_cost = std::abs(diff1) + std::abs(diff2);
                 cost(i, j * s_Y + m) = current_cost;
                 if (current_cost < min_cost) {
                     min_cost = current_cost;
