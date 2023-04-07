@@ -102,43 +102,34 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = false;
+    bool isRandPerm = true;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     std::vector<double> err1(11), err2(11), err3(11);
     for (int rk = 0; rk < r.size(); ++rk) {
-        std::vector<Eigen::MatrixXd> A;
-        std::vector<Eigen::MatrixXd> B;
-        std::vector<Eigen::MatrixXd> C;
+        std::vector<Eigen::Matrix4d> Bp1, Bp2, BBp1, BBp2;
+
+        // Inputs for Prob 1
+        Bp1.resize(A1.size());
+        Bp2.resize(A2.size());
+        BBp1.resize(A1.size());
+        BBp2.resize(A2.size());
+
         for (int i = 0; i < A1.size(); ++i) {
             // Inputs for Iterative Refinement
             if (isRandPerm) {
-                Eigen::MatrixXd Bp1 = scrambleData(B1[i], r[rk]);
-                Eigen::MatrixXd Bp2 = scrambleData(B2[i], r[rk]);
+                Bp1[i] = scrambleData(B1[i], r[rk]);
+                Bp2[i] = scrambleData(B2[i], r[rk]);
+                BBp1[i] = scrambleData(B1[i], r[rk]);
+                BBp2[i] = scrambleData(B2[i], r[rk]);
             }
-        }
-
-        // Inputs for Prob 1
-        std::vector<Eigen::Matrix4d> AA1(A1.size()), BB1(A1.size()), CC1(A1.size());
-        std::vector<Eigen::Matrix4d> AA2(A2.size()), BB2(A2.size()), CC2(A2.size());
-        Eigen::Matrix4d BBp1, BBp2, Bp;
-
-        if (isRandPerm) {
-            BBp1 = scrambleData(BB1[0], r[rk]);
-            BBp2 = scrambleData(BB2[0], r[rk]);
-            Bp = scrambleData(B[0], r[rk]);
         }
 
         // Prob 1
         std::cout << "Probabilistic Method 1..." << std::endl;
-        /*axbyczProb1(AA1[0], BBp1, CC1[0],
-                    AA2[0], BBp2, CC2[0],
-                    0, 0, 0,
-                    X_cal1, Y_cal1, Z_cal1);*/
-
-        axbyczProb1(A1, B1, C1,
-                    A2, B2, C2,
+        axbyczProb1(A1, BBp1, C1,
+                    A2, BBp2, C2,
                     1, 0.0001, 0.0001,
                     X_cal1, Y_cal1, Z_cal1);
 
@@ -152,17 +143,12 @@ int main()
         // Iterative Refinement
         std::cout << "Iterative Refinement..." << std::endl;
         int num = 1;
-        axbyczProb3(A1, B1, C1,
-                    A2, B2, C2,
-                    X_init, Y_init, Z_init,
-                    X_cal3, Y_cal3, Z_cal3,
-                    num);
 
-        /*axbyczProb3(A1, Bp1, C1,
+        axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
                     X_init, Y_init, Z_init,
-                    X_cal2, Y_cal2, Z_cal2,
-                    num2[rk]);*/
+                    X_cal3, Y_cal3, Z_cal3  ,
+                    num);
 
         // Verification
         // Prob 1
@@ -192,17 +178,14 @@ int main()
     plt::figure();
 
     plt::plot(r, err1, "o-r");
-    plt::plot(r, err2, "d-g");
     plt::plot(r, err3, "s-b");
 
     // Choose appropriate x and y coordinates for the labels
     double label_x = r.back() * 1.05;
     double label_y1 = err1.back();
-    double label_y2 = err2.back();
     double label_y3 = err3.back();
 
     plt::text(label_x, label_y1, "Method 1");
-    plt::text(label_x, label_y2, "Method 2");
     plt::text(label_x, label_y3, "Method 3");
 
     plt::xlabel("Scramble Rate (%)");
@@ -212,7 +195,7 @@ int main()
 
     plt::grid(true);
 
-    plt::save("results/Error_vs_Scramble_Rate_10.png");
+    plt::save("results/Error_vs_Scramble_Rate_11.png");
 
     plt::show();
 }

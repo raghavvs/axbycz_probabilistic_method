@@ -135,7 +135,7 @@ int main()
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
     outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
     outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
-    
+
     outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
     outFile << "X_cal3: " << std::endl << X_cal3 << std::endl;
     outFile << "Y_cal3: " << std::endl << Y_cal3 << std::endl;
