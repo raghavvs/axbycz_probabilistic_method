@@ -71,11 +71,11 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     auto const& VB = eig_solver_B.eigenvectors();
 
     // Define Q matrices
-    Eigen::MatrixXd Q1, Q2, Q3, Q4;
-    Q1 = Eigen::MatrixXd::Identity(3, 3);
-    Q2 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
-    Q3 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
-    Q4 = (Eigen::MatrixXd(3, 3) << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
+    Eigen::Matrix3d Q1, Q2, Q3, Q4;
+    Q1 = Eigen::Matrix3d::Identity();
+    Q2 = (Eigen::Matrix3d() << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
+    Q3 = (Eigen::Matrix3d() << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
+    Q4 = (Eigen::Matrix3d() << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
 
     Eigen::Matrix3d Rx_solved[8];
 
@@ -113,17 +113,20 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     }
 }
 
-int main() {
+int main()
+{
     int len = 10;
-    bool opt = true;
-    double nstd_A = 0.1;
-    double nstd_B = 0.2;
+    bool opt = false;
+    double nstd_A = 0;
+    double nstd_B = 0;
     srand(12345);
 
     std::vector<Eigen::Matrix4d> A(len), B(len);
     for(int i = 0; i < len; i++){
         A[i] = Eigen::Matrix4d::Random();
         B[i] = Eigen::Matrix4d::Random();
+        A[i].row(3) << 0, 0, 0, 1;
+        B[i].row(3) << 0, 0, 0, 1;
     }
 
     std::vector<Eigen::Matrix4d> X(len), Y(len);

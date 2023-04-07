@@ -8,10 +8,10 @@ set(CMAKE_BUILD_TYPE "Debug")
 add_compile_options(-g)
 
 ####----Uncomment when compiling on wall-e-----###
-#set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
+set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
 
 ####----Uncomment when compiling on mac---######
-set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
+#set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
 
 # Find Eigen3 library
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
@@ -40,12 +40,12 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 # Include headers
 
 ####----Uncomment when compiling on wall-e-----###
-#include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
-#include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
+include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
+include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
 
 ####----Uncomment when compiling on mac---######
-include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
-include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
+#include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
+#include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
 
 include_directories(${axbycz_probabilistic_method}/util)
 
@@ -102,7 +102,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(axbyczProb1_v3 solvers/axbyczProb1_v3.cpp)
 #add_executable(axbyczProb1_v4 solvers/axbyczProb1_v4.cpp)
 #add_executable(axbyczProb1_v5 solvers/axbyczProb1_v5.cpp)
-add_executable(axbyczProb1_v6 solvers/axbyczProb1_v6.cpp)
+#add_executable(axbyczProb1_v6 solvers/axbyczProb1_v6.cpp)
 #add_executable(axbyczProb3 solvers/axbyczProb3.cpp)
 #add_executable(axbyczProb3_v3 solvers/axbyczProb3_v3.cpp)
 #add_executable(temp solvers/temp.cpp)
@@ -113,7 +113,7 @@ add_executable(axbyczProb1_v6 solvers/axbyczProb1_v6.cpp)
 #add_executable(readMatrices scripts/readMatrices.cpp)
 #add_executable(loadMatrices scripts/loadMatrices.cpp)
 #add_executable(mainRealData scripts/mainRealData.cpp)
-#add_executable(mainRealData1 scripts/mainRealData1.cpp)
+add_executable(mainRealData1 scripts/mainRealData1.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -174,7 +174,7 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(axbyczProb1_v3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v4 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb1_v5 ${LIBRARIES_TO_LINK})
-target_link_libraries(axbyczProb1_v6 ${LIBRARIES_TO_LINK})
+#target_link_libraries(axbyczProb1_v6 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(axbyczProb3_v3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(temp ${LIBRARIES_TO_LINK})
@@ -185,4 +185,14 @@ target_link_libraries(axbyczProb1_v6 ${LIBRARIES_TO_LINK})
 #target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})
-#target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
+target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
+
+
+#option(TARGET_FILE "Specify the target file to compile" "axbyczProb1_v6")
+# Create executable
+#add_executable(${TARGET_FILE} ${TARGET_FILE}.cpp)
+
+# Link the target with the library list
+#target_link_libraries(${TARGET_FILE} ${LIBRARIES_TO_LINK})
+
+#cmake -DTARGET_FILE=meanCov ..

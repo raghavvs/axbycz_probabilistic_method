@@ -55,10 +55,9 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
              int N,
              std::vector<Eigen::MatrixXd> &Mean,
              std::vector<Eigen::MatrixXd> &Cov) {
-    for(int i = 0; i < N; i++){
-        Mean.emplace_back(Eigen::Matrix4d::Identity());
-        Cov.emplace_back(Eigen::Matrix<double, 6, 6>::Zero());
-    }
+
+    Mean.resize(N, Eigen::Matrix4d::Identity());
+    Cov.resize(N, Eigen::Matrix<double, 6, 6>::Zero());
 
     // Initial approximation of Mean
     Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
@@ -357,10 +356,10 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     Eigen::Matrix4d Xupdate = Xinit;
     Eigen::Matrix4d Yupdate = Yinit;
     Eigen::Matrix4d Zupdate = Zinit;
-    Eigen::VectorXd xi = Eigen::VectorXd(18);
+    Eigen::VectorXd xi = Eigen::VectorXd::Ones(18);
     xi.setOnes();
 
-    int max_num = 500;
+    int max_num = 1;
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
@@ -432,7 +431,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         }
 
         // Inversion to get xi_X, xi_Y, xi_Z
-        //xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
         Eigen::MatrixXd xi_new = (M.transpose() * M).ldlt().solve(M.transpose() * b);
 
         double diff1 = 0;
@@ -513,7 +511,7 @@ int main()
     Eigen::Matrix4d Y_cal;
     Eigen::Matrix4d Z_cal;
 
-    int num = 498;
+    int num = 1;
 
     axbyczProb3(A1, B1, C1, A2, B2, C2, Xinit, Yinit, Zinit, X_cal, Y_cal, Z_cal, num);
 
@@ -562,5 +560,47 @@ Z_cal:
     0.999988  0.000772751   0.00478018    0.0491359
 -0.000784425     0.999997   0.00244064    0.0580345
  -0.00477828  -0.00244436     0.999986     0.189999
+           0            0            0            1
+
+ Mean.resize(N, Eigen::Matrix4d::Identity());
+Cov.resize(N, Eigen::Matrix<double, 6, 6>::Zero());
+           For num = 500
+           Build successful? - YES
+X_cal:
+  0.999361 -0.0350503 0.00698273  0.0579891
+ 0.0349428   0.999277  0.0149561 -0.0319409
+-0.0075019 -0.0147026   0.999864   0.118521
+         0          0          0          1
+Y_cal:
+     0.99998  -0.00624522 -0.000460126    -0.253893
+   0.0062491      0.99994   0.00896872    -0.131015
+ 0.000404087  -0.00897142      0.99996    0.0718774
+           0            0            0            1
+Z_cal:
+           1 -0.000197294 -0.000347755    0.0821398
+ 0.000197334            1  0.000112611     0.107551
+ 0.000347733  -0.00011268            1     0.193859
+           0            0            0            1
+
+for(int i = 0; i < N; i++){
+Mean.emplace_back(Eigen::Matrix4d::Identity());
+Cov.emplace_back(Eigen::Matrix<double, 6, 6>::Zero());
+}
+           For num = 500
+           Build successful? - YES
+X_cal:
+  0.999113 -0.0416269 0.00634179  0.0942451
+ 0.0414983   0.998954  0.0192169 -0.0229494
+-0.0071351 -0.0189367   0.999795    0.13936
+         0          0          0          1
+Y_cal:
+   0.99973  0.0152897 -0.0175191  -0.318889
+-0.0148625   0.999595  0.0242633  -0.129337
+  0.017883 -0.0239964   0.999552  0.0762469
+         0          0          0          1
+Z_cal:
+    0.999995 -0.000214494    0.0032298     0.049411
+ 0.000200426      0.99999   0.00435546     0.104677
+  -0.0032307  -0.00435479     0.999985     0.199183
            0            0            0            1
  */

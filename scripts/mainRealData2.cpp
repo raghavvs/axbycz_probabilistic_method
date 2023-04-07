@@ -55,7 +55,7 @@ namespace plt = matplotlibcpp;
 
 int main()
 {
-    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2, A3, B3, C3;
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
     std::vector<std::string> A1_files = {"data/006.txt"};
     std::vector<std::string> B1_files = {"data/006_board.txt"};
@@ -63,9 +63,6 @@ int main()
     std::vector<std::string> A2_files = {"data/007.txt"};
     std::vector<std::string> B2_files = {"data/007_board.txt"};
     std::vector<std::string> C2_files = {"data/007_m.txt"};
-    std::vector<std::string> A3_files = {"data/008.txt"};
-    std::vector<std::string> B3_files = {"data/008_board.txt"};
-    std::vector<std::string> C3_files = {"data/008_m.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -73,20 +70,17 @@ int main()
     loadMatrices(A2_files, A2);
     loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
-    loadMatrices(A3_files, A3);
-    loadMatrices(B3_files, B3);
-    loadMatrices(C3_files, C3);
 
     // Generate Data
     // Initial guesses:
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 1;
+    int init_guess = 2;
     Eigen::Matrix4d X_init, Y_init, Z_init;
-    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
+    Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal3, Y_cal3, Z_cal3;
 
-    if (init_guess == 3) {
+    if (init_guess == 1) {
         X_init = Eigen::Matrix4d::Identity();
         Y_init = Eigen::Matrix4d::Identity();
         Z_init = Eigen::Matrix4d::Identity();
@@ -137,10 +131,20 @@ int main()
                     0, 0, 0,
                     X_cal1, Y_cal1, Z_cal1);*/
 
-        axbyczProb1(A1, B1, C1,
-                    A2, B2, C2,
-                    1, 0.0001, 0.0001,
+        axbyczProb1(A1[0], B1[0], C1[0],
+                    A2[0], B2[0], C2[0],
+                    0, 0, 0,
                     X_cal1, Y_cal1, Z_cal1);
+
+
+        // Prob 2
+        std::cout << "Probabilistic Method 2..." << std::endl;
+        axbyczProb2(A1[0], B1[0], C1[0],
+                    A2[0], B2[0], C2[0],
+                    A3[0], B3[0], C3[0],
+                    X_cal2, Y_cal2, Z_cal2);
+
+
 
         // Initial guess for iterative refinement as the results from prob 1
         if (init_guess == 3) {
@@ -151,12 +155,13 @@ int main()
 
         // Iterative Refinement
         std::cout << "Iterative Refinement..." << std::endl;
-        int num = 1;
+        int num2[rk];
+        std::vector<Eigen::Matrix4d> Bp1, Bp2;
         axbyczProb3(A1, B1, C1,
                     A2, B2, C2,
                     X_init, Y_init, Z_init,
                     X_cal3, Y_cal3, Z_cal3,
-                    num);
+                    num2[rk]);
 
         /*axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
@@ -168,6 +173,10 @@ int main()
         // Prob 1
         err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
                             metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+        // Prob 2
+        err2[rk] = metric(A1, B1, C1, X_cal2, Y_cal2, Z_cal2) +
+                   metric(A2, B2, C2, X_cal2, Y_cal2, Z_cal2) +
+                   metric(A3, B3, C3, X_cal2, Y_cal2, Z_cal2);
 
         // Iterative refinement
         err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3) +
@@ -180,7 +189,10 @@ int main()
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
     outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
     outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
-
+    outFile << "Probability Method 2" << std::endl;
+    outFile << "X_cal2: " << std::endl << X_cal2 << std::endl;
+    outFile << "Y_cal2: " << std::endl << Y_cal2 << std::endl;
+    outFile << "Z_cal2: " << std::endl << Z_cal2 << std::endl;
     outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
     outFile << "X_cal3: " << std::endl << X_cal3 << std::endl;
     outFile << "Y_cal3: " << std::endl << Y_cal3 << std::endl;

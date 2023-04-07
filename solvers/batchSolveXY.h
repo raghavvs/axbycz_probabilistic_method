@@ -74,11 +74,11 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     auto const& VB = eig_solver_B.eigenvectors();
 
     // Define Q matrices
-    Eigen::MatrixXd Q1, Q2, Q3, Q4;
-    Q1 = Eigen::MatrixXd::Identity(3, 3);
-    Q2 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
-    Q3 = (Eigen::MatrixXd(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
-    Q4 = (Eigen::MatrixXd(3, 3) << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
+    Eigen::Matrix3d Q1, Q2, Q3, Q4;
+    Q1 = Eigen::Matrix3d::Identity();
+    Q2 = (Eigen::Matrix3d() << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
+    Q3 = (Eigen::Matrix3d() << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
+    Q4 = (Eigen::Matrix3d() << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
 
     Eigen::Matrix3d Rx_solved[8];
 

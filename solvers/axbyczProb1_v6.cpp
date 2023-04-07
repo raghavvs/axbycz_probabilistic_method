@@ -57,8 +57,14 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     std::vector<Eigen::Matrix4d> Z_g, X_dummy, Y_dummy;
     Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2;
     Eigen::Matrix<double, 6, 6> SigC1, SigB1, SigA2, SigB2;
-    batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_dummy,
+
+    batchSolveXY(C1, B1, opt, nstd1, nstd2, Y_dummy, Z_g,
                  MeanC1, MeanB1, SigC1, SigB1);
+
+    std::cout << "Z_g: " << Z_g[0] << std::endl;
+    std::cout << "Z_g[0].determinant(): " << Z_g[0].determinant() << std::endl;
+    std::cout << "Y_dummy: " << Y_dummy[0] << std::endl;
+    std::cout << "Y_dummy[0].determinant(): " << Y_dummy[0].determinant() << std::endl;
 
     std::vector<Eigen::Matrix4d> Z;
     for (const auto& z : Z_g) {
@@ -68,6 +74,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     }
 
     size_t s_Z = Z.size();
+    std::cout << "Z.size(): " << Z.size() << std::endl;
 
     // Calculate B2_inv
     int Num = A2.size();
@@ -79,7 +86,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     // Solve for X
     std::vector<Eigen::Matrix4d> X_g;
-    batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_dummy,
+    batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, Y_dummy, X_g,
                  MeanA2, MeanB2, SigA2, SigB2);
 
     std::vector<Eigen::Matrix4d> X;
@@ -91,6 +98,12 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     size_t s_X = X.size();
 
+    std::cout << "X_g: " << X_g[0] << std::endl;
+    std::cout << "X_g[0].determinant(): " << X_g[0].determinant() << std::endl;
+    std::cout << "Y_dummy: " << Y_dummy[0] << std::endl;
+    std::cout << "Y_dummy[0].determinant(): " << Y_dummy[0].determinant() << std::endl;
+    std::cout << "X.size(): " << X.size() << std::endl;
+
     // Calculate MeanB2 for computing Y later
     batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_dummy, Y_dummy,
                  MeanA2, MeanB2, SigA2, SigB2);
@@ -100,11 +113,11 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     for (size_t i = 0; i < s_X; ++i) {
         for (size_t j = 0; j < s_Z; ++j){
             Eigen::Matrix4d left = A1_fixed * X[i] * MeanB1;
-            Eigen::Matrix4d right = Z[j].inverse() * MeanC1.inverse();
+            Eigen::Matrix4d right = Z[j].eval().inverse() * MeanC1.eval().inverse();
             Y[(i * s_Z) + j] = left * right;
 
             left = MeanA2 * X[i] * MeanB2;
-            right = C2_fixed * Z[j].inverse();
+            right = C2_fixed * Z[j].eval().inverse();
             Y[(i * s_Z) + j + s_X * s_Z] = left * right;
         }
     }
@@ -155,6 +168,10 @@ int main ()
     std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
 
+    bool opt = true;
+    double nstd1 = 0.0001;
+    double nstd2 = 0.0001;
+
     std::vector<std::string> A1_files = {"data/r1_tf1.txt"};
     std::vector<std::string> B1_files = {"data/c2b_tf1.txt"};
     std::vector<std::string> C1_files = {"data/r2_tf1.txt"};
@@ -172,7 +189,7 @@ int main ()
     std::cout << "Probability Method 1..." << std::endl;
     axbyczProb1(A1, B1, C1,
                 A2, B2, C2,
-                0, 0, 0,
+                opt, nstd1, nstd2,
                 X_cal1, Y_cal1, Z_cal1);
 
     std::cout << "X_cal1: " << X_cal1 << std::endl;

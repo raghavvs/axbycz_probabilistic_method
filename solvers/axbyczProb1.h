@@ -104,11 +104,11 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     for (size_t i = 0; i < s_X; ++i) {
         for (size_t j = 0; j < s_Z; ++j){
             Eigen::Matrix4d left = A1_fixed * X[i] * MeanB1;
-            Eigen::Matrix4d right = Z[j].inverse() * MeanC1.inverse();
+            Eigen::Matrix4d right = Z[j].eval().inverse() * MeanC1.eval().inverse();
             Y[(i * s_Z) + j] = left * right;
 
             left = MeanA2 * X[i] * MeanB2;
-            right = C2_fixed * Z[j].inverse();
+            right = C2_fixed * Z[j].eval().inverse();
             Y[(i * s_Z) + j + s_X * s_Z] = left * right;
         }
     }
