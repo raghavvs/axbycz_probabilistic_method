@@ -40,13 +40,13 @@ The script also defines some supporting functions that convert cell arrays to
 
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include <vector>
 #include <Eigen/Dense>
 #include "fKine.h"
 #include "metric.h"
 #include "scrambleData.h"
 #include "axbyczProb1.h"
-#include "axbyczProb2.h"
 #include "axbyczProb3.h"
 #include "loadMatrices.h"
 #include "matplotlibcpp.h"
@@ -55,17 +55,14 @@ namespace plt = matplotlibcpp;
 
 int main()
 {
-    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2, A3, B3, C3;
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
-    std::vector<std::string> A1_files = {"data/006.txt"};
-    std::vector<std::string> B1_files = {"data/006_board.txt"};
-    std::vector<std::string> C1_files = {"data/006_m.txt"};
-    std::vector<std::string> A2_files = {"data/007.txt"};
-    std::vector<std::string> B2_files = {"data/007_board.txt"};
-    std::vector<std::string> C2_files = {"data/007_m.txt"};
-    std::vector<std::string> A3_files = {"data/008.txt"};
-    std::vector<std::string> B3_files = {"data/008_board.txt"};
-    std::vector<std::string> C3_files = {"data/008_m.txt"};
+    std::vector<std::string> A1_files = {"data/r1_tf1.txt"};
+    std::vector<std::string> B1_files = {"data/c2b_tf1.txt"};
+    std::vector<std::string> C1_files = {"data/r2_tf1.txt"};
+    std::vector<std::string> A2_files = {"data/r1_tf1.txt"};
+    std::vector<std::string> B2_files = {"data/c2b_tf1.txt"};
+    std::vector<std::string> C2_files = {"data/r2_tf1.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -73,20 +70,17 @@ int main()
     loadMatrices(A2_files, A2);
     loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
-    loadMatrices(A3_files, A3);
-    loadMatrices(B3_files, B3);
-    loadMatrices(C3_files, C3);
 
     // Generate Data
     // Initial guesses:
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 1;
+    int init_guess = 2;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
-    if (init_guess == 3) {
+    if (init_guess == 1) {
         X_init = Eigen::Matrix4d::Identity();
         Y_init = Eigen::Matrix4d::Identity();
         Z_init = Eigen::Matrix4d::Identity();
@@ -106,7 +100,7 @@ int main()
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-    std::vector<double> err1(11), err2(11), err3(11);
+    std::vector<double> err1(11), err3(11);
     for (int rk = 0; rk < r.size(); ++rk) {
         std::vector<Eigen::Matrix4d> Bp1, Bp2, BBp1, BBp2;
 
@@ -147,7 +141,7 @@ int main()
         axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
                     X_init, Y_init, Z_init,
-                    X_cal3, Y_cal3, Z_cal3  ,
+                    X_cal3, Y_cal3, Z_cal3 ,
                     num);
 
         // Verification
@@ -162,6 +156,13 @@ int main()
 
     std::ofstream outFile("results/XYZ.txt", std::ios_base::app);
 
+    // Get current date and time
+    std::time_t now = std::time(nullptr);
+    char buffer[100];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+    outFile << "Current date and time: " << buffer << std::endl;
+
     outFile << "Probability Method 1" << std::endl;
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
     outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
@@ -173,6 +174,11 @@ int main()
     outFile << "Z_cal3: " << std::endl << Z_cal3 << std::endl;
 
     outFile.close();
+
+    std::cout << "Error 1 [0]: " << err1[0] << std::endl;
+    std::cout << "Error 1 [10]: " << err1[10] << std::endl;
+    std::cout << "Error 3 [0]: " << err3[0] << std::endl;
+    std::cout << "Error 3 [10]: " << err3[10] << std::endl;
 
     // Plot error vs scramble rate
     plt::figure();
@@ -195,7 +201,7 @@ int main()
 
     plt::grid(true);
 
-    plt::save("results/Error_vs_Scramble_Rate_11.png");
+    plt::save("results/Error_vs_Scramble_Rate_15.png");
 
     plt::show();
 }
