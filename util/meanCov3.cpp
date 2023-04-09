@@ -24,26 +24,21 @@ Output:
 
 #include <iostream>
 #include <cstdlib>
-#include <ctime>
 #include <random>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-void meanCov(const std::vector<Eigen::Matrix4d> &X,
-             int N,
-             std::vector<Eigen::MatrixXd> &Mean,
-             std::vector<Eigen::MatrixXd> &Cov) {
-    for(int i = 0; i < N; i++){
-        Mean.push_back(Eigen::Matrix4d::Identity());
-        Cov.push_back(Eigen::Matrix<double, 6, 6>::Zero());
-    }
+void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean,
+             Eigen::MatrixXd &Cov) {
+    Mean = Eigen::Matrix4d::Identity();
+    Cov = Eigen::Matrix<double, 6, 6>::Zero();
 
     // Initial approximation of Mean
     Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
     for (int i = 0; i < N; i++) {
         sum_se += X[i].log();
-        Mean[i] = ((1.0 / N) * sum_se).exp();
     }
+    Mean = ((1.0 / N) * sum_se).exp();
 
     // Iterative process to calculate the true Mean
     Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
@@ -53,49 +48,45 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
     while (diff_se.norm() >= tol && count <= max_num) {
         diff_se = Eigen::Matrix4d::Zero();
         for (int i = 0; i < N; i++) {
-            diff_se += (Mean[i].inverse() * X[i]).log();
-            Mean[i] *= ((1.0 / N)* diff_se).exp();
+            diff_se += (Mean.inverse() * X[i]).log();
         }
+        Mean *= ((1.0 / N)* diff_se).exp();
         count++;
     }
 
     // Covariance
     for (int i = 0; i < N; i++) {
-        diff_se = (Mean[i].inverse() * X[i]).log();
+        diff_se = (Mean.inverse() * X[i]).log();
         Eigen::VectorXd diff_vex(6);
         diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
-        Cov[i] += diff_vex * diff_vex.transpose();
-        Cov[i] /= N;
+        Cov += diff_vex * diff_vex.transpose();
     }
+    Cov /= N;
 }
 
-int main() {
-    std::vector<Eigen::Matrix4d> A1;
-    std::vector<Eigen::Matrix4d> B1;
-    std::vector<Eigen::Matrix4d> C1;
-    std::vector<Eigen::Matrix4d> A2;
-    std::vector<Eigen::Matrix4d> B2;
-    std::vector<Eigen::Matrix4d> C2;
-
-    for (int i = 0; i < 10; ++i) {
-        A1.emplace_back(Eigen::Matrix4d::Random());
-        B1.emplace_back(Eigen::Matrix4d::Random());
-        C1.emplace_back(Eigen::Matrix4d::Random());
-        A2.emplace_back(Eigen::Matrix4d::Random());
-        B2.emplace_back(Eigen::Matrix4d::Random());
-        C2.emplace_back(Eigen::Matrix4d::Random());
+int main()
+{
+    int N = 2;
+    std::vector<Eigen::Matrix4d> A(N);
+    srand(12345);
+    for(int i = 0; i < N; i++){
+        A[i] = Eigen::Matrix4d::Random();
     }
 
-    int Ni = A1.size();
-    int Nj = C2.size();
+    // Declare variables to store the output mean and covariance
+    Eigen::MatrixXd Mean;
+    Eigen::MatrixXd Cov;
 
-    std::vector<Eigen::MatrixXd> A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
-    meanCov(A1, Ni, A1_m, SigA1);
-    meanCov(B1, Ni, B1_m, SigB1);
-    meanCov(C1, Ni, C1_m, SigC1);
+    // Call the meanCov function with the input and output arguments
+    meanCov(A, N, Mean, Cov);
 
-    std::cout << "Mean:\n" << A1_m[2] << std::endl;
-    std::cout << "Covariance:\n" << SigA1[2] << std::endl;
+    // Print the output mean and covariance
+    std::cout << "The output mean is: " << std::endl;
+    std::cout << Mean << std::endl;
+
+    std::cout <<"The output covariance is:"<<std::endl;
+
+    std::cout << Cov << std::endl;
 
     return 0;
 }

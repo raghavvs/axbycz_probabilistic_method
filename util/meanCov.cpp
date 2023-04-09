@@ -28,8 +28,11 @@ Output:
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
-void meanCov(const std::vector<Eigen::Matrix4d> &X, int N, Eigen::MatrixXd &Mean,
-             Eigen::MatrixXd &Cov) {
+void meanCov(const std::vector<Eigen::Matrix4d> &X,
+             Eigen::Matrix4d &Mean,
+             Eigen::Matrix<double, 6, 6> &Cov) {
+
+    int N = X.size();
     Mean = Eigen::Matrix4d::Identity();
     Cov = Eigen::Matrix<double, 6, 6>::Zero();
 
@@ -74,11 +77,11 @@ int main()
     }
 
     // Declare variables to store the output mean and covariance
-    Eigen::MatrixXd Mean;
-    Eigen::MatrixXd Cov;
+    Eigen::Matrix4d Mean;
+    Eigen::Matrix<double, 6, 6> Cov;
 
     // Call the meanCov function with the input and output arguments
-    meanCov(A, N, Mean, Cov);
+    meanCov(A, Mean, Cov);
 
     // Print the output mean and covariance
     std::cout << "The output mean is: " << std::endl;

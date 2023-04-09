@@ -16,6 +16,14 @@ Input:
     nstd1, nst2: standard deviation
 Output:
     X_final, Y_final, Z_final: Matrices - dim 4x4
+
+In the case of two robotic arms:
+     A - robot 1's base to end effector transformation (forward kinematics)
+     B - camera to calibration target transformation
+     C - robot 2's base to end effector transformation (forward kinematics)
+     X - end effector of robot 1 to camera transformation
+     Y - robot 1's base to robot 2's base transformation
+     Z - end effector of robot 2 to calibration target transformation
 */
 
 #include <iostream>
@@ -25,12 +33,12 @@ Output:
 #include "rotError.h"
 #include "tranError.h"
 
-void axbyczProb1(const Eigen::Matrix4d &A1,
-                 const Eigen::Matrix4d &B1,
-                 const Eigen::Matrix4d &C1,
-                 const Eigen::Matrix4d &A2,
-                 const Eigen::Matrix4d &B2,
-                 const Eigen::Matrix4d &C2,
+void axbyczProb1(const std::vector<Eigen::Matrix4d> &A1,
+                 const std::vector<Eigen::Matrix4d> &B1,
+                 const std::vector<Eigen::Matrix4d> &C1,
+                 const std::vector<Eigen::Matrix4d> &A2,
+                 const std::vector<Eigen::Matrix4d> &B2,
+                 const std::vector<Eigen::Matrix4d> &C2,
                  bool opt,
                  double nstd1,
                  double nstd2,
@@ -38,38 +46,33 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
                  Eigen::Matrix4d &Y_final,
                  Eigen::Matrix4d &Z_final) {
 
-    //   A1 is constant with B1 and C1 free
-    //   C2 is constant with A2 and B2 free
+    ////   A1 is constant with B1 and C1 free
+    Eigen::Matrix4d A1_fixed = A1[0];
 
-    int len = 8;
-    std::vector<Eigen::Matrix4d> Z_g(len), X(len), Y_temp(len), Z(len);
-    Eigen::MatrixXd MeanA, MeanB, MeanC, SigA, SigB, SigC;
+    ////   C2 is constant with A2 and B2 free
+    Eigen::Matrix4d C2_fixed = C2[0];
 
-    std::vector<Eigen::Matrix4d> A1_vec(len), B1_vec(len), C1_vec(len),
-                                    A2_vec(len), B2_vec(len), C2_vec(len);
+    int len = A1.size();
 
-    std::cout << "A1: " << A1 << std::endl;
+    std::vector<Eigen::Matrix4d> X_g(len), Z_g(len), X(len), Y_temp(len), Z(len);
 
-    for (int i = 0; i < len; ++i) {
-        A1_vec[i] = A1;
-        B1_vec[i] = B1;
-        C1_vec[i] = C1;
-        A2_vec[i] = A2;
-        B2_vec[i] = B2;
-        C2_vec[i] = C2;
-    }
+    Eigen::Matrix4d MeanA, MeanB, MeanC, MeanB1, MeanC1, MeanA2, MeanB2;
+    Eigen::Matrix<double, 6, 6> SigA, SigB, SigC;
 
-    std::cout << "A1_vec: " << A1_vec[0] << std::endl;
+    std::cout << "A1.size(): " << len << std::endl;
 
     //// ------ using probability methods ------
     // calculate Z_g : all guesses of Z
     //// ------ Solve for Z -------- //
     // A1 fixed, B1 and C1 free
 
-    Eigen::MatrixXd MeanB1, MeanC1, MeanA2;
+    batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_temp,
+                 MeanC1, MeanB1, SigC, SigB);
 
-    batchSolveXY(C1_vec, B1_vec, len, opt,nstd1,nstd2,Z_g,Y_temp,
-                 MeanC1,MeanB1,SigC,SigB);
+    std::cout << "Z_g[0]: " << Z_g[0] << std::endl;
+    std::cout << "Z_g[9]: " << Z_g[9] << std::endl;
+    std::cout << "Y_temp[0]: " << Y_temp[0] << std::endl;
+    std::cout << "Y_temp[9]: " << Y_temp[9] << std::endl;
 
     // Keep the candidates of Z that are SE3
     // Normally there will be four Z \in SE3
@@ -89,24 +92,32 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     // C2 fixed, A2 and B2 free
 
     // ------ Calculate B2^-1 -------
-    int Num = A2_vec.size();
+    int Num = A2.size();
     std::vector<Eigen::Matrix4d> A2_inv(Num), B2_inv(Num);
     for (int i = 0; i < Num; ++i) {
-        A2_inv[i] = A2_vec[i].inverse();
-        B2_inv[i] = B2_vec[i].inverse();
+        A2_inv[i] = A2[i].inverse();
+        B2_inv[i] = B2[i].inverse();
     }
 
     // ------ using probability methods ------
     // calculate X_g : all guesses of X
-    std::vector<Eigen::Matrix4d> X_g(len);
-    batchSolveXY(A2_vec, B2_inv, len, opt, nstd1, nstd2, X_g, Y_temp,
+    batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_temp,
                  MeanA2, MeanB, SigC, SigB);
+
+    std::cout << "X_g[0]: " << X_g[0] << std::endl;
+    std::cout << "X_g[9]: " << X_g[9] << std::endl;
+    std::cout << "Y_temp[0]: " << Y_temp[0] << std::endl;
+    std::cout << "Y_temp[9]: " << Y_temp[9] << std::endl;
 
     // Calculate MeanB for computing Y later
     // Note: can be further simplified by using only the distribution function
-    Eigen::MatrixXd MeanB2;
-    batchSolveXY(A2_inv, B2_vec, len, opt, nstd1, nstd2, X_g, Y_temp,
+    batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_g, Y_temp,
                  MeanA, MeanB2, SigC, SigB);
+
+    std::cout << "X_g[0]: " << X_g[0] << std::endl;
+    std::cout << "X_g[9]: " << X_g[9] << std::endl;
+    std::cout << "Y_temp[0]: " << Y_temp[0] << std::endl;
+    std::cout << "Y_temp[9]: " << Y_temp[9] << std::endl;
 
     // Keep the candidates of X that are SE3å
     // Normally there will be four X \in SE3
@@ -127,8 +138,8 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     std::vector<Eigen::Matrix4d> Y(2*s_X*s_Z);
     for (int i = 0; i < s_X; ++i) {
         for (int j = 0; j < s_Z; ++j) {
-            Y[i * s_Z + j] = (A1 * X[i] * MeanB1 * Z[j].inverse()) * MeanC1.inverse();
-            Y[i * s_Z + j + s_X * s_Z] = (MeanA2 * X[i] * MeanB2) * Z[j].inverse() * C2.inverse();
+            Y[i * s_Z + j] = (A1_fixed * X[i] * MeanB1 * Z[j].inverse()) * MeanC1.inverse();
+            Y[i * s_Z + j + s_X * s_Z] = (MeanA2 * X[i] * MeanB2) * Z[j].inverse() * C2_fixed.inverse();
         }
     }
 
@@ -146,14 +157,14 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
     for (int i = 0; i < s_X; ++i) {
         for (int j = 0; j < s_Z; ++j) {
             for (int m = 0; m < s_Y; ++m) {
-                Eigen::MatrixXd left1 = A1 * X[i] * MeanB1;
+                Eigen::MatrixXd left1 = A1_fixed * X[i] * MeanB1;
                 Eigen::MatrixXd right1 = Y[m] * MeanC1 * Z[j];
 
                 double diff1 =
                         rotError(left1, right1) + weight * tranError(left1, right1);
 
                 Eigen::MatrixXd left2 = MeanA2 * X[i] * MeanB2;
-                Eigen::MatrixXd right2 = Y[m] * C2 * Z[j];
+                Eigen::MatrixXd right2 = Y[m] * C2_fixed * Z[j];
                 double diff2 =
                         rotError(left2, right2) + weight * tranError(left2, right2);
 
@@ -191,56 +202,27 @@ void axbyczProb1(const Eigen::Matrix4d &A1,
 }
 
 int main() {
-    Eigen::Matrix4d A1 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d B1 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d C1 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d A2 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d B2 = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d C2 = Eigen::Matrix4d::Random();
+    int num = 10;
+    srand(12345);
 
-    A1.row(3) << 0, 0, 0, 1;
-    B1.row(3) << 0, 0, 0, 1;
-    C1.row(3) << 0, 0, 0, 1;
-    A2.row(3) << 0, 0, 0, 1;
-    B2.row(3) << 0, 0, 0, 1;
-    C2.row(3) << 0, 0, 0, 1;
+    std::vector<Eigen::Matrix4d> A1(num), B1(num), C1(num),
+                                    A2(num), B2(num), C2(num);
 
-    /*Eigen::Matrix4d A1;
-    A1 << 0.7071, 0.0, -0.7071, 1.0,
-            0.0, 1.0, 0.0, 2.0,
-            0.7071, 0.0, 0.7071, 3.0,
-            0.0, 0.0, 0.0, 1.0;
+    for (int i = 0; i < num; ++i){
+        A1[i] = Eigen::Matrix4d::Random();
+        B1[i] = Eigen::Matrix4d::Random();
+        C1[i] = Eigen::Matrix4d::Random();
+        A2[i] = Eigen::Matrix4d::Random();
+        B2[i] = Eigen::Matrix4d::Random();
+        C2[i] = Eigen::Matrix4d::Random();
 
-    Eigen::Matrix4d B1;
-    B1 << 1.0, 0.0, 0.0, 4.0,
-            0.0, 0.866, -0.5, 5.0,
-            0.0, 0.5, 0.866, 6.0,
-            0.0, 0.0, 0.0, 1.0;
-
-    Eigen::Matrix4d C1;
-    C1 << 0.866, 0.5, 0.0, 7.0,
-            -0.5, 0.866, 0.0, 8.0,
-            0.0, 0.0, 1.0, 9.0,
-            0.0, 0.0, 0.0, 1.0;
-
-    Eigen::Matrix4d A2;
-    A2 << 1.0, 0.0, 0.0, 1.5,
-            0.0, 0.866, 0.5, 2.5,
-            0.0, -0.5, 0.866, 3.5,
-            0.0, 0.0, 0.0, 1.0;
-
-    Eigen::Matrix4d B2;
-    B2 << 0.7071, -0.7071, 0.0, 4.5,
-            0.7071, 0.7071, 0.0, 5.5,
-            0.0, 0.0, 1.0, 6.5,
-            0.0, 0.0, 0.0, 1.0;
-
-    Eigen::Matrix4d C2;
-    C2 << 0.866, -0.5, 0.0, 7.5,
-            0.5, 0.866, 0.0, 8.5,
-            0.0, 0.0, 1.0, 9.5,
-            0.0, 0.0, 0.0, 1.0;*/
-
+        A1[i].row(3) << 0, 0, 0, 1;
+        B1[i].row(3) << 0, 0, 0, 1;
+        C1[i].row(3) << 0, 0, 0, 1;
+        A2[i].row(3) << 0, 0, 0, 1;
+        B2[i].row(3) << 0, 0, 0, 1;
+        C2[i].row(3) << 0, 0, 0, 1;
+    }
 
     bool opt = true;
     double nstd1 = 0.01;

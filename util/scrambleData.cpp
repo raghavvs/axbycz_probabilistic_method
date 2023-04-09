@@ -17,21 +17,23 @@ uses the C++ standard library chrono and random to generate the random permutati
 std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-Eigen::Matrix4d scrambleData(Eigen::MatrixXd M, double s_rate) {
-    int n = M.cols();
+std::vector<Eigen::Matrix4d> scrambleData(const std::vector<Eigen::Matrix4d>& M,
+                                          int index,
+                                          double s_rate) {
+    int n = M.size();
     std::vector<int> M_index(n);
     for (int i = 0; i < n; i++) {
         M_index[i] = i;
     }
     for (int i = 0; i < n; i++) {
         if (distribution(generator) <= 0.01 * s_rate) {
-            int index = rand() % n;
-            std::swap(M_index[i], M_index[index]);
+            int rand_index = rand() % n;
+            std::swap(M_index[i], M_index[rand_index]);
         }
     }
-    Eigen::MatrixXd M_perm = Eigen::MatrixXd::Zero(M.rows(), M.cols());
+    std::vector<Eigen::Matrix4d> M_perm(n);
     for (int i = 0; i < n; i++) {
-        M_perm.col(i) = M.col(M_index[i]);
+        M_perm[i] = M[M_index[i]];
     }
     return M_perm;
 }

@@ -58,15 +58,14 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
              int N,
              std::vector<Eigen::MatrixXd> &Mean,
              std::vector<Eigen::MatrixXd> &Cov) {
-    for(int i = 0; i < N; i++){
-        Mean.emplace_back(Eigen::Matrix4d::Identity());
-        Cov.emplace_back(Eigen::Matrix<double, 6, 6>::Zero());
-    }
+
+    Mean.resize(N, Eigen::Matrix4d::Identity());
+    Cov.resize(N, Eigen::Matrix<double, 6, 6>::Zero());
 
     // Initial approximation of Mean
     Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
     for (int i = 0; i < N; i++) {
-            sum_se += X[i].log();
+        sum_se += X[i].log();
         Mean[i] = ((1.0 / N) * sum_se).exp();
     }
 
@@ -112,16 +111,6 @@ Eigen::Matrix4d SE3inv(const Eigen::Matrix4d& X) {
     return invX;
 }
 
-Eigen::Matrix<double, 6, 6> SE3Adinv(const Eigen::Matrix4d& X) {
-    Eigen::Matrix3d R = X.block<3,3>(0,0);
-    Eigen::Vector3d t = X.block<3,1>(0,3);
-
-    Eigen::Matrix<double, 6, 6> A;
-    A << R.transpose(), Eigen::Matrix3d::Zero(),
-            -R.transpose() * Eigen::Matrix3d(Eigen::AngleAxisd(t.norm(), t.normalized())) * R, R.transpose();
-    return A;
-}
-
 Eigen::Matrix<double, 6, 6> SE3Ad(const Eigen::Matrix4d& X) {
     Eigen::Matrix3d R = X.block<3,3>(0,0);
     Eigen::Vector3d t = X.block<3,1>(0,3);
@@ -129,6 +118,16 @@ Eigen::Matrix<double, 6, 6> SE3Ad(const Eigen::Matrix4d& X) {
     Eigen::Matrix<double, 6, 6> A;
     A << R, Eigen::Matrix3d::Zero(),
             skew(t) * R, R;
+    return A;
+}
+
+Eigen::Matrix<double, 6, 6> SE3Adinv(const Eigen::Matrix4d& X) {
+    Eigen::Matrix3d R = X.block<3,3>(0,0);
+    Eigen::Vector3d t = X.block<3,1>(0,3);
+
+    Eigen::Matrix<double, 6, 6> A;
+    A << R.transpose(), Eigen::Matrix3d::Zero(),
+            -(skew(R.transpose() * t)) * R.transpose(), R.transpose();
     return A;
 }
 
@@ -360,10 +359,9 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     Eigen::Matrix4d Xupdate = Xinit;
     Eigen::Matrix4d Yupdate = Yinit;
     Eigen::Matrix4d Zupdate = Zinit;
-    Eigen::VectorXd xi = Eigen::VectorXd(18);
-    xi.setOnes();
+    Eigen::VectorXd xi = Eigen::VectorXd::Ones(18);
 
-    int max_num = 500;
+    int max_num = 10;
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
@@ -375,7 +373,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     // invert B2
     std::vector<Eigen::Matrix4d> B2inv(B2.size());
     for (int i = 0; i < B2.size(); ++i) {
-        B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         B2inv[i] = B2[i].inverse();
     }
 
@@ -435,7 +432,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         }
 
         // Inversion to get xi_X, xi_Y, xi_Z
-        //xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
         Eigen::MatrixXd xi_new = (M.transpose() * M).ldlt().solve(M.transpose() * b);
 
         double diff1 = 0;
