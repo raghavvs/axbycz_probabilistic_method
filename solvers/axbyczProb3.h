@@ -111,16 +111,6 @@ Eigen::Matrix4d SE3inv(const Eigen::Matrix4d& X) {
     return invX;
 }
 
-Eigen::Matrix<double, 6, 6> SE3Adinv(const Eigen::Matrix4d& X) {
-    Eigen::Matrix3d R = X.block<3,3>(0,0);
-    Eigen::Vector3d t = X.block<3,1>(0,3);
-
-    Eigen::Matrix<double, 6, 6> A;
-    A << R.transpose(), Eigen::Matrix3d::Zero(),
-            -R.transpose() * Eigen::Matrix3d(Eigen::AngleAxisd(t.norm(), t.normalized())) * R, R.transpose();
-    return A;
-}
-
 Eigen::Matrix<double, 6, 6> SE3Ad(const Eigen::Matrix4d& X) {
     Eigen::Matrix3d R = X.block<3,3>(0,0);
     Eigen::Vector3d t = X.block<3,1>(0,3);
@@ -128,6 +118,16 @@ Eigen::Matrix<double, 6, 6> SE3Ad(const Eigen::Matrix4d& X) {
     Eigen::Matrix<double, 6, 6> A;
     A << R, Eigen::Matrix3d::Zero(),
             skew(t) * R, R;
+    return A;
+}
+
+Eigen::Matrix<double, 6, 6> SE3Adinv(const Eigen::Matrix4d& X) {
+    Eigen::Matrix3d R = X.block<3,3>(0,0);
+    Eigen::Vector3d t = X.block<3,1>(0,3);
+
+    Eigen::Matrix<double, 6, 6> A;
+    A << R.transpose(), Eigen::Matrix3d::Zero(),
+            -(skew(R.transpose() * t)) * R.transpose(), R.transpose();
     return A;
 }
 
@@ -214,17 +214,17 @@ void MbMat_1(Eigen::MatrixXd &M,
 
     M.conservativeResize(M.rows() + 36, M.cols() + 9);
     M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M55,  M56,
-            Eigen::Matrix3d::Zero(),  M65,  M66,
-            Eigen::Matrix3d::Zero(),  M75,  M76,
-            Eigen::Matrix3d::Zero(),  M85,  M86,
-            Eigen::Matrix3d::Zero(),  M95,  M96,
-            Eigen::Matrix3d::Zero(), M105, M106,
-            Eigen::Matrix3d::Zero(), M115, M116,
-            Eigen::Matrix3d::Zero(), M125, M126,
-            Eigen::Matrix3d::Zero(), M135, M136,
-            Eigen::Matrix3d::Zero(), M145, M146,
-            Eigen::Matrix3d::Zero(), M155, M156,
-            Eigen::Matrix3d::Zero(), M165 ,M166;
+                                                Eigen::Matrix3d::Zero(),  M65,  M66,
+                                                Eigen::Matrix3d::Zero(),  M75,  M76,
+                                                Eigen::Matrix3d::Zero(),  M85,  M86,
+                                                Eigen::Matrix3d::Zero(),  M95,  M96,
+                                                Eigen::Matrix3d::Zero(), M105, M106,
+                                                Eigen::Matrix3d::Zero(), M115, M116,
+                                                Eigen::Matrix3d::Zero(), M125, M126,
+                                                Eigen::Matrix3d::Zero(), M135, M136,
+                                                Eigen::Matrix3d::Zero(), M145, M146,
+                                                Eigen::Matrix3d::Zero(), M155, M156,
+                                                Eigen::Matrix3d::Zero(), M165 ,M166;
 
     Eigen::MatrixXd RHS2 = SE3Adinv(Z) * SigC * SE3Adinv(Z).transpose() - SigB;
     RHS2.resize(3, 12);
@@ -318,17 +318,17 @@ void MbMat_2(Eigen::MatrixXd &M,
 
     M.conservativeResize(M.rows() + 36, M.cols() + 9);
     M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M51,  M52,
-            Eigen::Matrix3d::Zero(),  M61,  M62,
-            Eigen::Matrix3d::Zero(),  M71,  M72,
-            Eigen::Matrix3d::Zero(),  M81,  M82,
-            Eigen::Matrix3d::Zero(),  M91,  M92,
-            Eigen::Matrix3d::Zero(), M101, M102,
-            Eigen::Matrix3d::Zero(), M111, M112,
-            Eigen::Matrix3d::Zero(), M121, M122,
-            Eigen::Matrix3d::Zero(), M131, M132,
-            Eigen::Matrix3d::Zero(), M141, M142,
-            Eigen::Matrix3d::Zero(), M151, M152,
-            Eigen::Matrix3d::Zero(), M161 ,M162;
+                                                Eigen::Matrix3d::Zero(),  M61,  M62,
+                                                Eigen::Matrix3d::Zero(),  M71,  M72,
+                                                Eigen::Matrix3d::Zero(),  M81,  M82,
+                                                Eigen::Matrix3d::Zero(),  M91,  M92,
+                                                Eigen::Matrix3d::Zero(), M101, M102,
+                                                Eigen::Matrix3d::Zero(), M111, M112,
+                                                Eigen::Matrix3d::Zero(), M121, M122,
+                                                Eigen::Matrix3d::Zero(), M131, M132,
+                                                Eigen::Matrix3d::Zero(), M141, M142,
+                                                Eigen::Matrix3d::Zero(), M151, M152,
+                                                Eigen::Matrix3d::Zero(), M161 ,M162;
 
     Eigen::MatrixXd RHS2 = SE3Adinv(X) * SigA * SE3Adinv(X).transpose() - SigBinv;
     RHS2.resize(3, 12);
@@ -360,9 +360,8 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     Eigen::Matrix4d Yupdate = Yinit;
     Eigen::Matrix4d Zupdate = Zinit;
     Eigen::VectorXd xi = Eigen::VectorXd::Ones(18);
-    xi.setOnes();
 
-    int max_num = 500;
+    int max_num = 10;
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
@@ -374,7 +373,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     // invert B2
     std::vector<Eigen::Matrix4d> B2inv(B2.size());
     for (int i = 0; i < B2.size(); ++i) {
-        B2inv[i] = Eigen::MatrixXd(B2[i].rows(), B2[i].cols());
         B2inv[i] = B2[i].inverse();
     }
 

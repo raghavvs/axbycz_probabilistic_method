@@ -39,18 +39,147 @@ The script also defines some supporting functions that convert cell arrays to
  */
 
 #include <iostream>
+#include <fstream>
 #include <ctime>
 #include <vector>
 #include <Eigen/Dense>
 #include "fKine.h"
 #include "metric.h"
 #include "scrambleData.h"
-#include "axbyczProb1.h"
 #include "axbyczProb3.h"
 #include "loadMatrices.h"
 #include "matplotlibcpp.h"
+#include <cmath>
+#include "batchSolveXY.h"
+#include "rotError.h"
+#include "tranError.h"
 
 namespace plt = matplotlibcpp;
+
+void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
+                 const std::vector<Eigen::Matrix4d>& B1,
+                 const std::vector<Eigen::Matrix4d>& C1,
+                 const std::vector<Eigen::Matrix4d>& A2,
+                 const std::vector<Eigen::Matrix4d>& B2,
+                 const std::vector<Eigen::Matrix4d>& C2,
+                 bool opt,
+                 double nstd1,
+                 double nstd2,
+                 Eigen::Matrix4d& X_final,
+                 Eigen::Matrix4d& Y_final,
+                 Eigen::Matrix4d& Z_final) {
+
+    ////   A1 is constant with B1 and C1 free
+    Eigen::Matrix4d A1_fixed = A1[0];
+
+    ////   C2 is constant with A2 and B2 free
+    Eigen::Matrix4d C2_fixed = C2[0];
+
+    std::cout << A1_fixed << std::endl;
+    std::cout << C2_fixed << std::endl;
+
+    // Solve for Z
+    std::vector<Eigen::Matrix4d> Z_g, X_dummy, Y_dummy;
+    Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2;
+    Eigen::Matrix<double, 6, 6> SigC1, SigB1, SigA2, SigB2;
+    batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_dummy,
+                 MeanC1, MeanB1, SigC1, SigB1);
+
+    std::vector<Eigen::Matrix4d> Z;
+    for (const auto& z : Z_g) {
+        if (z.determinant() > 0) {
+            Z.push_back(z);
+        }
+    }
+
+    size_t s_Z = Z.size();
+
+    // Calculate B2_inv
+    int Num = A2.size();
+    std::vector<Eigen::Matrix4d> A2_inv(Num), B2_inv(Num);
+    for (int i = 0; i < Num; ++i) {
+        A2_inv[i] = A2[i].inverse();
+        B2_inv[i] = B2[i].inverse();
+    }
+
+    // Solve for X
+    std::vector<Eigen::Matrix4d> X_g;
+    batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_dummy,
+                 MeanA2, MeanB2, SigA2, SigB2);
+
+    std::vector<Eigen::Matrix4d> X;
+    for (const auto& x : X_g) {
+        if (x.determinant() > 0) {
+            X.push_back(x);
+        }
+    }
+
+    size_t s_X = X.size();
+
+    // Calculate MeanB2 for computing Y later
+    batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_dummy, Y_dummy,
+                 MeanA2, MeanB2, SigA2, SigB2);
+
+    // Compute Y
+    std::vector<Eigen::Matrix4d> Y(2 * s_X * s_Z);
+    for (size_t i = 0; i < s_X; ++i) {
+        for (size_t j = 0; j < s_Z; ++j){
+            Eigen::Matrix4d left = A1_fixed * X[i] * MeanB1;
+            Eigen::Matrix4d right = Z[j].eval().inverse() * MeanC1.eval().inverse();
+            Y[(i * s_Z) + j] = left * right;
+
+            left = MeanA2 * X[i] * MeanB2;
+            right = C2_fixed * Z[j].eval().inverse();
+            Y[(i * s_Z) + j + s_X * s_Z] = left * right;
+        }
+    }
+
+    size_t s_Y = Y.size();
+
+    std::cout << X.size() << std::endl;
+    std::cout << Y.size() << std::endl;
+    std::cout << Z.size() << std::endl;
+
+    // Find the optimal (X, Y, Z) that minimizes cost
+    Eigen::MatrixXd cost(s_X, s_Y * s_Z);
+    double weight = 1.5;
+    double min_cost = std::numeric_limits<double>::max();
+    int min_i = 0, min_j = 0, min_m = 0;
+
+    for (size_t i = 0; i < s_X; ++i) {
+        for (size_t j = 0; j < s_Z; ++j) {
+            for (size_t m = 0; m < s_Y; ++m) {
+                Eigen::Matrix4d left1 = A1_fixed * X[i] * MeanB1;
+                Eigen::Matrix4d right1 = Y[m] * MeanC1 * Z[j];
+
+                double diff1 = rotError(left1, right1) + weight *
+                                                         tranError(left1, right1);
+
+                Eigen::Matrix4d left2 = MeanA2 * X[i] * MeanB2;
+                Eigen::Matrix4d right2 = Y[m] * C2_fixed * Z[j];
+
+                double diff2 = rotError(left2, right2) + weight *
+                                                         tranError(left2, right2);
+
+                double current_cost = std::abs(diff1) + std::abs(diff2);
+                cost(i, j * s_Y + m) = current_cost;
+                if (current_cost < min_cost) {
+                    min_cost = current_cost;
+                    min_i = i;
+                    min_j = j;
+                    min_m = m;
+                }
+            }
+        }
+    }
+
+    std::cout << cost.rows() << cost.cols() << std::endl;
+
+    //// Recover the X, Y, Z that minimize cost
+    X_final = X[min_i];
+    Z_final = Z[min_j];
+    Y_final = Y[min_m];
+}
 
 int main()
 {
@@ -75,7 +204,7 @@ int main()
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 3;
+    int init_guess = 2;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
@@ -95,32 +224,38 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = true;
+    bool isRandPerm = false;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     std::vector<double> err1(11), err3(11);
-    for (int rk = 0; rk < r.size(); ++rk) {
+    for (int rk = 0; rk < 10; ++rk) {
+        std::vector<Eigen::Matrix4d> Bp1, Bp2, BBp1, BBp2;
+
         // Inputs for Prob 1
-        std::vector<Eigen::Matrix4d> Bp1(A1.size());
-        std::vector<Eigen::Matrix4d> Bp2(A2.size());
-        std::vector<Eigen::Matrix4d> BBp1(A1.size());
-        std::vector<Eigen::Matrix4d> BBp2(A2.size());
+        Bp1.resize(A1.size());
+        Bp2.resize(A2.size());
+        BBp1.resize(A1.size());
+        BBp2.resize(A2.size());
 
         for (int i = 0; i < A1.size(); ++i) {
             // Inputs for Iterative Refinement
             if (isRandPerm) {
-                Bp1[i] = scrambleData(B1, i, r[rk])[i];
-                Bp2[i] = scrambleData(B2, i, r[rk])[i];
-                BBp1[i] = scrambleData(B1, i, r[rk])[i];
-                BBp2[i] = scrambleData(B2, i, r[rk])[i];
+                Bp1[i] = scrambleData(B1[i], r[rk]);
+                Bp2[i] = scrambleData(B2[i], r[rk]);
+                BBp1[i] = scrambleData(B1[i], r[rk]);
+                BBp2[i] = scrambleData(B2[i], r[rk]);
             }
         }
 
         // Prob 1
         //std::cout << "Probabilistic Method 1..." << std::endl;
-        axbyczProb1(A1, BBp1, C1,
+        /*axbyczProb1(A1, BBp1, C1,
                     A2, BBp2, C2,
+                    1, 0.0001, 0.0001,
+                    X_cal1, Y_cal1, Z_cal1);*/
+        axbyczProb1(A1, B1, C1,
+                    A2, B2, C2,
                     1, 0.0001, 0.0001,
                     X_cal1, Y_cal1, Z_cal1);
 
@@ -135,8 +270,13 @@ int main()
         //std::cout << "Iterative Refinement..." << std::endl;
         int num = 1;
 
-        axbyczProb3(A1, Bp1, C1,
+        /*axbyczProb3(A1, Bp1, C1,
                     A2, Bp2, C2,
+                    X_init, Y_init, Z_init,
+                    X_cal3, Y_cal3, Z_cal3 ,
+                    num);*/
+        axbyczProb3(A1, B1, C1,
+                    A2, B2, C2,
                     X_init, Y_init, Z_init,
                     X_cal3, Y_cal3, Z_cal3 ,
                     num);
@@ -172,7 +312,12 @@ int main()
 
     outFile.close();
 
-    // Plot error vs scramble rate
+    std::cout << "Error 1 [0]: " << err1[0] << std::endl;
+    std::cout << "Error 1 [10]: " << err1[100] << std::endl;
+    std::cout << "Error 3 [0]: " << err3[0] << std::endl;
+    std::cout << "Error 3 [10]: " << err3[100] << std::endl;
+
+   /* // Plot error vs scramble rate
     plt::figure();
 
     plt::plot(r, err1, "o-r");
@@ -193,12 +338,7 @@ int main()
 
     plt::grid(true);
 
-    plt::save("results/Error_vs_Scramble_Rate_17.png");
+    plt::save("results/Error_vs_Scramble_Rate_16.png");
 
-    plt::show();
-
-    std::cout << "Error 1 [0]: " << err1[0] << std::endl;
-    std::cout << "Error 1 [10]: " << err1[100] << std::endl;
-    std::cout << "Error 3 [0]: " << err3[0] << std::endl;
-    std::cout << "Error 3 [10]: " << err3[100] << std::endl;
+    plt::show();*/
 }
