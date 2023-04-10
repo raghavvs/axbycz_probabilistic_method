@@ -73,6 +73,13 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     auto const& VA = eig_solver_A.eigenvectors();
     auto const& VB = eig_solver_B.eigenvectors();
 
+    // Print MeanX, MeanY, SigX, and SigY after their calculation
+    /*std::cout << "batchSolveXY:" << std::endl;
+    std::cout << "MeanX:\n" << MeanA << std::endl;
+    std::cout << "MeanY:\n" << MeanB << std::endl;
+    std::cout << "SigX:\n" << SigA << std::endl;
+    std::cout << "SigY:\n" << SigB << std::endl;*/
+
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
     Q1 = Eigen::Matrix3d::Identity();
@@ -95,25 +102,32 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     X.resize(8);
     Y.resize(8);
 
-    for (int i = 0; i < 8; i++) {
-        // block SigA and SigB to 3x3 sub-matrices
-        Eigen::Matrix3d sigA_33 = SigA.block<3, 3>(0, 0);
-        Eigen::Matrix3d sigB_33 = SigB.block<3, 3>(0, 0);
-
-        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * sigA_33 * Rx_solved[i]).inverse() *
-                               (sigB_33 - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) *
-                                          Rx_solved[i]);
+    for (int i = 0; i < 8; ++i) {
+        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA.block<3, 3>(0, 0) * Rx_solved[i]).inverse() *
+                               (SigB.block<3, 3>(0, 3) - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
 
         Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
+        Eigen::Vector3d tx = -Rx_solved[i] * tx_temp;
 
-        // Construct X and Y candidates
-        X_candidate[i] << Rx_solved[i], -Rx_solved[i] * tx_temp, Eigen::Vector3d::Zero().transpose(), 1;
+        X_candidate[i] << Rx_solved[i], tx, Eigen::Vector3d::Zero().transpose(), 1;
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
 
         // Set the output X and Y
         X[i] = X_candidate[i];
         Y[i] = Y_candidate[i];
     }
+
+    /*std::cout << "batchSolveXY:" << std::endl;
+
+    // Print X and Y before returning from the function
+    std::cout << "X matrices:" << std::endl;
+    for (size_t i = 0; i < X.size(); ++i) {
+        std::cout << "X_g[" << i << "]:\n" << X[i] << std::endl;
+    }
+    std::cout << "Y matrices:" << std::endl;
+    for (size_t i = 0; i < Y.size(); ++i) {
+        std::cout << "Y[" << i << "]:\n" << Y[i] << std::endl;
+    }*/
 }
 
 #endif

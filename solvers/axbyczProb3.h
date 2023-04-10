@@ -361,7 +361,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     Eigen::Matrix4d Zupdate = Zinit;
     Eigen::VectorXd xi = Eigen::VectorXd::Ones(18);
 
-    int max_num = 2;
+    int max_num = 1;
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data

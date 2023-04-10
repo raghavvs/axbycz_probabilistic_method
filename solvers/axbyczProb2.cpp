@@ -34,6 +34,7 @@ Note: This solver is not practical for implementing for case 3 where:
 #include "batchSolveXY.h"
 #include "rotError.h"
 #include "tranError.h"
+#include "loadMatrices.h"
 
 void axbyczProb2(const std::vector<Eigen::Matrix4d>& A1,
                  const std::vector<Eigen::Matrix4d>& B1,
@@ -47,6 +48,10 @@ void axbyczProb2(const std::vector<Eigen::Matrix4d>& A1,
                  Eigen::Matrix4d& X_final,
                  Eigen::Matrix4d& Y_final,
                  Eigen::Matrix4d& Z_final) {
+
+    bool opt = true;
+    double nstdA = 0.0001;
+    double nstdB = 0.0001;
 
     // Get the first element from each input vector.
     Eigen::Matrix4d A1_fixed = A1[0];
@@ -62,7 +67,7 @@ void axbyczProb2(const std::vector<Eigen::Matrix4d>& A1,
     Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2;
     Eigen::Matrix<double, 6, 6> SigC1, SigB1, SigA2, SigB2;
 
-    batchSolveXY(C1, B1, false,0,0,Z_g,Y_dummy,
+    batchSolveXY(C1, B1, opt,nstdA,nstdB,Z_g,Y_dummy,
                  MeanC1,MeanB1,SigC1,SigB1);
 
     // Keep the candidates of Z that are SE3
@@ -81,10 +86,10 @@ void axbyczProb2(const std::vector<Eigen::Matrix4d>& A1,
         B2_inv[i] = B2[i].inverse();
     }
 
-    batchSolveXY(A2, B2_inv, false, 0, 0, X_g, Y_dummy,
+    batchSolveXY(A2, B2_inv, opt, nstdA, nstdB, X_g, Y_dummy,
                  MeanA2, MeanB2, SigB, SigC);
 
-    batchSolveXY(A2_inv, B2, false, 0, 0, X_g, Y_dummy,
+    batchSolveXY(A2_inv, B2, opt, nstdA, nstdB, X_g, Y_dummy,
                  MeanA2, MeanB2, SigB, SigC);
 
     // Keep the candidates of X that are SE3
@@ -104,10 +109,10 @@ void axbyczProb2(const std::vector<Eigen::Matrix4d>& A1,
         C3_inv[i] = C3[i].inverse();
     }
 
-    batchSolveXY(C3_inv, A3_inv, false, 0, 0, Y_g_inv, Y_dummy,
+    batchSolveXY(C3_inv, A3_inv, opt, nstdA, nstdB, Y_g_inv, Y_dummy,
                  MeanC, MeanA, SigC, SigA);
 
-    batchSolveXY(C3, A3, false, 0, 0, Y_g_inv, Y_dummy,
+    batchSolveXY(C3, A3, opt, nstdA, nstdB, Y_g_inv, Y_dummy,
                  MeanC3, MeanA3, SigC, SigA);
 
     // Keep the candidates of Y that are SE3
@@ -161,6 +166,44 @@ void axbyczProb2(const std::vector<Eigen::Matrix4d>& A1,
 }
 
 int main() {
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2, A3, B3, C3;
+
+    std::vector<std::string> A1_files = {"data/r1_tf2.txt"};
+    std::vector<std::string> B1_files = {"data/c2b_tf2.txt"};
+    std::vector<std::string> C1_files = {"data/r2_tf2.txt"};
+    std::vector<std::string> A2_files = {"data/r1_tf2.txt"};
+    std::vector<std::string> B2_files = {"data/c2b_tf2.txt"};
+    std::vector<std::string> C2_files = {"data/r2_tf2.txt"};
+    std::vector<std::string> A3_files = {"data/r1_tf2.txt"};
+    std::vector<std::string> B3_files = {"data/c2b_tf2.txt"};
+    std::vector<std::string> C3_files = {"data/r2_tf2.txt"};
+
+    loadMatrices(A1_files, A1);
+    loadMatrices(B1_files, B1);
+    loadMatrices(C1_files, C1);
+    loadMatrices(A2_files, A2);
+    loadMatrices(B2_files, B2);
+    loadMatrices(C2_files, C2);
+    loadMatrices(A3_files, A3);
+    loadMatrices(B3_files, B3);
+    loadMatrices(C3_files, C3);
+
+    Eigen::Matrix4d X_final;
+    Eigen::Matrix4d Y_final;
+    Eigen::Matrix4d Z_final;
+
+    axbyczProb2(A1,B1,C1,A2,B2,C2,A3,B3,C3,X_final,Y_final,Z_final);
+
+    std::cout << "Build successful? - YES" <<std::endl;
+
+    std::cout << "X_final: " << std::endl << X_final << std::endl;
+    std::cout << "Y_final: " << std::endl << Y_final << std::endl;
+    std::cout << "Z_final: " << std::endl << Z_final << std::endl;
+
+    return 0;
+}
+
+/*int main() {
     int num = 10;
     srand(12345);
 
@@ -203,7 +246,7 @@ int main() {
     std::cout << "Z_final: " << std::endl << Z_final << std::endl;
 
     return 0;
-}
+}*/
 
 /*
 Output:

@@ -52,15 +52,24 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
         count++;
     }
 
+    /*std::cout << "meanCov: " << std::endl;
+
+    // Print Mean after its calculation
+    std::cout << "Mean:\n" << Mean << std::endl;*/
+
+    Eigen::VectorXd diff_vex(6);
+
     // Covariance
     for (int i = 0; i < N; i++) {
         diff_se = (Mean.inverse() * X[i]).log();
-        Eigen::VectorXd diff_vex(6);
         Eigen::Vector3d diff_se_block_vec = Eigen::Vector3d::Map(diff_se.block<3, 3>(0, 0).data());
         diff_vex << diff_se_block_vec, diff_se.block<3, 1>(0, 3);
         Cov += diff_vex * diff_vex.transpose();
     }
     Cov /= N;
+
+    // Print Cov after its calculation
+    //std::cout << "Cov:\n" << Cov << std::endl;
 }
 
 #endif

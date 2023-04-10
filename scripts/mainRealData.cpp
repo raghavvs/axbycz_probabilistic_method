@@ -95,7 +95,7 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = true;
+    bool isRandPerm = false;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -114,7 +114,13 @@ int main()
                 Bp2[i] = scrambleData(B2, i, r[rk])[i];
                 BBp1[i] = scrambleData(B1, i, r[rk])[i];
                 BBp2[i] = scrambleData(B2, i, r[rk])[i];
+            } else {
+                Bp1[i] = B1[i];
+                Bp2[i] = B2[i];
+                BBp1[i] = B1[i];
+                BBp2[i] = B2[i];
             }
+
         }
 
         // Prob 1
