@@ -15,20 +15,25 @@ void loadArraysToMatrices(const std::vector<std::string>& filepaths,
         if (file.is_open()) {
             std::string line;
             while (std::getline(file, line)) {
-                Eigen::Matrix4d matrix;
                 std::istringstream iss(line);
                 std::string cell;
-                for (int i = 0; i < 4; ++i) {
-                    for (int j = 0; j < 4; ++j) {
-                        if (std::getline(iss, cell, ',')) {
+                while (std::getline(iss, cell, '(')) {
+                    if (cell.find("array") == std::string::npos) {
+                        continue;
+                    }
+                    Eigen::Matrix4d matrix;
+                    for (int i = 0; i < 4; ++i) {
+                        for (int j = 0; j < 4; ++j) {
+                            if (j > 0) {
+                                std::getline(iss, cell, ' ');
+                            }
+                            std::getline(iss, cell, (j == 3 && i == 3) ? ']' : ',');
+                            cell.erase(std::remove_if(cell.begin(), cell.end(), [](unsigned char c) { return !std::isdigit(c) && c != '.' && c != '-'; }), cell.end());
                             matrix(i, j) = std::stod(cell);
-                        } else {
-                            std::cerr << "Error reading matrix element at (" << i << ", " << j << ")" << std::endl;
-                            break;
                         }
                     }
+                    matrices.push_back(matrix);
                 }
-                matrices.push_back(matrix);
             }
             file.close();
         } else {
@@ -39,16 +44,15 @@ void loadArraysToMatrices(const std::vector<std::string>& filepaths,
 
 int main() {
     // Replace these file paths with your actual data file paths
-    std::vector<std::string> filepaths = {"data/transform_ABC_unified.txt"};
+    std::vector<std::string> filepaths = {"data/transform_ABC_unified_fixA.txt"};
     std::vector<Eigen::Matrix4d> matrices;
 
     loadArraysToMatrices(filepaths, matrices);
 
     std::cout << "Loaded " << matrices.size() << " matrices:" << std::endl;
-    /*for (const auto& matrix : matrices) {
+    for (const auto& matrix : matrices) {
         std::cout << matrix << std::endl << std::endl;
-    }*/
+    }
 
     return 0;
 }
-

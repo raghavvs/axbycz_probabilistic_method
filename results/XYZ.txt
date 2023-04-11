@@ -5538,3 +5538,531 @@ Z_cal3:
 -0.00506952    0.999409   0.0339901  -0.0515655
  -0.0258808    0.033848   -0.999092   0.0159903
           0           0           0           1
+Current date and time: 2023-04-11 16:03:22
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:03:29
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:05:20
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:05:28
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:06:35
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:06:42
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:08:49
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:08:56
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:10:46
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:10:53
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:18:53
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:18:59
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:23:04
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:23:12
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:25:24
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-11 16:25:30
+Probability Method 1
+X_cal1: 
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+Y_cal1: 
+   0.0727968    0.0231321     0.997079    -0.944611
+   -0.994962    0.0707747    0.0710003    -0.397227
+  -0.0689256    -0.997224    0.0281677     0.321622
+  1.4226e-18 -1.12137e-17  -4.3964e-18            1
+Z_cal1: 
+-1  0  0  0
+ 0 -1  0 -0
+ 0  0  1  0
+ 0  0  0  1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan

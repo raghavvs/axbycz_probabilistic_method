@@ -56,12 +56,12 @@ int main()
 {
     std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
-    std::vector<std::string> A1_files = {"data/r1_tf2.txt"};
-    std::vector<std::string> B1_files = {"data/c2b_tf2.txt"};
-    std::vector<std::string> C1_files = {"data/r2_tf2.txt"};
-    std::vector<std::string> A2_files = {"data/r1_tf2.txt"};
-    std::vector<std::string> B2_files = {"data/c2b_tf2.txt"};
-    std::vector<std::string> C2_files = {"data/r2_tf2.txt"};
+    std::vector<std::string> A1_files = {"data/r1_tf.txt"};
+    std::vector<std::string> B1_files = {"data/c2b_tf.txt"};
+    std::vector<std::string> C1_files = {"data/r2_tf.txt"};
+    std::vector<std::string> A2_files = {"data/r1_tf.txt"};
+    std::vector<std::string> B2_files = {"data/c2b_tf.txt"};
+    std::vector<std::string> C2_files = {"data/r2_tf.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -95,7 +95,7 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = false;
+    bool isRandPerm = true;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
