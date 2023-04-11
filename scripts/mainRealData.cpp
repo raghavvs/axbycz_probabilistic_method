@@ -199,7 +199,7 @@ int main()
 
     plt::grid(true);
 
-    plt::save("results/Error_vs_Scramble_Rate_21.png");
+    plt::save("results/Error_vs_Scramble_Rate_22.png");
 
     plt::show();
 
