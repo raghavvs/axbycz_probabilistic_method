@@ -9,7 +9,7 @@ def txt_to_mat(txt_file, mat_file):
     scipy.io.savemat(mat_file, {'data': data})
 
 # Replace these with the paths to your input .txt file and output .mat file
-input_txt_file = "r1_tf1.txt"
-output_mat_file = "r1_tf1.mat"
+input_txt_file = "A_abc.txt"
+output_mat_file = "A_abc.mat"
 
 txt_to_mat(input_txt_file, output_mat_file)

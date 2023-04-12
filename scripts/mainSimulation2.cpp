@@ -62,15 +62,15 @@ int main() {
             Eigen::VectorXd Mean = Eigen::VectorXd::Zero(6);
             Eigen::MatrixXd Cov = 0.1 * Eigen::MatrixXd::Identity(6, 6);
 
-            std::vector<Eigen::Matrix4d> A, B, C, Bp;
+            std::vector<Eigen::Matrix4d> A, B, C, Bp1, Bp2;
 
-            std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
+            std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2, BBp1, BBp2;
 
             for (int i = 0; i < 5; ++i) {
                 std::tie(A1, B1, C1) = generateABC(length, 1, 1, Mean, Cov,
-                                                                X_true, Y_true, Z_true);
+                                                   X_true, Y_true, Z_true);
                 std::tie(A2, B2, C2) = generateABC(length, 3, 1, Mean, Cov,
-                                                                X_true, Y_true, Z_true);
+                                                   X_true, Y_true, Z_true);
 
                 A.insert(A.end(), A1.begin(), A1.end());
                 A.insert(A.end(), A2.begin(), A2.end());
@@ -82,30 +82,22 @@ int main() {
                 C.insert(C.end(), C2.begin(), C2.end());
 
                 if (isRandPerm) {
-                    Bp.emplace_back(scrambleData(B1[i], r[rk]));
-                    Bp.emplace_back(scrambleData(B2[i], r[rk]));
+                    Bp1[i] = scrambleData(B1, i, r[rk])[i];
+                    Bp2[i] = scrambleData(B2, i, r[rk])[i];
+                    BBp1[i] = scrambleData(B1, i, r[rk])[i];
+                    BBp2[i] = scrambleData(B2, i, r[rk])[i];
+                } else {
+                    Bp1[i] = B1[i];
+                    Bp2[i] = B2[i];
+                    BBp1[i] = B1[i];
+                    BBp2[i] = B2[i];
                 }
-            }
-
-            // Inputs for Prob 1
-            Eigen::Matrix4d AA1 = A1[0];
-            Eigen::Matrix4d BB1 = B1[0];
-            Eigen::Matrix4d CC1 = C1[0];
-            Eigen::Matrix4d AA2 = A2[0];
-            Eigen::Matrix4d BB2 = B2[0];
-            Eigen::Matrix4d CC2 = C2[0];
-            Eigen::MatrixXd BBp1, BBp2;
-
-            if (isRandPerm) {
-                BBp1 = scrambleData(BB1, r[rk]);
-                BBp2 = scrambleData(BB2, r[rk]);
-                Bp.emplace_back(scrambleData(BB1, r[rk]));
             }
 
             // Prob 1
             Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1;
 
-            axbyczProb1(AA1, BBp1, CC1, AA2, BBp2, CC2,
+            axbyczProb1(A1, BBp1, C1, A2, BBp2, C2,
                         true, 0.001, 0.001,
                         X_cal1, Y_cal1, Z_cal1);
 
