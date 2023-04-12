@@ -177,11 +177,11 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
         }
     }
 
-    // Print the cost matrix
+    /*// Print the cost matrix
     std::cout << "Cost matrix: " << std::endl << cost << std::endl;
 
     // Print the indices of the minimum cost
-    std::cout << "Minimum cost indices: min_i = " << min_i << ", min_j = " << min_j << ", min_m = " << min_m << std::endl;
+    std::cout << "Minimum cost indices: min_i = " << min_i << ", min_j = " << min_j << ", min_m = " << min_m << std::endl;*/
 
     //// Recover the X, Y, Z that minimize cost
     X_final = X[min_i];
