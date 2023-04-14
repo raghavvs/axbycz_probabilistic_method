@@ -34,21 +34,20 @@ double rotError(const Eigen::Matrix4d& X1, const Eigen::Matrix4d& X2) {
 }
 
 int main() {
-    Eigen::Matrix4d X1, X2;
-
+    Eigen::Matrix4d X1;
     X1 << 1, 0, 0, 1,
-          0, 1, 0, 2,
-          0, 0, 1, 3,
-          0, 0, 0, 1;
+            0, 1, 0, 2,
+            0, 0, 1, 3,
+            0, 0, 0, 1;
 
-    X2 << 0.866, -0.5, 0, 1.5,
-          0.5, 0.866, 0, 2.5,
-          0, 0, 1, 3.5,
-          0, 0, 0, 1;
+    Eigen::Matrix4d X2;
+    X2 << 0, -1, 0, 1,
+            1, 0, 0, 2,
+            0, 0, 1, 3,
+            0, 0, 0, 1;
 
     double error = rotError(X1, X2);
-
-    std::cout << "Rotational error: " << error << std::endl;
+    std::cout << "Rotation error between X1 and X2: " << error << std::endl;
 
     return 0;
 }
