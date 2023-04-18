@@ -51,15 +51,13 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
                  Eigen::Matrix4d& Y_final,
                  Eigen::Matrix4d& Z_final) {
 
-    //std::cout << "axbyczProb1:" << std::endl;
-
-    ////   A1 is constant with B1 and C1 free
+    //// A1 is constant with B1 and C1 free
     Eigen::Matrix4d A1_fixed = A1[0];
 
-    ////   C2 is constant with A2 and B2 free
+    //// C2 is constant with A2 and B2 free
     Eigen::Matrix4d C2_fixed = C2[0];
 
-    // Solve for Z
+    //// Solve for Z
     std::vector<Eigen::Matrix4d> Z_g, X_dummy, Y_dummy;
     Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2;
     Eigen::Matrix<double, 6, 6> SigC1, SigB1, SigA2, SigB2;
@@ -84,7 +82,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
         B2_inv[i] = B2[i].inverse();
     }
 
-    // Solve for X
+    //// Solve for X
     std::vector<Eigen::Matrix4d> X_g;
     batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_dummy,
                  MeanA2, MeanB2, SigA2, SigB2);
@@ -102,7 +100,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_dummy, Y_dummy,
                  MeanA2, MeanB2, SigA2, SigB2);
 
-    // Compute Y
+    //// Compute Y
     std::vector<Eigen::Matrix4d> Y(2 * s_X * s_Z);
     for (size_t i = 0; i < s_X; ++i) {
         for (size_t j = 0; j < s_Z; ++j){
@@ -155,7 +153,6 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     X_final = X[min_i];
     Z_final = Z[min_j];
     Y_final = Y[min_m];
-
 }
 
 #endif
