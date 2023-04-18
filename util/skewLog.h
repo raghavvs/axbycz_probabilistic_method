@@ -32,8 +32,8 @@ Eigen::Matrix3d skewLog(Eigen::Matrix3d R) {
         double m2 = M(1, 1);
         double m3 = M(2, 2);
         w_hat << 0, -std::sqrt((m3 - m1 - m2) / 2.0), std::sqrt((m2 - m1 - m3) / 2.0),
-        std::sqrt((m3 - m1 - m2) / 2.0), 0, -std::sqrt((m1 - m2 - m3) / 2.0),
-        -std::sqrt((m2 - m1 - m3) / 2.0), std::sqrt((m1 - m2 - m3) / 2.0), 0;
+                std::sqrt((m3 - m1 - m2) / 2.0), 0, -std::sqrt((m1 - m2 - m3) / 2.0),
+                -std::sqrt((m2 - m1 - m3) / 2.0), std::sqrt((m1 - m2 - m3) / 2.0), 0;
         w_hat *= theta;
     } else {
         w_hat = (R - R.transpose()) / (2.0 * std::sin(theta)) * theta;

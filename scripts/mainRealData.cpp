@@ -75,7 +75,7 @@ int main()
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 2;
+    int init_guess = 3;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
@@ -95,7 +95,7 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = false;
+    bool isRandPerm = true;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};

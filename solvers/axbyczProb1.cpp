@@ -108,7 +108,8 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     std::vector<Eigen::Matrix4d> Y(2 * s_X * s_Z);
     for (int i = 0; i < s_X; ++i) {
         for (int j = 0; j < s_Z; ++j) {
-            Y[(i * s_Z) + j] = (A1_fixed * X[i] * MeanB1 * Z[j].inverse()) * MeanC1.inverse(); // ignore element wise multiplication form in MATLAB version
+            // ignore element wise multiplication form in MATLAB version
+            Y[(i * s_Z) + j] = (A1_fixed * X[i] * MeanB1 * Z[j].inverse()) * MeanC1.inverse();
             Y[(i * s_Z) + j + s_X * s_Z] = (MeanA2 * X[i] * MeanB2 * Z[j].inverse()) * C2_fixed.inverse();
         }
     }
