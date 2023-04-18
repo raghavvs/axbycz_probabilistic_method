@@ -76,16 +76,6 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     size_t s_Z = Z.size();
 
-    // Print Z_g and Z matrices
-    /*std::cout << "Z_g matrices: " << std::endl;
-    for (size_t i = 0; i < Z_g.size(); ++i) {
-        std::cout << "Z_g[" << i << "]:\n" << Z_g[i] << std::endl;
-    }
-    std::cout << "Z matrices: " << std::endl;
-    for (size_t i = 0; i < Z.size(); ++i) {
-        std::cout << "Z[" << i << "]:\n" << Z[i] << std::endl;
-    }*/
-
     // Calculate B2_inv
     int Num = A2.size();
     std::vector<Eigen::Matrix4d> A2_inv(Num), B2_inv(Num);
@@ -108,16 +98,6 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     size_t s_X = X.size();
 
-    // Print X_g and X matrices
-    /*std::cout << "X_g matrices: " << std::endl;
-    for (size_t i = 0; i < X_g.size(); ++i) {
-        std::cout << "X_g[" << i << "]:\n" << X_g[i] << std::endl;
-    }
-    std::cout << "X matrices: " << std::endl;
-    for (size_t i = 0; i < X.size(); ++i) {
-        std::cout << "X[" << i << "]:\n" << X[i] << std::endl;
-    }*/
-
     // Calculate MeanB2 for computing Y later
     batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_dummy, Y_dummy,
                  MeanA2, MeanB2, SigA2, SigB2);
@@ -137,12 +117,6 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     }
 
     size_t s_Y = Y.size();
-
-    // Print Y matrices
-    /*std::cout << "Y matrices: " << std::endl;
-    for (size_t i = 0; i < Y.size(); ++i) {
-        std::cout << "Y[" << i << "]:\n" << Y[i] << std::endl;
-    }*/
 
     // Find the optimal (X, Y, Z) that minimizes cost
     Eigen::MatrixXd cost(s_X, s_Y * s_Z);
@@ -177,21 +151,11 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
         }
     }
 
-    /*// Print the cost matrix
-    std::cout << "Cost matrix: " << std::endl << cost << std::endl;
-
-    // Print the indices of the minimum cost
-    std::cout << "Minimum cost indices: min_i = " << min_i << ", min_j = " << min_j << ", min_m = " << min_m << std::endl;*/
-
     //// Recover the X, Y, Z that minimize cost
     X_final = X[min_i];
     Z_final = Z[min_j];
     Y_final = Y[min_m];
 
-    // Print the final X, Y, and Z matrices
-    /*std::cout << "Final X matrix:\n" << X_final << std::endl;
-    std::cout << "Final Y matrix:\n" << Y_final << std::endl;
-    std::cout << "Final Z matrix:\n" << Z_final << std::endl;*/
 }
 
 #endif
