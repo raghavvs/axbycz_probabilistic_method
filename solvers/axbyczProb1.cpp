@@ -59,6 +59,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2, MeanA2_inv, MeanB2_inv;
     Eigen::Matrix<double, 6, 6> SigC1, SigB1, SigA2, SigB2;
 
+    // Calculate MeanC1
     batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_dummy,
                  MeanC1, MeanB1, SigC1, SigB1);
 
@@ -83,6 +84,8 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     //// Solve for X
     std::vector<Eigen::Matrix4d> X_g;
+
+    // Calculate MeanA2
     batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_dummy,
                  MeanA2, MeanB2_inv, SigA2, SigB2);
 

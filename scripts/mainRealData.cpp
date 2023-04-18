@@ -75,7 +75,7 @@ int main()
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 3;
+    int init_guess = 2;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
@@ -95,7 +95,7 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = true;
+    bool isRandPerm = false;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -165,6 +165,9 @@ int main()
     std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
     outFile << "Current date and time: " << buffer << std::endl;
+
+    outFile << "Initial Guess: " << init_guess << std::endl;
+    outFile << "Scrambling: " << isRandPerm << std::endl;
 
     outFile << "Probability Method 1" << std::endl;
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
