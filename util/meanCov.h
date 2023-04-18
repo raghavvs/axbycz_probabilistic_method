@@ -23,6 +23,12 @@ and the mean logarithm and computing their outer product.
 #include <vector>
 #include <unsupported/Eigen/MatrixFunctions>
 
+Eigen::Vector3d vex(const Eigen::Matrix3d &m) {
+    Eigen::Vector3d v;
+    v << m(2, 1), m(0, 2), m(1, 0);
+    return v;
+}
+
 void meanCov(const std::vector<Eigen::Matrix4d> &X,
              Eigen::Matrix4d &Mean,
              Eigen::Matrix<double, 6, 6> &Cov) {
@@ -43,7 +49,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
     int max_num = 100;
     double tol = 1e-5;
     int count = 1;
-    while (diff_se.norm() >= tol && count <= max_num) {
+    while (diff_se.norm() * sqrt(16) >= tol && count <= max_num) {
         diff_se = Eigen::Matrix4d::Zero();
         for (int i = 0; i < N; i++) {
             diff_se += (Mean.inverse() * X[i]).log();
@@ -52,24 +58,14 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
         count++;
     }
 
-    /*std::cout << "meanCov: " << std::endl;
-
-    // Print Mean after its calculation
-    std::cout << "Mean:\n" << Mean << std::endl;*/
-
-    Eigen::VectorXd diff_vex(6);
-
     // Covariance
     for (int i = 0; i < N; i++) {
         diff_se = (Mean.inverse() * X[i]).log();
-        Eigen::Vector3d diff_se_block_vec = Eigen::Vector3d::Map(diff_se.block<3, 3>(0, 0).data());
-        diff_vex << diff_se_block_vec, diff_se.block<3, 1>(0, 3);
+        Eigen::VectorXd diff_vex(6);
+        diff_vex << vex(diff_se.block<3, 3>(0, 0)), diff_se.block<3, 1>(0, 3);
         Cov += diff_vex * diff_vex.transpose();
     }
     Cov /= N;
-
-    // Print Cov after its calculation
-    //std::cout << "Cov:\n" << Cov << std::endl;
 }
 
 #endif

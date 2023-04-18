@@ -73,13 +73,6 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     auto const& VA = eig_solver_A.eigenvectors();
     auto const& VB = eig_solver_B.eigenvectors();
 
-    // Print MeanX, MeanY, SigX, and SigY after their calculation
-    /*std::cout << "batchSolveXY:" << std::endl;
-    std::cout << "MeanX:\n" << MeanA << std::endl;
-    std::cout << "MeanY:\n" << MeanB << std::endl;
-    std::cout << "SigX:\n" << SigA << std::endl;
-    std::cout << "SigY:\n" << SigB << std::endl;*/
-
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
     Q1 = Eigen::Matrix3d::Identity();
@@ -117,17 +110,6 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         Y[i] = Y_candidate[i];
     }
 
-    /*std::cout << "batchSolveXY:" << std::endl;
-
-    // Print X and Y before returning from the function
-    std::cout << "X matrices:" << std::endl;
-    for (size_t i = 0; i < X.size(); ++i) {
-        std::cout << "X_g[" << i << "]:\n" << X[i] << std::endl;
-    }
-    std::cout << "Y matrices:" << std::endl;
-    for (size_t i = 0; i < Y.size(); ++i) {
-        std::cout << "Y[" << i << "]:\n" << Y[i] << std::endl;
-    }*/
 }
 
 #endif
