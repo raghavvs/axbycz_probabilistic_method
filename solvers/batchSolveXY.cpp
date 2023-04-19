@@ -77,14 +77,10 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Eigen::MatrixXd VA = svd_A.matrixU() * svd_A.matrixV().transpose();
     Eigen::MatrixXd VB = svd_B.matrixU() * svd_B.matrixV().transpose();
 
-    std::cout << "Eigenvalues A: " << std::endl;
-    std::cout << eigenvalues_A << std::endl;
-    std::cout << "Eigenvectors A: " << std::endl;
-    std::cout << eigenvectors_A << std::endl;
-    std::cout << "Eigenvalues B: " << std::endl;
-    std::cout << eigenvalues_B << std::endl;
-    std::cout << "Eigenvectors B: " << std::endl;
-    std::cout << eigenvectors_B << std::endl;
+    std::cout << "Sorted Eigenvectors A (VA): " << std::endl;
+    std::cout << VA << std::endl;
+    std::cout << "Sorted Eigenvectors B (VB): " << std::endl;
+    std::cout << VB << std::endl;
 
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
@@ -92,19 +88,6 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Q2 = (Eigen::Matrix3d() << -1, 0, 0, 0, -1, 0, 0, 0, 1).finished();
     Q3 = (Eigen::Matrix3d() << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
     Q4 = (Eigen::Matrix3d() << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
-
-    std::cout << "Sorted Eigenvectors A (VA): " << std::endl;
-    std::cout << VA << std::endl;
-    std::cout << "Sorted Eigenvectors B (VB): " << std::endl;
-    std::cout << VB << std::endl;
-    std::cout << "Q1: " << std::endl;
-    std::cout << Q1 << std::endl;
-    std::cout << "Q2: " << std::endl;
-    std::cout << Q2 << std::endl;
-    std::cout << "Q3: " << std::endl;
-    std::cout << Q3 << std::endl;
-    std::cout << "Q4: " << std::endl;
-    std::cout << Q4 << std::endl;
 
     std::vector<Eigen::Matrix3d> Rx_solved(8, Eigen::Matrix3d::Zero());
 
