@@ -34,9 +34,7 @@ Output:
 
 #include <iostream>
 #include <vector>
-#include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
-#include <numeric>
 #include "meanCov.h"
 #include "so3Vec.h"
 
@@ -65,32 +63,11 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
-    /*// Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());*/
+    Eigen::EigenSolver<Eigen::MatrixXd> esA(SigA.block<3, 3>(0, 0));
+    Eigen::MatrixXd VA = esA.eigenvectors().real();
 
-    /*Eigen::MatrixXd A_temp = SigA.block<3, 3>(0, 0);
-    Eigen::MatrixXd B_temp = SigB.block<3, 3>(0, 0);
-
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd_A(A_temp, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd_B(B_temp, Eigen::ComputeFullU | Eigen::ComputeFullV);
-
-    Eigen::MatrixXd VA = svd_A.matrixU() * svd_A.matrixV().transpose();
-    Eigen::MatrixXd VB = svd_B.matrixU() * svd_B.matrixV().transpose();*/
-
-    Eigen::MatrixXd A_temp = SigA.block<3, 3>(0, 0);
-    Eigen::MatrixXd B_temp = SigB.block<3, 3>(0, 0);
-
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig_solver_A(A_temp);
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig_solver_B(B_temp);
-
-    Eigen::MatrixXd VA = eig_solver_A.eigenvectors();
-    Eigen::MatrixXd VB = eig_solver_B.eigenvectors();
-
-    std::cout << "Eigenvectors A (VA): " << std::endl;
-    std::cout << VA << std::endl;
-    std::cout << "Eigenvectors B (VB): " << std::endl;
-    std::cout << VB << std::endl;
+    Eigen::EigenSolver<Eigen::MatrixXd> esB(SigB.block<3, 3>(0, 0));
+    Eigen::MatrixXd VB = esB.eigenvectors().real();
 
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
@@ -111,11 +88,6 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Rx_solved[6] = VA * (-Q3) * VB.transpose();
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
-    std::cout << "Rx_solved[0]: " << std::endl;
-    std::cout << Rx_solved[0] << std::endl;
-    std::cout << "Rx_solved[4]: " << std::endl;
-    std::cout << Rx_solved[4] << std::endl;
-
     X.resize(8);
     Y.resize(8);
 
@@ -133,7 +105,6 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         X[i] = X_candidate[i];
         Y[i] = Y_candidate[i];
     }
-
 }
 
 int main() {
