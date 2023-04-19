@@ -28,6 +28,8 @@ In the case of two robotic arms:
 
 #include <iostream>
 #include <vector>
+#include <cmath>
+#include <limits>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
 #include "rotError.h"
@@ -44,18 +46,24 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
                  double nstd2,
                  Eigen::Matrix4d& X_final,
                  Eigen::Matrix4d& Y_final,
-                 Eigen::Matrix4d& Z_final) {
+                 Eigen::Matrix4d& Z_final){
 
-    // Select the first A1 and C2
+    //// A1 is constant with B1 and C1 free
     Eigen::Matrix4d A1_fixed = A1[0];
+
+    //// C2 is constant with A2 and B2 free
     Eigen::Matrix4d C2_fixed = C2[0];
 
-    // Solve for Z
+    //// Solve for Z
     std::vector<Eigen::Matrix4d> Z_g, X_dummy, Y_dummy;
-    Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2;
+    Eigen::Matrix4d MeanC1, MeanB1, MeanA2, MeanB2, MeanA2_inv, MeanB2_inv;
     Eigen::Matrix<double, 6, 6> SigC1, SigB1, SigA2, SigB2;
+
+    // Calculate MeanC1
     batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_dummy,
                  MeanC1, MeanB1, SigC1, SigB1);
+
+    std::cout << "Z_g[last]: " << std::endl << Z_g[1] << std::endl;
 
     std::vector<Eigen::Matrix4d> Z;
     for (const auto& z : Z_g) {
@@ -64,8 +72,9 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
         }
     }
 
-    size_t s_Z = Z.size();
-    std::cout << "s_Z: " << std::endl << s_Z << std::endl;
+    int s_Z = Z.size();
+
+    // all good
 
     // Calculate B2_inv
     int Num = A2.size();
@@ -75,10 +84,12 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
         B2_inv[i] = B2[i].inverse();
     }
 
-    // Solve for X
+    //// Solve for X
     std::vector<Eigen::Matrix4d> X_g;
+
+    // Calculate MeanA2
     batchSolveXY(A2, B2_inv, opt, nstd1, nstd2, X_g, Y_dummy,
-                 MeanA2, MeanB2, SigA2, SigB2);
+                 MeanA2, MeanB2_inv, SigA2, SigB2);
 
     std::vector<Eigen::Matrix4d> X;
     for (const auto& x : X_g) {
@@ -88,28 +99,34 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     }
 
     size_t s_X = X.size();
-    std::cout << "s_X: " << std::endl << s_X << std::endl;
 
     // Calculate MeanB2 for computing Y later
     batchSolveXY(A2_inv, B2, opt, nstd1, nstd2, X_dummy, Y_dummy,
-                 MeanA2, MeanB2, SigA2, SigB2);
+                 MeanA2_inv, MeanB2, SigA2, SigB2);
 
-    // Compute Y
+    // all good
+
+    // Solve for Y
     std::vector<Eigen::Matrix4d> Y(2 * s_X * s_Z);
-    for (size_t i = 0; i < s_X; ++i) {
-        for (size_t j = 0; j < s_Z; ++j){
-            Eigen::Matrix4d left = A1_fixed * X[i] * MeanB1;
-            Eigen::Matrix4d right = Z[j].inverse() * MeanC1.inverse();
-            Y[(i * s_Z) + j] = left * right;
-
-            left = MeanA2 * X[i] * MeanB2;
-            right = C2_fixed * Z[j].inverse();
-            Y[(i * s_Z) + j + s_X * s_Z] = left * right;
+    for (int i = 0; i < s_X; ++i) {
+        for (int j = 0; j < s_Z; ++j) {
+            // ignore element wise multiplication form in MATLAB version
+            Y[(i * s_Z) + j] = (A1_fixed * X[i] * MeanB1 * Z[j].inverse()) * MeanC1.inverse();
+            Y[(i * s_Z) + j + s_X * s_Z] = (MeanA2 * X[i] * MeanB2 * Z[j].inverse()) * C2_fixed.inverse();
         }
     }
 
-    size_t s_Y = Y.size();
-    std::cout << "s_Y: " << std::endl << s_Y << std::endl;
+    int s_Y = Y.size();
+
+    std::cout << s_X << std::endl;
+    std::cout << s_Y << std::endl;
+    std::cout << s_Z << std::endl;
+
+    std::cout << "X[last]: " << std::endl << X[s_X-1] << std::endl;
+    std::cout << "Y[last]: " << std::endl << Y[s_Y-1] << std::endl;
+    std::cout << "Z[last]: " << std::endl << Z[s_Z-1] << std::endl;
+
+    // all good
 
     // Find the optimal (X, Y, Z) that minimizes cost
     Eigen::MatrixXd cost(s_X, s_Y * s_Z);
@@ -133,6 +150,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
                                                          tranError(left2, right2);
 
                 double current_cost = std::abs(diff1) + std::abs(diff2);
+
                 cost(i, j * s_Y + m) = current_cost;
                 if (current_cost < min_cost) {
                     min_cost = current_cost;
@@ -146,100 +164,49 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     //// Recover the X, Y, Z that minimize cost
     X_final = X[min_i];
-    Z_final = Z[min_j];
     Y_final = Y[min_m];
+    Z_final = Z[min_j];
+
+    std::cout << min_i << std::endl;
+    std::cout << min_j << std::endl;
+    std::cout << min_m << std::endl;
 }
 
 int main() {
-    int num = 10;
-    srand(12345);
+    // Create deterministic input matrices
+    int num_matrices = 2;
+    std::vector<Eigen::Matrix4d> A1(num_matrices), B1(num_matrices), C1(num_matrices);
+    std::vector<Eigen::Matrix4d> A2(num_matrices), B2(num_matrices), C2(num_matrices);
 
-    std::vector<Eigen::Matrix4d> A1(num), B1(num), C1(num),
-            A2(num), B2(num), C2(num);
+    // Fill in the input matrices with specific examples
+    A1[0] << 1, 2, 3, 1,
+            0, 1, 0, 2,
+            0, 0, 1, 3,
+            0, 0, 0, 1;
+    A1[1] << 1, 1, 3, 2,
+            0, 1, 0, 3,
+            0, 0, 1, 1,
+            0, 0, 0, 1;
 
-    for (int i = 0; i < num; ++i){
-        A1[i] = Eigen::Matrix4d::Random();
-        B1[i] = Eigen::Matrix4d::Random();
-        C1[i] = Eigen::Matrix4d::Random();
-        A2[i] = Eigen::Matrix4d::Random();
-        B2[i] = Eigen::Matrix4d::Random();
-        C2[i] = Eigen::Matrix4d::Random();
+    B1 = A1;
+    C1 = A1;
+    A2 = A1;
+    B2 = A1;
+    C2 = A1;
 
-        A1[i].row(3) << 0, 0, 0, 1;
-        B1[i].row(3) << 0, 0, 0, 1;
-        C1[i].row(3) << 0, 0, 0, 1;
-        A2[i].row(3) << 0, 0, 0, 1;
-        B2[i].row(3) << 0, 0, 0, 1;
-        C2[i].row(3) << 0, 0, 0, 1;
-    }
-
+    // Set opt, nstd1, and nstd2
     bool opt = true;
     double nstd1 = 0.01;
     double nstd2 = 0.01;
 
-    Eigen::Matrix4d X_final;
-    Eigen::Matrix4d Y_final;
-    Eigen::Matrix4d Z_final;
+    // Call the axbyczProb1 function
+    Eigen::Matrix4d X_final, Y_final, Z_final;
+    axbyczProb1(A1, B1, C1, A2, B2, C2, opt, nstd1, nstd2, X_final, Y_final, Z_final);
 
-    axbyczProb1(A1,B1,C1,A2,B2,C2,opt,nstd1,nstd2,X_final,Y_final,Z_final);
-
-    std::cout << "Build successful? - YES" <<std::endl;
-
-    std::cout << "X_final: " << std::endl << X_final << std::endl;
-    std::cout << "Y_final: " << std::endl << Y_final << std::endl;
-    std::cout << "Z_final: " << std::endl << Z_final << std::endl;
+    // Display results
+    std::cout << "X_final:\n" << X_final << std::endl;
+    std::cout << "Y_final:\n" << Y_final << std::endl;
+    std::cout << "Z_final:\n" << Z_final << std::endl;
 
     return 0;
 }
-
-/*
-s_Z:
-4
-s_X:
-4
-s_Y:
-32
-Build successful? - YES
-X_final:
- 0.204574  0.977863 0.0439695 -0.483605
- 0.965886 -0.194374 -0.171123   3.14739
--0.158788 0.0774767 -0.984268  -1.33268
-        0         0         0         1
-Y_final:
-   0.698662    0.166787   0.0172338    -2.49042
-   0.669957  -0.0276654    0.509374    -2.39892
-   0.498215    0.311712   -0.267238    -1.93874
-1.86376e-16 8.59521e-17 5.71642e-17           1
-Z_final:
-0.00308006   0.978883  -0.204397   -1.02195
- -0.471716    0.18165   0.862837    -1.9688
-  0.881745  0.0937599   0.462315   0.082021
-         0          0          0          1
-
- // Recover the X, Y, Z that minimize cost
-Eigen::MatrixXd::Index min_row, min_col;
-double min_cost = cost.minCoeff(&min_row, &min_col);
-
-X_final = X[min_row];
-Z_final = Z[min_col / s_Y];
-
-size_t index_Y = min_col % s_Y;
-Y_final = Y[index_Y];
-
- Build successful? - YES
-X_final:
- 0.442064 -0.887602  0.129392 -0.561387
- 0.670379  0.422773  0.609799 -0.423248
--0.595962 -0.182829  0.781923  0.287504
-        0         0         0         1
-Y_final:
-     1.09801     0.556264     0.621148    -0.174543
-     0.69153     0.431162     0.779685    -0.529147
-    0.904195     0.466243     0.215633    -0.520631
--9.57447e-17 -1.59612e-16   2.4069e-17            1
-Z_final:
-   0.35989  -0.903358  -0.233289   0.247924
- -0.709024  -0.427334   0.560955   0.148192
- -0.606435 -0.0364746  -0.794296   0.889415
-         0          0          0          1
- */

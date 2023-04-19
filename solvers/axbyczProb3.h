@@ -361,17 +361,13 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     Eigen::Matrix4d Zupdate = Zinit;
     Eigen::VectorXd xi = Eigen::VectorXd::Ones(18);
 
-    /*std::cout << "Initial X:\n" << Xinit << std::endl;
-    std::cout << "Initial Y:\n" << Yinit << std::endl;
-    std::cout << "Initial Z:\n" << Zinit << std::endl;*/
-
-    int max_num = 10;
+    int max_num = 2;
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
     std::vector<Eigen::MatrixXd> A1_m, B1_m, C1_m, SigA1, SigB1, SigC1;
     meanCov(A1, Ni, A1_m, SigA1);
-    meanCov(B1, Ni, B1_m, SigB1);
+    meanCov(B1, Ni, B1_m, SigB1);   
     meanCov(C1, Ni, C1_m, SigC1);
 
     // invert B2
@@ -456,12 +452,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         Eigen::VectorXd w_Z = xi_new.block(12, 0, 3, 1);
         Eigen::VectorXd v_Z = xi_new.block(15, 0, 3, 1);
 
-        /*std::cout << "M:\n" << M << std::endl;
-        std::cout << "b:\n" << b << std::endl;
-        std::cout << "M.transpose() * M:\n" << M.transpose() * M << std::endl;
-        std::cout << "M.transpose() * b:\n" << M.transpose() * b << std::endl;
-        std::cout << "xi_new:\n" << xi_new << std::endl;*/
-
         Eigen::Matrix4d X_hat;
         X_hat << skew(w_X), v_X,
                 Eigen::RowVector4d::Zero();
@@ -478,11 +468,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         Y_cal = Yupdate * (Y_hat).exp();
         Z_cal = Zupdate * (Z_hat).exp();
 
-        /*std::cout << "Iteration: " << num << std::endl;
-        std::cout << "xi_X:\n" << w_X << std::endl;
-        std::cout << "xi_Y:\n" << w_Y << std::endl;
-        std::cout << "xi_Z:\n" << w_Z << std::endl;*/
-
         // Update
         Xupdate = X_cal;
         Yupdate = Y_cal;
@@ -493,8 +478,6 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
         // Error
         diff = metric(A1,B1,C1,Xupdate,Yupdate,Zupdate) +
                metric(A2,B2,C2,Xupdate,Yupdate,Zupdate);
-
-        //std::cout << "Updated diff: " << diff << std::endl;
 
     }
 }

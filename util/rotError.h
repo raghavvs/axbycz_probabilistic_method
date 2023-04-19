@@ -23,11 +23,11 @@ between the two matrices in radians.
 #define ROTERROR_H
 
 #include <iostream>
-#include <eigen3/Eigen/Dense>
 #include "so3Vec.h"
 #include "skewLog.h"
 
-double rotError(const Eigen::Matrix4d& X1, const Eigen::Matrix4d& X2) {
+double rotError(const Eigen::Matrix4d& X1,
+                const Eigen::Matrix4d& X2) {
     Eigen::Matrix3d R1 = X1.block<3, 3>(0, 0);
     Eigen::Matrix3d R2 = X2.block<3, 3>(0, 0);
     Eigen::Matrix3d R12 = R1.transpose() * R2;

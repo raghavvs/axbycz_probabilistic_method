@@ -37,3 +37,26 @@ Eigen::Matrix3d skewLog(Eigen::Matrix3d R) {
     }
     return w_hat;
 }
+
+int main() {
+    // Test the function with an identity matrix
+    Eigen::Matrix3d R1 = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d w_hat1 = skewLog(R1);
+    std::cout << "Input rotation matrix (identity):" << std::endl;
+    std::cout << R1 << std::endl;
+    std::cout << "Output skew-symmetric matrix:" << std::endl;
+    std::cout << w_hat1 << std::endl;
+
+    // Test the function with another rotation matrix
+    Eigen::Matrix3d R2;
+    R2 << 0, -1, 0,
+            1, 0, 0,
+            0, 0, 1;
+    Eigen::Matrix3d w_hat2 = skewLog(R2);
+    std::cout << "Input rotation matrix:" << std::endl;
+    std::cout << R2 << std::endl;
+    std::cout << "Output skew-symmetric matrix:" << std::endl;
+    std::cout << w_hat2 << std::endl;
+
+    return 0;
+}

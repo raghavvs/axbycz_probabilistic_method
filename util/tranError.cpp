@@ -28,23 +28,19 @@ double tranError(const Eigen::Matrix4d& X1,
 
 // TEST
 
-/*
 int main() {
-    Eigen::MatrixXd X1(4, 4);
-    X1 << 1, 0, 0, 2,
-          0, 1, 0, 3,
-          0, 0, 1, 4,
-          0, 0, 0, 1;
+    Eigen::Matrix4d X1 = Eigen::Matrix4d::Identity();
+    X1(0, 3) = 1;
+    X1(1, 3) = 2;
+    X1(2, 3) = 3;
 
-    Eigen::MatrixXd X2(4, 4);
-    X2 << 1, 0, 0, 5,
-          0, 1, 0, 6,
-          0, 0, 1, 7,
-          0, 0, 0, 1;
+    Eigen::Matrix4d X2 = Eigen::Matrix4d::Identity();
+    X2(0, 3) = 4;
+    X2(1, 3) = 5;
+    X2(2, 3) = 6;
 
     double error = tranError(X1, X2);
-    std::cout << "Translation error: " << error << std::endl;
+    std::cout << "Translation error between X1 and X2: " << error << std::endl;
 
     return 0;
 }
-*/

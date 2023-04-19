@@ -32,12 +32,11 @@ Output:
     SigA, SigB: Matrices - dim - 6x6 - Covariance of A, B
 */
 
-#ifndef BATCHSOLVEXY_H
-#define BATCHSOLVEXY_H
-
 #include <iostream>
 #include <vector>
+#include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
+#include <numeric>
 #include "meanCov.h"
 #include "so3Vec.h"
 
@@ -66,11 +65,38 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
+    /*// Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());*/
+
+    /*Eigen::MatrixXd A_temp = SigA.block<3, 3>(0, 0);
+    Eigen::MatrixXd B_temp = SigB.block<3, 3>(0, 0);
+
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd_A(A_temp, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd_B(B_temp, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+    Eigen::MatrixXd VA = svd_A.matrixU() * svd_A.matrixV().transpose();
+    Eigen::MatrixXd VB = svd_B.matrixU() * svd_B.matrixV().transpose();*/
+
+    /*Eigen::MatrixXd A_temp = SigA.block<3, 3>(0, 0);
+    Eigen::MatrixXd B_temp = SigB.block<3, 3>(0, 0);
+
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig_solver_A(A_temp);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig_solver_B(B_temp);
+
+    Eigen::MatrixXd VA = eig_solver_A.eigenvectors();
+    Eigen::MatrixXd VB = eig_solver_B.eigenvectors();*/
+
     Eigen::EigenSolver<Eigen::MatrixXd> esA(SigA.block<3, 3>(0, 0));
     Eigen::MatrixXd VA = esA.eigenvectors().real();
 
     Eigen::EigenSolver<Eigen::MatrixXd> esB(SigB.block<3, 3>(0, 0));
     Eigen::MatrixXd VB = esB.eigenvectors().real();
+
+    std::cout << "Eigenvectors A (VA): " << std::endl;
+    std::cout << VA << std::endl;
+    std::cout << "Eigenvectors B (VB): " << std::endl;
+    std::cout << VB << std::endl;
 
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
@@ -91,6 +117,11 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Rx_solved[6] = VA * (-Q3) * VB.transpose();
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
 
+    std::cout << "Rx_solved[0]: " << std::endl;
+    std::cout << Rx_solved[0] << std::endl;
+    std::cout << "Rx_solved[4]: " << std::endl;
+    std::cout << Rx_solved[4] << std::endl;
+
     X.resize(8);
     Y.resize(8);
 
@@ -110,4 +141,53 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     }
 }
 
-#endif
+int main() {
+    // Create deterministic input matrices A and B
+    std::vector<Eigen::Matrix4d> A(2), B(2);
+
+    A[0] << 0.9363, -0.2751, 0.2183, 1.2020,
+            0.2896, 0.9566, -0.0392, -0.1022,
+            -0.1985, 0.0978, 0.9750, 0.3426,
+            0.0, 0.0, 0.0, 1.0;
+
+    A[1] << 0.9938, -0.0975, 0.0599, -0.2246,
+            0.0975, 0.9951, -0.0273, 0.1088,
+            -0.0603, 0.0250, 0.9981, 0.4839,
+            0.0, 0.0, 0.0, 1.0;
+
+    B[0] << 0.8660, -0.2896, 0.4082, 0.9501,
+            0.5000, 0.8660, -0.0000, -0.5507,
+            -0.0000, 0.0000, 1.0000, 0.5000,
+            0.0, 0.0, 0.0, 1.0;
+
+    B[1] << 0.9603, -0.1944, 0.2014, 0.6231,
+            0.2791, 0.6829, -0.6752, -0.4567,
+            -0.0000, 0.7071, 0.7071, 0.7071,
+            0.0, 0.0, 0.0, 1.0;
+
+    bool opt = false;
+    double nstd_A = 0.0, nstd_B = 0.0;
+    std::vector<Eigen::Matrix4d> X, Y;
+    Eigen::Matrix4d MeanA, MeanB;
+    Eigen::Matrix<double, 6, 6> SigA, SigB;
+
+    batchSolveXY(A, B, opt, nstd_A, nstd_B, X, Y, MeanA, MeanB, SigA, SigB);
+
+    // Display results
+    std::cout << "X:\n";
+    for (const auto &x: X) {
+        std::cout << x << "\n\n";
+    }
+
+    std::cout << "Y:\n";
+    for (const auto &y: Y) {
+        std::cout << y << "\n\n";
+    }
+
+    std::cout << "MeanA:\n" << MeanA << "\n\n";
+    std::cout << "MeanB:\n" << MeanB << "\n\n";
+    std::cout << "SigA:\n" << SigA << "\n\n";
+    std::cout << "SigB:\n" << SigB << "\n\n";
+
+    return 0;
+}
