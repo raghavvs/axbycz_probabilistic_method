@@ -35,6 +35,7 @@ Output:
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
+#include <numeric>
 #include "meanCov.h"
 #include "so3Vec.h"
 
@@ -63,12 +64,27 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
-    // Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
+    /*// Calculate eigenvectors of top left 3x3 sub-matrices of SigA and SigB
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_A(SigA.topLeftCorner<3, 3>());
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig_solver_B(SigB.topLeftCorner<3, 3>());*/
 
-    auto const& VA = eig_solver_A.eigenvectors();
-    auto const& VB = eig_solver_B.eigenvectors();
+    Eigen::MatrixXd A_temp = SigA.block<3, 3>(0, 0);
+    Eigen::MatrixXd B_temp = SigB.block<3, 3>(0, 0);
+
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd_A(A_temp, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd_B(B_temp, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+    Eigen::MatrixXd VA = svd_A.matrixU() * svd_A.matrixV().transpose();
+    Eigen::MatrixXd VB = svd_B.matrixU() * svd_B.matrixV().transpose();
+
+    std::cout << "Eigenvalues A: " << std::endl;
+    std::cout << eigenvalues_A << std::endl;
+    std::cout << "Eigenvectors A: " << std::endl;
+    std::cout << eigenvectors_A << std::endl;
+    std::cout << "Eigenvalues B: " << std::endl;
+    std::cout << eigenvalues_B << std::endl;
+    std::cout << "Eigenvectors B: " << std::endl;
+    std::cout << eigenvectors_B << std::endl;
 
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
@@ -77,7 +93,20 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Q3 = (Eigen::Matrix3d() << -1, 0, 0, 0, 1, 0, 0, 0, -1).finished();
     Q4 = (Eigen::Matrix3d() << 1, 0, 0, 0, -1, 0, 0, 0, -1).finished();
 
-    Eigen::Matrix3d Rx_solved[8];
+    std::cout << "Sorted Eigenvectors A (VA): " << std::endl;
+    std::cout << VA << std::endl;
+    std::cout << "Sorted Eigenvectors B (VB): " << std::endl;
+    std::cout << VB << std::endl;
+    std::cout << "Q1: " << std::endl;
+    std::cout << Q1 << std::endl;
+    std::cout << "Q2: " << std::endl;
+    std::cout << Q2 << std::endl;
+    std::cout << "Q3: " << std::endl;
+    std::cout << Q3 << std::endl;
+    std::cout << "Q4: " << std::endl;
+    std::cout << Q4 << std::endl;
+
+    std::vector<Eigen::Matrix3d> Rx_solved(8, Eigen::Matrix3d::Zero());
 
     // There are eight possibilities for Rx
     Rx_solved[0] = VA * Q1 * VB.transpose();
@@ -88,6 +117,11 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Rx_solved[5] = VA * (-Q2) * VB.transpose();
     Rx_solved[6] = VA * (-Q3) * VB.transpose();
     Rx_solved[7] = VA * (-Q4) * VB.transpose();
+
+    std::cout << "Rx_solved[0]: " << std::endl;
+    std::cout << Rx_solved[0] << std::endl;
+    std::cout << "Rx_solved[4]: " << std::endl;
+    std::cout << Rx_solved[4] << std::endl;
 
     X.resize(8);
     Y.resize(8);

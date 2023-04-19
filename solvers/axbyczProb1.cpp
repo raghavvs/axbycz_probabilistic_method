@@ -63,6 +63,8 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     batchSolveXY(C1, B1, opt, nstd1, nstd2, Z_g, Y_dummy,
                  MeanC1, MeanB1, SigC1, SigB1);
 
+    std::cout << "Z_g[last]: " << std::endl << Z_g[1] << std::endl;
+
     std::vector<Eigen::Matrix4d> Z;
     for (const auto& z : Z_g) {
         if (z.determinant() > 0) {
@@ -116,6 +118,14 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     int s_Y = Y.size();
 
+    std::cout << s_X << std::endl;
+    std::cout << s_Y << std::endl;
+    std::cout << s_Z << std::endl;
+
+    std::cout << "X[last]: " << std::endl << X[s_X-1] << std::endl;
+    std::cout << "Y[last]: " << std::endl << Y[s_Y-1] << std::endl;
+    std::cout << "Z[last]: " << std::endl << Z[s_Z-1] << std::endl;
+
     // all good
 
     // Find the optimal (X, Y, Z) that minimizes cost
@@ -140,6 +150,7 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
                                                          tranError(left2, right2);
 
                 double current_cost = std::abs(diff1) + std::abs(diff2);
+
                 cost(i, j * s_Y + m) = current_cost;
                 if (current_cost < min_cost) {
                     min_cost = current_cost;
@@ -153,8 +164,12 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
 
     //// Recover the X, Y, Z that minimize cost
     X_final = X[min_i];
-    Z_final = Z[min_j];
     Y_final = Y[min_m];
+    Z_final = Z[min_j];
+
+    std::cout << min_i << std::endl;
+    std::cout << min_j << std::endl;
+    std::cout << min_m << std::endl;
 }
 
 int main() {
