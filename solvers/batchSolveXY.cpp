@@ -80,6 +80,7 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
 
     // There are eight possibilities for Rx
     Rx_solved[0] = VA * Q1 * VB.transpose();
+    Rx_solved[0] = VA * Q1 * VB.transpose();
     Rx_solved[1] = VA * Q2 * VB.transpose();
     Rx_solved[2] = VA * Q3 * VB.transpose();
     Rx_solved[3] = VA * Q4 * VB.transpose();
@@ -93,10 +94,9 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
 
     for (int i = 0; i < 8; ++i) {
         Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA.block<3, 3>(0, 0) * Rx_solved[i]).inverse() *
-                               (SigB.block<3, 3>(0, 3) - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
+                               (SigB.block<3, 3>(0, 3) - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]).transpose();
 
-        Eigen::Vector3d tx_temp = so3Vec(temp.transpose());
-        Eigen::Vector3d tx = -Rx_solved[i] * tx_temp;
+        Eigen::Vector3d tx = -Rx_solved[i] * so3Vec(temp);
 
         X_candidate[i] << Rx_solved[i], tx, Eigen::Vector3d::Zero().transpose(), 1;
         Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
@@ -131,8 +131,9 @@ int main() {
             -0.0000, 0.7071, 0.7071, 0.7071,
             0.0, 0.0, 0.0, 1.0;
 
-    bool opt = false;
-    double nstd_A = 0.0, nstd_B = 0.0;
+    bool opt = true;
+    double nstd_A = 0.001;
+    double nstd_B = 0.001;
     std::vector<Eigen::Matrix4d> X, Y;
     Eigen::Matrix4d MeanA, MeanB;
     Eigen::Matrix<double, 6, 6> SigA, SigB;
