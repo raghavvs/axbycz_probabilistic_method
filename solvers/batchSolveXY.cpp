@@ -65,9 +65,26 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
 
     Eigen::EigenSolver<Eigen::MatrixXd> esA(SigA.block<3, 3>(0, 0));
     Eigen::MatrixXd VA = esA.eigenvectors().real();
+    Eigen::VectorXcd eigenvalues_A = esA.eigenvalues(); // Eigenvalues for SigA block
 
     Eigen::EigenSolver<Eigen::MatrixXd> esB(SigB.block<3, 3>(0, 0));
     Eigen::MatrixXd VB = esB.eigenvectors().real();
+    Eigen::VectorXcd eigenvalues_B = esB.eigenvalues(); // Eigenvalues for SigB block
+
+    Eigen::VectorXd real_eigenvalues_A = eigenvalues_A.real();
+    Eigen::VectorXd real_eigenvalues_B = eigenvalues_B.real();
+
+    std::cout << "Eigenvalues of SigA block:" << std::endl;
+    std::cout << real_eigenvalues_A << std::endl;
+
+    std::cout << "Eigenvectors of SigA block:" << std::endl;
+    std::cout << VA << std::endl;
+
+    std::cout << "Eigenvalues of SigB block:" << std::endl;
+    std::cout << real_eigenvalues_B << std::endl;
+
+    std::cout << "Eigenvectors of SigB block:" << std::endl;
+    std::cout << VB << std::endl;
 
     // Define Q matrices
     Eigen::Matrix3d Q1, Q2, Q3, Q4;
