@@ -56,12 +56,12 @@ int main()
 {
     std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
-    std::vector<std::string> A1_files = {"data/charuco_10x14/r1_tf.txt"};
-    std::vector<std::string> B1_files = {"data/charuco_10x14/c2b_tf.txt"};
-    std::vector<std::string> C1_files = {"data/charuco_10x14/r2_tf.txt"};
-    std::vector<std::string> A2_files = {"data/charuco_10x14/r1_tf.txt"};
-    std::vector<std::string> B2_files = {"data/charuco_10x14/c2b_tf.txt"};
-    std::vector<std::string> C2_files = {"data/charuco_10x14/r2_tf.txt"};
+    std::vector<std::string> A1_files = {"data/20230426_ur5e_charuco_5x7/r1_tf.txt"};
+    std::vector<std::string> B1_files = {"data/20230426_ur5e_charuco_5x7/c2b_tf.txt"};
+    std::vector<std::string> C1_files = {"data/20230426_ur5e_charuco_5x7/r2_tf.txt"};
+    std::vector<std::string> A2_files = {"data/20230426_ur5e_charuco_5x7/r1_tf.txt"};
+    std::vector<std::string> B2_files = {"data/20230426_ur5e_charuco_5x7/c2b_tf.txt"};
+    std::vector<std::string> C2_files = {"data/20230426_ur5e_charuco_5x7/r2_tf.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -75,7 +75,7 @@ int main()
     // 1 for identity; 2(or 3) for approximate measurement from kinematics
     // data of the robot; 3 for results from Prob 1.
 
-    int init_guess = 3;
+    int init_guess = 1;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
