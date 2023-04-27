@@ -26,13 +26,10 @@ double metric(const std::vector<Eigen::Matrix4d>& A,
     int N = 0;
 
     for (size_t i = 0; i < A.size(); ++i) {
-        for (int j = 0; j < A[i].cols() / 4; ++j) { // divide by 4 to avoid out-of-bounds block access
-            Eigen::Matrix4d lhs = A[i].block(0, j * 4, 4, 4) * X *
-                                  B[i].block(0, j * 4, 4, 4);
-            Eigen::Matrix4d rhs = Y * C[i].block(0, j * 4, 4, 4) * Z;
-            diff += (lhs - rhs).norm();
-            N++;
-        }
+        Eigen::Matrix4d lhs = A[i] * X * B[i];
+        Eigen::Matrix4d rhs = Y * C[i] * Z;
+        diff += (lhs - rhs).norm();
+        N++;
     }
 
     diff /= static_cast<double>(N);
@@ -40,28 +37,20 @@ double metric(const std::vector<Eigen::Matrix4d>& A,
 }
 
 int main() {
-    // Set the number of A, B, and C matrices
-    int num_matrices = 3;
+    // Initialize A, B, C, X, Y, Z matrices with sample data.
+    Eigen::Matrix4d X = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Y = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d Z = Eigen::Matrix4d::Identity();
 
-    // Create random 4x4 matrices for A, B, C, X, Y, and Z
-    std::vector<Eigen::Matrix4d> A(num_matrices);
-    std::vector<Eigen::Matrix4d> B(num_matrices);
-    std::vector<Eigen::Matrix4d> C(num_matrices);
-    Eigen::Matrix4d X = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d Y = Eigen::Matrix4d::Random();
-    Eigen::Matrix4d Z = Eigen::Matrix4d::Random();
+    std::vector<Eigen::Matrix4d> A(1, Eigen::Matrix4d::Identity());
+    std::vector<Eigen::Matrix4d> B(1, Eigen::Matrix4d::Identity());
+    std::vector<Eigen::Matrix4d> C(1, Eigen::Matrix4d::Identity());
 
-    for (int i = 0; i < num_matrices; ++i) {
-        A[i] = Eigen::Matrix4d::Random();
-        B[i] = Eigen::Matrix4d::Random();
-        C[i] = Eigen::Matrix4d::Random();
-    }
+    // Call the metric function with the initialized data.
+    double result = metric(A, B, C, X, Y, Z);
 
-    // Compute the metric value
-    double metric_value = metric(A, B, C, X, Y, Z);
-
-    // Output the result
-    std::cout << "Metric value: " << metric_value << std::endl;
+    // Output the result.
+    std::cout << "Metric result: " << result << std::endl;
 
     return 0;
 }

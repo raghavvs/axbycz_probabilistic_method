@@ -54,7 +54,7 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
     int max_num = 100;
     double tol = 1e-5;
     int count = 1;
-    while (diff_se.norm() * sqrt(16) >= tol && count <= max_num) {
+    while (diff_se.norm() >= tol && count <= max_num) {
         diff_se = Eigen::Matrix4d::Zero();
         for (int i = 0; i < N; i++) {
             diff_se += (Mean.inverse() * X[i]).log();

@@ -47,15 +47,22 @@ void sortEigenVectors(const Eigen::VectorXd& eigenvalues,
                       const Eigen::MatrixXd& eigenvectors,
                       Eigen::VectorXd& sorted_eigenvalues,
                       Eigen::MatrixXd& sorted_eigenvectors) {
-    std::vector<size_t> idx(eigenvalues.size());
-    for (size_t i = 0; i < eigenvalues.size(); ++i) {
-        idx[i] = i;
-    }
-    std::sort(idx.begin(), idx.end(), [&eigenvalues](size_t i1, size_t i2) {return eigenvalues[i1] < eigenvalues[i2];});
+    // Create a vector of pairs (eigenvalue, eigenvector)
+    std::vector<std::pair<double, Eigen::VectorXd>> eigen_pairs(eigenvalues.size());
 
-    for (size_t i = 0; i < idx.size(); ++i) {
-        sorted_eigenvalues[i] = eigenvalues[idx[i]];
-        sorted_eigenvectors.col(i) = eigenvectors.col(idx[i]);
+    for (size_t i = 0; i < eigenvalues.size(); ++i) {
+        eigen_pairs[i] = std::make_pair(eigenvalues[i], eigenvectors.col(i));
+    }
+
+    // Sort the eigen_pairs based on eigenvalues
+    std::sort(eigen_pairs.begin(), eigen_pairs.end(), [](const std::pair<double, Eigen::VectorXd>& a, const std::pair<double, Eigen::VectorXd>& b) {
+        return a.first < b.first;
+    });
+
+    // Fill the sorted_eigenvalues and sorted_eigenvectors with the sorted data
+    for (size_t i = 0; i < eigen_pairs.size(); ++i) {
+        sorted_eigenvalues[i] = eigen_pairs[i].first;
+        sorted_eigenvectors.col(i) = eigen_pairs[i].second;
     }
 }
 
@@ -84,11 +91,11 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
         SigB -= nstd_B * Eigen::MatrixXd::Identity(6, 6);
     }
 
-    Eigen::EigenSolver<Eigen::MatrixXd> esA(SigA.block<3, 3>(0, 0));
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> esA(SigA.block<3, 3>(0, 0));
     Eigen::MatrixXd VA = esA.eigenvectors().real();
     Eigen::VectorXcd eigenvalues_A = esA.eigenvalues(); // Eigenvalues for SigA block
 
-    Eigen::EigenSolver<Eigen::MatrixXd> esB(SigB.block<3, 3>(0, 0));
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> esB(SigB.block<3, 3>(0, 0));
     Eigen::MatrixXd VB = esB.eigenvectors().real();
     Eigen::VectorXcd eigenvalues_B = esB.eigenvalues(); // Eigenvalues for SigB block
 
