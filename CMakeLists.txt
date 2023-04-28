@@ -50,7 +50,7 @@ include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
 include_directories(${axbycz_probabilistic_method}/util)
 
 # Create executable
-add_executable(meanCov util/meanCov.cpp)
+#add_executable(meanCov util/meanCov.cpp)
 #add_executable(meanCov1 util/meanCov1.cpp)
 #add_executable(meanCov2 util/meanCov2.cpp)
 #add_executable(meanCov3 util/meanCov3.cpp)
