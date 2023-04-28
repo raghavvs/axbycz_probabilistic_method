@@ -9343,3 +9343,219 @@ Z_cal3:
 -nan  nan -nan  nan
 -nan  nan -nan  nan
 -nan  nan -nan  nan
+Current date and time: 2023-04-28 06:30:12
+Initial Guess: 3
+Scrambling: 0
+Robot: UR5
+Probability Method 1
+X_cal1: 
+           1            0            0            0
+           0           -1            0            0
+           0            0           -1 -1.92593e-30
+           0            0            0            1
+Y_cal1: 
+ -0.0307488    0.203352   -0.978623      1.2562
+  -0.999356   -0.024352   0.0263401   -0.351573
+ -0.0184751    0.978803     0.20397    0.411265
+6.28275e-18 2.70485e-17 5.41541e-17           1
+Z_cal1: 
+           1            0            0            0
+           0            1            0            0
+           0            0            1 -2.40741e-30
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-28 06:30:20
+Initial Guess: 3
+Scrambling: 0
+Robot: ABB
+Probability Method 1
+X_cal1: 
+           1            0            0            0
+           0           -1            0            0
+           0            0           -1 -1.92593e-30
+           0            0            0            1
+Y_cal1: 
+ -0.0307488    0.203352   -0.978623      1.2562
+  -0.999356   -0.024352   0.0263401   -0.351573
+ -0.0184751    0.978803     0.20397    0.411265
+6.28275e-18 2.70485e-17 5.41541e-17           1
+Z_cal1: 
+           1            0            0            0
+           0            1            0            0
+           0            0            1 -2.40741e-30
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-28 06:31:51
+Initial Guess: 3
+Scrambling: 0
+Robot: ABB
+Probability Method 1
+X_cal1: 
+           1            0            0            0
+           0           -1            0            0
+           0            0           -1 -1.92593e-30
+           0            0            0            1
+Y_cal1: 
+ -0.0307488    0.203352   -0.978623      1.2562
+  -0.999356   -0.024352   0.0263401   -0.351573
+ -0.0184751    0.978803     0.20397    0.411265
+6.28275e-18 2.70485e-17 5.41541e-17           1
+Z_cal1: 
+           1            0            0            0
+           0            1            0            0
+           0            0            1 -2.40741e-30
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-28 06:31:56
+Initial Guess: 3
+Scrambling: 0
+Robot: ABB
+Probability Method 1
+X_cal1: 
+           1            0            0            0
+           0           -1            0            0
+           0            0           -1 -1.92593e-30
+           0            0            0            1
+Y_cal1: 
+ -0.0307488    0.203352   -0.978623      1.2562
+  -0.999356   -0.024352   0.0263401   -0.351573
+ -0.0184751    0.978803     0.20397    0.411265
+6.28275e-18 2.70485e-17 5.41541e-17           1
+Z_cal1: 
+           1            0            0            0
+           0            1            0            0
+           0            0            1 -2.40741e-30
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-28 06:33:38
+Initial Guess: 3
+Scrambling: 1
+Robot: ABB
+Probability Method 1
+X_cal1: 
+           1            0            0            0
+           0           -1            0            0
+           0            0           -1 -1.92593e-30
+           0            0            0            1
+Y_cal1: 
+ -0.0307488    0.203352   -0.978623      1.2562
+  -0.999356   -0.024352   0.0263401   -0.351573
+ -0.0184751    0.978803     0.20397    0.411265
+6.28275e-18 2.70485e-17 5.41541e-17           1
+Z_cal1: 
+           1            0            0            0
+           0            1            0            0
+           0            0            1 -2.40741e-30
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Current date and time: 2023-04-28 06:33:42
+Initial Guess: 3
+Scrambling: 1
+Robot: ABB
+Probability Method 1
+X_cal1: 
+           1            0            0            0
+           0           -1            0            0
+           0            0           -1 -1.92593e-30
+           0            0            0            1
+Y_cal1: 
+ -0.0307488    0.203352   -0.978623      1.2562
+  -0.999356   -0.024352   0.0263401   -0.351573
+ -0.0184751    0.978803     0.20397    0.411265
+6.28275e-18 2.70485e-17 5.41541e-17           1
+Z_cal1: 
+           1            0            0            0
+           0            1            0            0
+           0            0            1 -2.40741e-30
+           0            0            0            1
+Probability Method 3 - Iterative Refinement
+X_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Y_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+Z_cal3: 
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
+-nan  nan -nan  nan
