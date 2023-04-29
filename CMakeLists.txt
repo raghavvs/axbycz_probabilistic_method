@@ -42,6 +42,7 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 ####----Uncomment when compiling on wall-e-----###
 include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
 include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
+include_directories(/home/raghav/cws/axbycz_probabilistic_method/data)
 
 ####----Uncomment when compiling on mac---######
 #include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
@@ -113,11 +114,12 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(tf_echo_to_numbers scripts/tf_echo_to_numbers.cpp)
 #add_executable(temp scripts/temp.cpp)
 #add_executable(readMatrices util/readMatrices.cpp)
-add_executable(loadMatrices util/loadMatrices.cpp)
+#add_executable(loadMatrices util/loadMatrices.cpp)
 #add_executable(loadArraysToMatrices util/loadArraysToMatrices.cpp)
-#add_executable(mainRealData scripts/mainRealData.cpp)
+add_executable(mainRealData scripts/mainRealData.cpp)
 #add_executable(mainRealData1 scripts/mainRealData1.cpp)
 #add_executable(mainRealData3 scripts/mainRealData3.cpp)
+#add_executable(mainRealData4 scripts/mainRealData4.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -189,11 +191,12 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(tf_echo_to_numbers ${LIBRARIES_TO_LINK})
 #target_link_libraries(temp ${LIBRARIES_TO_LINK})
 #target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
-target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})
+#target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(loadArraysToMatrices ${LIBRARIES_TO_LINK})
-#target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})
+target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData3 ${LIBRARIES_TO_LINK})
+#target_link_libraries(mainRealData4 ${LIBRARIES_TO_LINK})
 
 
 #option(TARGET_FILE "Specify the target file to compile" "axbyczProb1_v6")

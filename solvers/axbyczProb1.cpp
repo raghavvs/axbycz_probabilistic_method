@@ -32,6 +32,7 @@ In the case of two robotic arms:
 #include <limits>
 #include <eigen3/Eigen/Dense>
 #include "batchSolveXY.h"
+#include "loadMatrices.h"
 #include "rotError.h"
 #include "tranError.h"
 
@@ -172,6 +173,51 @@ void axbyczProb1(const std::vector<Eigen::Matrix4d>& A1,
     std::cout << min_m << std::endl;
 }
 
+int main()
+{
+    std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
+
+    std::string A1_files = {"data/20230418_abb_charuco_10x14/r1_tf.txt"};
+    std::string B1_files = {"data/20230418_abb_charuco_10x14/c2b_tf.txt"};
+    std::string C1_files = {"data/20230418_abb_charuco_10x14/r2_tf.txt"};
+    std::string A2_files = {"data/20230418_abb_charuco_10x14/r1_tf.txt"};
+    std::string B2_files = {"data/20230418_abb_charuco_10x14/c2b_tf.txt"};
+    std::string C2_files = {"data/20230418_abb_charuco_10x14/r2_tf.txt"};
+
+    loadMatrices(A1_files, A1);
+    loadMatrices(B1_files, B1);
+    loadMatrices(C1_files, C1);
+    loadMatrices(A2_files, A2);
+    loadMatrices(B2_files, B2);
+    loadMatrices(C2_files, C2);
+
+    // Set opt, nstd1, and nstd2
+    bool opt = true;
+    double nstd1 = 0.01;
+    double nstd2 = 0.01;
+
+    // Resize the vectors to keep only the first 10 matrices
+    int new_size = 10;
+    A1.resize(new_size);
+    B1.resize(new_size);
+    C1.resize(new_size);
+    A2.resize(new_size);
+    B2.resize(new_size);
+    C2.resize(new_size);
+
+    // Call the axbyczProb1 function
+    Eigen::Matrix4d X_final, Y_final, Z_final;
+    axbyczProb1(A1, B1, C1, A2, B2, C2, opt, nstd1, nstd2, X_final, Y_final, Z_final);
+
+    // Display results
+    std::cout << "X_final:\n" << X_final << std::endl;
+    std::cout << "Y_final:\n" << Y_final << std::endl;
+    std::cout << "Z_final:\n" << Z_final << std::endl;
+
+    return 0;
+}
+
+/*
 int main() {
     // Create deterministic input matrices
     int num_matrices = 2;
@@ -209,4 +255,4 @@ int main() {
     std::cout << "Z_final:\n" << Z_final << std::endl;
 
     return 0;
-}
+}*/
