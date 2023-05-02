@@ -71,7 +71,7 @@ int main()
     loadMatrices(C2_files, C2);
 
     // Resize the vectors to keep only the first 10 matrices
-    int new_size = 20;
+    int new_size = 10;
     A1.resize(new_size);
     B1.resize(new_size);
     C1.resize(new_size);
@@ -79,9 +79,14 @@ int main()
     B2.resize(new_size);
     C2.resize(new_size);
 
-    int init_guess = 1;
+    int init_guess = 3;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
+
+    // Open the file for writing
+    std::ofstream file("/home/raghav/cws/axbycz_probabilistic_method/results/results.txt");
+    // Write the headers
+    file << "Num_Matrices\tError1\tError3" << std::endl;
 
     if (init_guess == 1) {
         X_init = Eigen::Matrix4d::Identity();
@@ -146,20 +151,41 @@ int main()
                         1, 0.001, 0.001,
                         X_cal1, Y_cal1, Z_cal1);
 
+            // Iterative Refinement
+            int num = 1;
+
+            axbyczProb3(A1, Bp1, C1,
+                        A2, Bp2, C2,
+                        X_init, Y_init, Z_init,
+                        X_cal3, Y_cal3, Z_cal3 ,
+                        num);
+
+            // Verification
+            // Prob 1
+            err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1);
+
+            // Iterative refinement
+            err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3);
+
             // Save the errors in the respective lists
             err1_list[k] = err1[r.back()];
-            //err3_list[k] = err3[r.back()];
-        }
+            err3_list[k] = err3[r.back()];
+
+            // Write the data to the file
+            file << num_matrices_list[k] << "\t" << err1_list[k] << "\t" << err3_list[k] << std::endl;        }
+
+        // Close the file
+        file.close();
 
         // Plot error vs number of input matrices
         plt::figure();
         plt::plot(num_matrices_list, err1_list, "o-r");
-        //plt::plot(num_matrices_list, err3_list, "s-b");
+        plt::plot(num_matrices_list, err3_list, "s-b");
         plt::xlabel("Number of Datasets");
         plt::ylabel("Error");
         plt::title("Error vs Number of Datasets");
         plt::grid(true);
-        plt::save("results/Error_vs_Number_of_Input_Matrices.png");
-        plt::show();
+        plt::save("results/Error_vs_Number_of_Input_Matrices_2.png");
+        //plt::show();
     }
 }

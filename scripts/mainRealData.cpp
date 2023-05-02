@@ -71,7 +71,7 @@ int main()
     loadMatrices(C2_files, C2);
 
     // Resize the vectors to keep only the first 10 matrices
-    int new_size = 1;
+    int new_size = 10;
     A1.resize(new_size);
     B1.resize(new_size);
     C1.resize(new_size);
@@ -81,8 +81,12 @@ int main()
 
     size_t num_matrices = A1.size();
     std::cout << "Number of matrices in A1: " << num_matrices << std::endl;
+    size_t b1 = B1.size();
+    std::cout << "Number of matrices in B1: " << b1 << std::endl;
+    size_t c2 = C2.size();
+    std::cout << "Number of matrices in C2: " << c2 << std::endl;
 
-    int init_guess = 1;
+    int init_guess = 3;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
 
@@ -102,7 +106,7 @@ int main()
         Z_init = fKine(qz3);
     }
 
-    bool isRandPerm = false;
+    bool isRandPerm = true;
 
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -201,8 +205,17 @@ int main()
     plt::ylabel("Error");
     plt::title("Real Data");
     plt::grid(true);
-    plt::save("results/Error_vs_Scramble_Rate_45.png");
-    plt::show();
+    plt::save("results/Error_vs_Scramble_Rate_46.png");
+    //plt::show();
+
+    std::ofstream dataFile("results/plots_data.txt");
+
+    dataFile << "Scramble Rate,Error 1,Error 3" << std::endl;
+    for (int i = 0; i < r.size(); ++i) {
+        dataFile << r[i] << "," << err1[i] << "," << err3[i] << std::endl;
+    }
+
+    dataFile.close();
 
     std::cout << "Error 1 [0]: " << err1[0] << std::endl;
     std::cout << "Error 1 [10]: " << err1[100] << std::endl;
