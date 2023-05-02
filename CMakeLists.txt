@@ -8,10 +8,10 @@ set(CMAKE_BUILD_TYPE "Debug")
 add_compile_options(-g)
 
 ####----Uncomment when compiling on wall-e-----###
-set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
+#set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
 
 ####----Uncomment when compiling on mac---######
-#set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
+set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
 
 # Find Eigen3 library
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
@@ -40,17 +40,17 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 # Include headers
 
 ####----Uncomment when compiling on wall-e-----###
-include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
-include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
+#include_directories(/home/raghav/cws/axbycz_probabilistic_method/util)
+#include_directories(/home/raghav/cws/axbycz_probabilistic_method/solvers)
 
 ####----Uncomment when compiling on mac---######
-#include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
-#include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
+include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
+include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
 
 include_directories(${axbycz_probabilistic_method}/util)
 
 # Create executable
-add_executable(meanCov util/meanCov.cpp)
+#add_executable(meanCov util/meanCov.cpp)
 #add_executable(meanCov1 util/meanCov1.cpp)
 #add_executable(meanCov2 util/meanCov2.cpp)
 #add_executable(meanCov3 util/meanCov3.cpp)
@@ -94,7 +94,7 @@ add_executable(meanCov util/meanCov.cpp)
 #add_executable(plotProbResults1 util/plotProbResults1.cpp)
 #add_executable(fKine util/fKine.cpp)
 #add_executable(fKineTEST test/fKineTEST.cpp)
-add_executable(batchSolveXY solvers/batchSolveXY.cpp)
+#add_executable(batchSolveXY solvers/batchSolveXY.cpp)
 #add_executable(batchSolveXY1 solvers/batchSolveXY1.cpp)
 #add_executable(batchSolveXY2 solvers/batchSolveXY2.cpp)
 #add_executable(batchSolveXY3 solvers/batchSolveXY3.cpp)
@@ -115,7 +115,7 @@ add_executable(batchSolveXY solvers/batchSolveXY.cpp)
 #add_executable(readMatrices util/readMatrices.cpp)
 #add_executable(loadMatrices util/loadMatrices.cpp)
 #add_executable(loadArraysToMatrices util/loadArraysToMatrices.cpp)
-#add_executable(mainRealData scripts/mainRealData.cpp)
+add_executable(mainRealData scripts/mainRealData.cpp)
 #add_executable(mainRealData1 scripts/mainRealData1.cpp)
 #add_executable(mainRealData3 scripts/mainRealData3.cpp)
 
@@ -170,7 +170,7 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(plotProbResults1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(fKine ${LIBRARIES_TO_LINK})
 #target_link_libraries(fKineTEST ${LIBRARIES_TO_LINK})
-target_link_libraries(batchSolveXY ${LIBRARIES_TO_LINK})
+#target_link_libraries(batchSolveXY ${LIBRARIES_TO_LINK})
 #target_link_libraries(batchSolveXY1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(batchSolveXY2 ${LIBRARIES_TO_LINK})
 #target_link_libraries(batchSolveXY3 ${LIBRARIES_TO_LINK})
@@ -191,7 +191,7 @@ target_link_libraries(batchSolveXY ${LIBRARIES_TO_LINK})
 #target_link_libraries(readMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(loadMatrices ${LIBRARIES_TO_LINK})
 #target_link_libraries(loadArraysToMatrices ${LIBRARIES_TO_LINK})
-#target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})
+target_link_libraries(mainRealData ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData3 ${LIBRARIES_TO_LINK})
 

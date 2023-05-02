@@ -202,9 +202,18 @@ int main()
 
     plt::grid(true);
 
-    plt::save("results/Error_vs_Scramble_Rate_28.png");
+    plt::save("results/Error_vs_Scramble_Rate_100.png");
 
     plt::show();
+
+    std::ofstream dataFile("results/plots_data.txt");
+
+    dataFile << "Scramble Rate,Error 1,Error 3" << std::endl;
+    for (int i = 0; i < r.size(); ++i) {
+        dataFile << r[i] << "," << err1[i] << "," << err3[i] << std::endl;
+    }
+
+    dataFile.close();
 
     std::cout << "Error 1 [0]: " << err1[0] << std::endl;
     std::cout << "Error 1 [10]: " << err1[100] << std::endl;
