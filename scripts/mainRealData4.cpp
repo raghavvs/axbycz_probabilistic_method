@@ -79,16 +79,14 @@ int main()
     B2.resize(new_size);
     C2.resize(new_size);
 
-    size_t num_matrices = A1.size();
-    std::cout << "Number of matrices in A1: " << num_matrices << std::endl;
-    size_t b1 = B1.size();
-    std::cout << "Number of matrices in B1: " << b1 << std::endl;
-    size_t c2 = C2.size();
-    std::cout << "Number of matrices in C2: " << c2 << std::endl;
-
     int init_guess = 3;
     Eigen::Matrix4d X_init, Y_init, Z_init;
     Eigen::Matrix4d X_cal1, Y_cal1, Z_cal1, X_cal2, Y_cal2, Z_cal2, X_cal3, Y_cal3, Z_cal3;
+
+    // Open the file for writing
+    std::ofstream file("/home/raghav/cws/axbycz_probabilistic_method/results/results.txt");
+    // Write the headers
+    file << "Num_Matrices\tError1\tError3" << std::endl;
 
     if (init_guess == 1) {
         X_init = Eigen::Matrix4d::Identity();
@@ -108,124 +106,86 @@ int main()
 
     bool isRandPerm = true;
 
+    std::vector<int> num_matrices_list = {2, 5, 10, 20, 50};
+    std::vector<double> err1_list(num_matrices_list.size()), err3_list(num_matrices_list.size());
     // Choice of scramble rate
     std::vector<int> r = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     std::vector<double> err1(11), err3(11);
-    for (int rk = 0; rk < r.size(); ++rk) {
-        // Inputs for Prob 1
-        std::vector<Eigen::Matrix4d> Bp1(A1.size());
-        std::vector<Eigen::Matrix4d> Bp2(A2.size());
-        std::vector<Eigen::Matrix4d> BBp1(A1.size());
-        std::vector<Eigen::Matrix4d> BBp2(A2.size());
+    for (int k = 0; k < num_matrices_list.size(); ++k) {
+        // Resize the vectors based on the number of input matrices
+        int num_matrices = num_matrices_list[k];
+        A1.resize(num_matrices);
+        B1.resize(num_matrices);
+        C1.resize(num_matrices);
+        A2.resize(num_matrices);
+        B2.resize(num_matrices);
+        C2.resize(num_matrices);
 
-        for (int i = 0; i < A1.size(); ++i) {
-            // Inputs for Iterative Refinement
-            if (isRandPerm) {
-                Bp1[i] = scrambleData(B1, i, r[rk])[i];
-                Bp2[i] = scrambleData(B2, i, r[rk])[i];
-                BBp1[i] = scrambleData(B1, i, r[rk])[i];
-                BBp2[i] = scrambleData(B2, i, r[rk])[i];
-            } else {
-                Bp1[i] = B1[i];
-                Bp2[i] = B2[i];
-                BBp1[i] = B1[i];
-                BBp2[i] = B2[i];
+        for (int rk = 0; rk < r.size(); ++rk) {
+            // Inputs for Prob 1
+            std::vector<Eigen::Matrix4d> Bp1(A1.size());
+            std::vector<Eigen::Matrix4d> Bp2(A2.size());
+            std::vector<Eigen::Matrix4d> BBp1(A1.size());
+            std::vector<Eigen::Matrix4d> BBp2(A2.size());
+
+            for (int i = 0; i < A1.size(); ++i) {
+                // Inputs for Iterative Refinement
+                if (isRandPerm) {
+                    Bp1[i] = scrambleData(B1, i, r[rk])[i];
+                    Bp2[i] = scrambleData(B2, i, r[rk])[i];
+                    BBp1[i] = scrambleData(B1, i, r[rk])[i];
+                    BBp2[i] = scrambleData(B2, i, r[rk])[i];
+                } else {
+                    Bp1[i] = B1[i];
+                    Bp2[i] = B2[i];
+                    BBp1[i] = B1[i];
+                    BBp2[i] = B2[i];
+                }
+
             }
 
-        }
+            // Prob 1
+            //std::cout << "Probabilistic Method 1..." << std::endl;
+            axbyczProb1(A1, BBp1, C1,
+                        A2, BBp2, C2,
+                        1, 0.001, 0.001,
+                        X_cal1, Y_cal1, Z_cal1);
 
-        // Prob 1
-        //std::cout << "Probabilistic Method 1..." << std::endl;
-        axbyczProb1(A1, BBp1, C1,
-                    A2, BBp2, C2,
-                    1, 0.001, 0.001,
-                    X_cal1, Y_cal1, Z_cal1);
+            // Iterative Refinement
+            int num = 1;
 
-        // Initial guess for iterative refinement as the results from prob 1
-        if (init_guess == 3) {
-            X_init = X_cal1;
-            Y_init = Y_cal1;
-            Z_init = Z_cal1;
-        }
+            axbyczProb3(A1, Bp1, C1,
+                        A2, Bp2, C2,
+                        X_init, Y_init, Z_init,
+                        X_cal3, Y_cal3, Z_cal3 ,
+                        num);
 
-        // Iterative Refinement
-        //std::cout << "Iterative Refinement..." << std::endl;
-        int num = 1;
+            // Verification
+            // Prob 1
+            err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1);
 
-        axbyczProb3(A1, Bp1, C1,
-                    A2, Bp2, C2,
-                    X_init, Y_init, Z_init,
-                    X_cal3, Y_cal3, Z_cal3 ,
-                    num);
+            // Iterative refinement
+            err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3);
 
-        // Verification
-        // Prob 1
-        err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1);
+            // Save the errors in the respective lists
+            err1_list[k] = err1[r.back()];
+            err3_list[k] = err3[r.back()];
 
-        // Iterative refinement
-        err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3);
+            // Write the data to the file
+            file << num_matrices_list[k] << "\t" << err1_list[k] << "\t" << err3_list[k] << std::endl;        }
+
+        // Close the file
+        file.close();
+
+        // Plot error vs number of input matrices
+        plt::figure();
+        plt::plot(num_matrices_list, err1_list, "o-r");
+        plt::plot(num_matrices_list, err3_list, "s-b");
+        plt::xlabel("Number of Datasets");
+        plt::ylabel("Error");
+        plt::title("Error vs Number of Datasets");
+        plt::grid(true);
+        plt::save("results/Error_vs_Number_of_Input_Matrices_2.png");
+        //plt::show();
     }
-
-    std::ofstream outFile("results/XYZ.txt", std::ios_base::app);
-
-    // Get current date and time
-    std::time_t now = std::time(nullptr);
-    char buffer[100];
-    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-
-    outFile << "Current date and time: " << buffer << std::endl;
-
-    outFile << "Initial Guess: " << init_guess << std::endl;
-    outFile << "Scrambling: " << isRandPerm << std::endl;
-    outFile << "Robot: ABB" << std::endl;
-
-    outFile << "Probability Method 1" << std::endl;
-    outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
-    outFile << "Y_cal1: " << std::endl << Y_cal1 << std::endl;
-    outFile << "Z_cal1: " << std::endl << Z_cal1 << std::endl;
-
-    outFile << "Probability Method 3 - Iterative Refinement" << std::endl;
-    outFile << "X_cal3: " << std::endl << X_cal3 << std::endl;
-    outFile << "Y_cal3: " << std::endl << Y_cal3 << std::endl;
-    outFile << "Z_cal3: " << std::endl << Z_cal3 << std::endl;
-
-    outFile.close();
-
-    // Plot error vs scramble rate
-    plt::figure();
-    plt::plot(r, err1, "o-r");
-    plt::plot(r, err3, "s-b");
-    // Choose appropriate x and y coordinates for the labels
-    double label_x = r.back() * 1.05;
-    double label_y1 = err1.back();
-    double label_y3 = err3.back();
-    plt::text(label_x, label_y1, "Prob 1");
-    plt::text(label_x, label_y3, "Iterative");
-    plt::xlabel("Scramble Rate (%)");
-    plt::ylabel("Error");
-    plt::title("Real Data");
-    plt::grid(true);
-    plt::save("results/Error_vs_Scramble_Rate_46.png");
-    //plt::show();
-
-    std::ofstream dataFile("results/plots_data.txt");
-
-    dataFile << "Scramble Rate,Error 1,Error 3" << std::endl;
-    for (int i = 0; i < r.size(); ++i) {
-        dataFile << r[i] << "," << err1[i] << "," << err3[i] << std::endl;
-    }
-
-    dataFile.close();
-
-    std::cout << "Error 1 [0]: " << err1[0] << std::endl;
-    std::cout << "Error 1 [10]: " << err1[100] << std::endl;
-    std::cout << "Error 3 [0]: " << err3[0] << std::endl;
-    std::cout << "Error 3 [10]: " << err3[100] << std::endl;
 }
-
-/*
- * Run 1:
- * took 40 minutes
- * initial guess = 1
- * prob3 - max_num = 50
- */
