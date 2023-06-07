@@ -208,6 +208,19 @@ int main()
     plt::save("results/Error_vs_Scramble_Rate_46.png");
     //plt::show();
 
+<<<<<<< HEAD
+    plt::save("results/Error_vs_Scramble_Rate_100.png");
+=======
+    std::ofstream dataFile("results/plots_data.txt");
+>>>>>>> main
+
+    dataFile << "Scramble Rate,Error 1,Error 3" << std::endl;
+    for (int i = 0; i < r.size(); ++i) {
+        dataFile << r[i] << "," << err1[i] << "," << err3[i] << std::endl;
+    }
+
+    dataFile.close();
+
     std::ofstream dataFile("results/plots_data.txt");
 
     dataFile << "Scramble Rate,Error 1,Error 3" << std::endl;
