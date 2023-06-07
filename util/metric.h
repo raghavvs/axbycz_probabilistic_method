@@ -29,13 +29,10 @@ double metric(const std::vector<Eigen::Matrix4d>& A,
     int N = 0;
 
     for (size_t i = 0; i < A.size(); ++i) {
-        for (int j = 0; j < A[i].cols() / 4; ++j) { // divide by 4 to avoid out-of-bounds block access
-            Eigen::Matrix4d lhs = A[i].block(0, j * 4, 4, 4) * X *
-                                  B[i].block(0, j * 4, 4, 4);
-            Eigen::Matrix4d rhs = Y * C[i].block(0, j * 4, 4, 4) * Z;
-            diff += (lhs - rhs).norm();
-            N++;
-        }
+        Eigen::Matrix4d lhs = A[i] * X * B[i];
+        Eigen::Matrix4d rhs = Y * C[i] * Z;
+        diff += (lhs - rhs).norm();
+        N++;
     }
 
     diff /= static_cast<double>(N);

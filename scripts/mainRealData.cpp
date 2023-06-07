@@ -56,12 +56,12 @@ int main()
 {
     std::vector<Eigen::Matrix4d> A1, B1, C1, A2, B2, C2;
 
-    std::vector<std::string> A1_files = {"data/charuco_10x14/r1_tf.txt"};
-    std::vector<std::string> B1_files = {"data/charuco_10x14/c2b_tf.txt"};
-    std::vector<std::string> C1_files = {"data/charuco_10x14/r2_tf.txt"};
-    std::vector<std::string> A2_files = {"data/charuco_10x14/r1_tf.txt"};
-    std::vector<std::string> B2_files = {"data/charuco_10x14/c2b_tf.txt"};
-    std::vector<std::string> C2_files = {"data/charuco_10x14/r2_tf.txt"};
+    std::string A1_files = {"data/20230418_abb_charuco_10x14/r1_tf.txt"};
+    std::string B1_files = {"data/20230418_abb_charuco_10x14/c2b_tf.txt"};
+    std::string C1_files = {"data/20230418_abb_charuco_10x14/r2_tf.txt"};
+    std::string A2_files = {"data/20230418_abb_charuco_10x14/r1_tf.txt"};
+    std::string B2_files = {"data/20230418_abb_charuco_10x14/c2b_tf.txt"};
+    std::string C2_files = {"data/20230418_abb_charuco_10x14/r2_tf.txt"};
 
     loadMatrices(A1_files, A1);
     loadMatrices(B1_files, B1);
@@ -70,10 +70,21 @@ int main()
     loadMatrices(B2_files, B2);
     loadMatrices(C2_files, C2);
 
-    // Generate Data
-    // Initial guesses:
-    // 1 for identity; 2(or 3) for approximate measurement from kinematics
-    // data of the robot; 3 for results from Prob 1.
+    // Resize the vectors to keep only the first 10 matrices
+    int new_size = 10;
+    A1.resize(new_size);
+    B1.resize(new_size);
+    C1.resize(new_size);
+    A2.resize(new_size);
+    B2.resize(new_size);
+    C2.resize(new_size);
+
+    size_t num_matrices = A1.size();
+    std::cout << "Number of matrices in A1: " << num_matrices << std::endl;
+    size_t b1 = B1.size();
+    std::cout << "Number of matrices in B1: " << b1 << std::endl;
+    size_t c2 = C2.size();
+    std::cout << "Number of matrices in C2: " << c2 << std::endl;
 
     int init_guess = 3;
     Eigen::Matrix4d X_init, Y_init, Z_init;
@@ -127,7 +138,7 @@ int main()
         //std::cout << "Probabilistic Method 1..." << std::endl;
         axbyczProb1(A1, BBp1, C1,
                     A2, BBp2, C2,
-                    1, 0.0001, 0.0001,
+                    1, 0.001, 0.001,
                     X_cal1, Y_cal1, Z_cal1);
 
         // Initial guess for iterative refinement as the results from prob 1
@@ -149,12 +160,10 @@ int main()
 
         // Verification
         // Prob 1
-        err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1) +
-                            metric(A2, B2, C2, X_cal1, Y_cal1, Z_cal1);
+        err1[rk] = metric(A1, B1, C1, X_cal1, Y_cal1, Z_cal1);
 
         // Iterative refinement
-        err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3) +
-                   metric(A2, B2, C2, X_cal3, Y_cal3,Z_cal3);
+        err3[rk] = metric(A1, B1, C1, X_cal3, Y_cal3, Z_cal3);
     }
 
     std::ofstream outFile("results/XYZ.txt", std::ios_base::app);
@@ -168,6 +177,7 @@ int main()
 
     outFile << "Initial Guess: " << init_guess << std::endl;
     outFile << "Scrambling: " << isRandPerm << std::endl;
+    outFile << "Robot: ABB" << std::endl;
 
     outFile << "Probability Method 1" << std::endl;
     outFile << "X_cal1: " << std::endl << X_cal1 << std::endl;
@@ -183,28 +193,33 @@ int main()
 
     // Plot error vs scramble rate
     plt::figure();
-
     plt::plot(r, err1, "o-r");
     plt::plot(r, err3, "s-b");
-
     // Choose appropriate x and y coordinates for the labels
     double label_x = r.back() * 1.05;
     double label_y1 = err1.back();
     double label_y3 = err3.back();
-
-    plt::text(label_x, label_y1, "Method 1");
-    plt::text(label_x, label_y3, "Method 3");
-
+    plt::text(label_x, label_y1, "Prob 1");
+    plt::text(label_x, label_y3, "Iterative");
     plt::xlabel("Scramble Rate (%)");
     plt::ylabel("Error");
-
     plt::title("Real Data");
-
     plt::grid(true);
+    plt::save("results/Error_vs_Scramble_Rate_46.png");
+    //plt::show();
 
+<<<<<<< HEAD
     plt::save("results/Error_vs_Scramble_Rate_100.png");
+=======
+    std::ofstream dataFile("results/plots_data.txt");
+>>>>>>> main
 
-    plt::show();
+    dataFile << "Scramble Rate,Error 1,Error 3" << std::endl;
+    for (int i = 0; i < r.size(); ++i) {
+        dataFile << r[i] << "," << err1[i] << "," << err3[i] << std::endl;
+    }
+
+    dataFile.close();
 
     std::ofstream dataFile("results/plots_data.txt");
 
@@ -220,3 +235,10 @@ int main()
     std::cout << "Error 3 [0]: " << err3[0] << std::endl;
     std::cout << "Error 3 [10]: " << err3[100] << std::endl;
 }
+
+/*
+ * Run 1:
+ * took 40 minutes
+ * initial guess = 1
+ * prob3 - max_num = 50
+ */
