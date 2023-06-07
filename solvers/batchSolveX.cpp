@@ -9,6 +9,7 @@ Refer Quanli Ma's GitHub repo for original MATLAB code
 #include <Eigen/Eigenvalues>
 #include "meanCov.h"
 #include "so3Vec.h"
+#include "paramExtract.h"
 
 // Sorting function
 void sortEigenVectors(const Eigen::VectorXd& eigenvalues,
@@ -90,18 +91,38 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     Rx_solved[6] = sorted_VA * (-Q3) * sorted_VB.transpose();
     Rx_solved[7] = sorted_VA * (-Q4) * sorted_VB.transpose();
 
+    double ta, tb, da, db;
+    Eigen::MatrixXd Na, Nb,Xa, Xb;
+    paramExtract(ta, Na, da, pa, Xa);
+    paramExtract(tb, Nb, db, pb, Xb);
+
+    Eigen::VectorXd na = so3Vec(Na);
+    Eigen::VectorXd nb = so3Vec(Nb);
+
     X.resize(8);
 
+    double min = std::numeric_limits<double>::infinity();
+    Eigen::MatrixXd Rx;
+
+    // Iterate over Rx_solved
     for (int i = 0; i < 8; ++i) {
-        Eigen::Matrix3d temp = (Rx_solved[i].transpose() * SigA.block<3, 3>(0, 0) * Rx_solved[i]).inverse() *
-                               (SigB.block<3, 3>(0, 3) - Rx_solved[i].transpose() * SigA.block<3, 3>(0, 3) * Rx_solved[i]);
-
-        Eigen::Vector3d tx = -Rx_solved[i] * so3Vec(temp.transpose());
-
-        X_candidate[i] << Rx_solved[i], tx, Eigen::Vector3d::Zero().transpose(), 1;
-        Y_candidate[i] = MeanA * X_candidate[i] * MeanB.inverse();
-
-        // Set the output X and Y
-        X[i] = X_candidate[i];
+        Eigen::MatrixXd curr_Rx = Rx_solved.block<3,3>(0,0,i);  // Assuming Rx_solved is a 3D matrix
+        if (std::abs(curr_Rx.determinant() - 1) < 0.001 && (na - curr_Rx * nb).norm() < min) {
+            min = (na - curr_Rx * nb).norm();
+            Rx = curr_Rx;
+        }
     }
+
+    // Compute tx
+    Eigen::VectorXd tx_temp = so3_vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() * (SigB.block<3,3>(0,0) - Rx.transpose() * SigA.block<3,3>(0,0) * Rx)).transpose());
+    Eigen::VectorXd tx = -Rx * tx_temp;
+
+    // Compute X
+    Eigen::MatrixXd X(4, 4);
+    X << Rx, tx,
+            0, 0, 0, 1;
+
+    // Compute t_error
+    Eigen::VectorXd t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx - Rx * MeanB.block<3,1>(0,4) + MeanA.block<3,1>(0,4);
+    double error_norm = t_error.norm();
 }
