@@ -119,7 +119,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(mainRealData1 scripts/mainRealData1.cpp)
 #add_executable(mainRealData3 scripts/mainRealData3.cpp)
 #add_executable(mainRealData4 scripts/mainRealData4.cpp)
-#add_executable(batchSolveX solvers/batchSolveX.cpp)
+add_executable(batchSolveX solvers/batchSolveX.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -197,7 +197,7 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData4 ${LIBRARIES_TO_LINK})
-#target_link_libraries(batchSolveX ${LIBRARIES_TO_LINK})
+target_link_libraries(batchSolveX ${LIBRARIES_TO_LINK})
 
 
 #option(TARGET_FILE "Specify the target file to compile" "axbyczProb1_v6")

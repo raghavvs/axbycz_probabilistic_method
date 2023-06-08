@@ -6,7 +6,6 @@
 #define PARAMEXTRACT_H
 
 #include <Eigen/Dense>
-#include "so3Vec.h"
 
 void paramExtract(double& theta,
                    Eigen::MatrixXd& N,

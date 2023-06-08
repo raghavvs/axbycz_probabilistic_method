@@ -1,5 +1,5 @@
 /*
-Refer Quanli Ma's GitHub repo for original MATLAB code
+Refer Qianli Ma's GitHub repo for original MATLAB code
  AX = XB - Solver
 */
 
@@ -10,6 +10,7 @@ Refer Quanli Ma's GitHub repo for original MATLAB code
 #include "meanCov.h"
 #include "so3Vec.h"
 #include "paramExtract.h"
+#include "loadMatrices.h"
 
 // Sorting function
 void sortEigenVectors(const Eigen::VectorXd& eigenvalues,
@@ -35,15 +36,14 @@ void sortEigenVectors(const Eigen::VectorXd& eigenvalues,
     }
 }
 
-void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
-                  const std::vector<Eigen::Matrix4d> &B,
-                  bool opt,
-                  std::vector<Eigen::Matrix4d> &X,
-                  Eigen::Matrix4d &MeanA,
-                  Eigen::Matrix4d &MeanB,
-                  Eigen::Matrix<double, 6, 6> &SigA,
-                  Eigen::Matrix<double, 6, 6> &SigB,
-                  double t_error) {
+void batchSolveX(const std::vector<Eigen::Matrix4d> &A,
+                 const std::vector<Eigen::Matrix4d> &B,
+                 Eigen::MatrixXd &X,
+                 Eigen::Matrix4d &MeanA,
+                 Eigen::Matrix4d &MeanB,
+                 Eigen::Matrix<double, 6, 6> &SigA,
+                 Eigen::Matrix<double, 6, 6> &SigB,
+                 Eigen::VectorXd t_error) {
 
     std::vector<Eigen::Matrix4d> X_candidate(8, Eigen::Matrix4d::Zero());
 
@@ -93,20 +93,19 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
 
     double ta, tb, da, db;
     Eigen::MatrixXd Na, Nb,Xa, Xb;
+    Eigen::VectorXd pa, pb;
     paramExtract(ta, Na, da, pa, Xa);
     paramExtract(tb, Nb, db, pb, Xb);
 
     Eigen::VectorXd na = so3Vec(Na);
     Eigen::VectorXd nb = so3Vec(Nb);
 
-    X.resize(8);
-
     double min = std::numeric_limits<double>::infinity();
     Eigen::MatrixXd Rx;
 
     // Iterate over Rx_solved
     for (int i = 0; i < 8; ++i) {
-        Eigen::MatrixXd curr_Rx = Rx_solved.block<3,3>(0,0,i);  // Assuming Rx_solved is a 3D matrix
+        Eigen::MatrixXd curr_Rx = Rx_solved[i];
         if (std::abs(curr_Rx.determinant() - 1) < 0.001 && (na - curr_Rx * nb).norm() < min) {
             min = (na - curr_Rx * nb).norm();
             Rx = curr_Rx;
@@ -114,15 +113,46 @@ void batchSolveXY(const std::vector<Eigen::Matrix4d> &A,
     }
 
     // Compute tx
-    Eigen::VectorXd tx_temp = so3_vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() * (SigB.block<3,3>(0,0) - Rx.transpose() * SigA.block<3,3>(0,0) * Rx)).transpose());
+    Eigen::VectorXd tx_temp = so3Vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() * (SigB.block<3,3>(0,3) - Rx.transpose() * SigA.block<3,3>(0,3) * Rx)).transpose());
     Eigen::VectorXd tx = -Rx * tx_temp;
 
     // Compute X
-    Eigen::MatrixXd X(4, 4);
     X << Rx, tx,
-            0, 0, 0, 1;
+        0, 0, 0, 1;
 
     // Compute t_error
-    Eigen::VectorXd t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx - Rx * MeanB.block<3,1>(0,4) + MeanA.block<3,1>(0,4);
+    t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx - Rx * MeanB.block<3,1>(0,4) + MeanA.block<3,1>(0,4);
     double error_norm = t_error.norm();
+
+    std::cout << "t_error: " << error_norm << std::endl;
+}
+
+int main()
+{
+    std::vector<Eigen::Matrix4d> A, B;
+
+    std::string A_files = {"data/20230418_abb_charuco_10x14/r1_tf.txt"};
+    std::string B_files = {"data/20230418_abb_charuco_10x14/c2b_tf.txt"};
+
+    loadMatrices(A_files, A);
+    loadMatrices(B_files, B);
+
+    // Resize the vectors to keep only the first 20 matrices
+    int new_size = 20;
+    A.resize(new_size);
+    B.resize(new_size);
+
+    Eigen::Matrix4d MeanA, MeanB;
+    Eigen::MatrixXd X;
+    Eigen::Matrix<double, 6, 6> SigA, SigB;
+    Eigen::VectorXd t_error;
+
+    // Call the batchSolveX function
+    batchSolveX(A, B, X, MeanA, MeanB, SigA, SigB, t_error);
+
+    // Display results
+    std::cout << "X:" << std:: endl;
+    std::cout << X << std::endl;
+
+    return 0;
 }

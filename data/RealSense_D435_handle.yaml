@@ -1,0 +1,19 @@
+image_width: 640
+image_height: 480
+camera_name: RealSense_D435
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [605.8679809570312, 0.0, 322.9222412109375, 0.0, 605.5289306640625, 248.07632446289062, 0.0, 0.0, 1.0]
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.0, 0.0, 0.0, 0.0, 0.0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [605.8679809570312, 0.0, 322.9222412109375, 0.0, 605.5289306640625, 248.07632446289062, 0.0, 0.0, 1.0]
