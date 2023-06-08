@@ -119,6 +119,7 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(mainRealData1 scripts/mainRealData1.cpp)
 #add_executable(mainRealData3 scripts/mainRealData3.cpp)
 #add_executable(mainRealData4 scripts/mainRealData4.cpp)
+#add_executable(paramExtract utils/paramExtract.cpp)
 add_executable(batchSolveX solvers/batchSolveX.cpp)
 
 # Create a list of libraries to link

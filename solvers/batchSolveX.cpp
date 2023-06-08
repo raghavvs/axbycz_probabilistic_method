@@ -8,7 +8,6 @@ Refer Qianli Ma's GitHub repo for original MATLAB code
 #include <vector>
 #include <Eigen/Eigenvalues>
 #include "meanCov.h"
-#include "so3Vec.h"
 #include "paramExtract.h"
 #include "loadMatrices.h"
 
@@ -91,11 +90,12 @@ void batchSolveX(const std::vector<Eigen::Matrix4d> &A,
     Rx_solved[6] = sorted_VA * (-Q3) * sorted_VB.transpose();
     Rx_solved[7] = sorted_VA * (-Q4) * sorted_VB.transpose();
 
-    double ta, tb, da, db;
-    Eigen::MatrixXd Na, Nb,Xa, Xb;
-    Eigen::VectorXd pa, pb;
-    paramExtract(ta, Na, da, pa, Xa);
-    paramExtract(tb, Nb, db, pb, Xb);
+    double dummy1, dummy2;
+    Eigen::MatrixXd Na, Nb;
+    Eigen::VectorXd dummy3;
+
+    paramExtract(dummy1, Na, dummy2, dummy3, MeanA);
+    paramExtract(dummy1, Nb, dummy2, dummy3, MeanB);
 
     Eigen::VectorXd na = so3Vec(Na);
     Eigen::VectorXd nb = so3Vec(Nb);
@@ -115,13 +115,15 @@ void batchSolveX(const std::vector<Eigen::Matrix4d> &A,
     // Compute tx
     Eigen::VectorXd tx_temp = so3Vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() * (SigB.block<3,3>(0,3) - Rx.transpose() * SigA.block<3,3>(0,3) * Rx)).transpose());
     Eigen::VectorXd tx = -Rx * tx_temp;
-
+    
     // Compute X
+    X.resize(4,4);
     X << Rx, tx,
-        0, 0, 0, 1;
+        Eigen::RowVector4d(0, 0, 0, 1);
+
 
     // Compute t_error
-    t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx - Rx * MeanB.block<3,1>(0,4) + MeanA.block<3,1>(0,4);
+    t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx - Rx * MeanB.block<3,1>(0,3) + MeanA.block<3,1>(0,3);
     double error_norm = t_error.norm();
 
     std::cout << "t_error: " << error_norm << std::endl;

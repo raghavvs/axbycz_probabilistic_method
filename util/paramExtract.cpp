@@ -1,9 +1,8 @@
 /*
 DESCRIPTION:
-
+Function to extract Plucker parameters from a g \in SE(3)
 */
 
-#include "paramExtract.h"
 #include <Eigen/Dense>
 
 Eigen::MatrixXd so3Vec(const Eigen::MatrixXd& X)
