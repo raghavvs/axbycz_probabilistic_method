@@ -115,7 +115,7 @@ void batchSolveX(const std::vector<Eigen::Matrix4d> &A,
     // Compute tx
     Eigen::VectorXd tx_temp = so3Vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() * (SigB.block<3,3>(0,3) - Rx.transpose() * SigA.block<3,3>(0,3) * Rx)).transpose());
     Eigen::VectorXd tx = -Rx * tx_temp;
-    
+
     // Compute X
     X.resize(4,4);
     X << Rx, tx,

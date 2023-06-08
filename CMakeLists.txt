@@ -11,10 +11,14 @@ add_compile_options(-g)
 #set(axbycz_probabilistic_method /home/raghav/cws/axbycz_probabilistic_method)
 
 ####----Uncomment when compiling on mac---######
-set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
+set(axbycz_probabilistic_method "/Users/raghavendrans/Documents/Raghav's/University of Illinois/AE 597 - Research/axbycz_probabilistic_method")
 
 # Find Eigen3 library
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -45,8 +49,8 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 #include_directories(/home/raghav/cws/axbycz_probabilistic_method/data)
 
 ####----Uncomment when compiling on mac---######
-include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
-include_directories("/Users/raghavendrans/Documents/Raghav's /University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
+include_directories("/Users/raghavendrans/Documents/Raghav's/University of Illinois/AE 597 - Research/axbycz_probabilistic_method/util")
+include_directories("/Users/raghavendrans/Documents/Raghav's/University of Illinois/AE 597 - Research/axbycz_probabilistic_method/solvers")
 include_directories(${axbycz_probabilistic_method}/util)
 
 # Create executable
@@ -120,13 +124,16 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(mainRealData3 scripts/mainRealData3.cpp)
 #add_executable(mainRealData4 scripts/mainRealData4.cpp)
 #add_executable(paramExtract utils/paramExtract.cpp)
-add_executable(batchSolveX solvers/batchSolveX.cpp)
+#add_executable(batchSolveX solvers/batchSolveX.cpp)
+#add_executable(chessboardImgToTF util/chessboardImgToTF.cpp)
+add_executable(ChessBoardPointsImgToTF util/ChessBoardPointsImgToTF.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
   Eigen3::Eigen
   ${GTEST_LIBRARIES}
   pthread
+  OpenCV
   #${PYTHON_LIBRARIES}
   #Python3::NumPy
 )
@@ -198,8 +205,9 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData4 ${LIBRARIES_TO_LINK})
-target_link_libraries(batchSolveX ${LIBRARIES_TO_LINK})
-
+#target_link_libraries(batchSolveX ${LIBRARIES_TO_LINK})
+#target_link_libraries(chessboardImgToTF ${LIBRARIES_TO_LINK})
+target_link_libraries(ChessBoardPointsImgToTF ${LIBRARIES_TO_LINK})
 
 #option(TARGET_FILE "Specify the target file to compile" "axbyczProb1_v6")
 # Create executable

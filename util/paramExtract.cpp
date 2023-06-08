@@ -36,7 +36,7 @@ void paramExtract(double& theta,
 
     // Extract d
     Eigen::Vector3d n = so3Vec(N);
-    d = X.block<3,1>(0,4).dot(n);
+    d = X.block<3,1>(0,3).dot(n);
 
     // Extract p
     Eigen::Vector3d u(3);
@@ -48,7 +48,7 @@ void paramExtract(double& theta,
     Eigen::VectorXd b(2);
     Eigen::Vector3d u3 = u;
     Eigen::Vector3d crossProduct = n.cross(u);
-    b << X.block<3,1>(0,4).dot(u3), X.block<3,1>(0,4).dot(crossProduct);
+    b << X.block<3,1>(0,3).dot(u3), X.block<3,1>(0,3).dot(crossProduct);
     Eigen::VectorXd c = A.colPivHouseholderQr().solve(b);
 
     p = c(0) * u + c(1) * n.cross(u);
