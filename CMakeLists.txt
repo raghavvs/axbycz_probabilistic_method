@@ -124,9 +124,10 @@ include_directories(${axbycz_probabilistic_method}/util)
 #add_executable(mainRealData3 scripts/mainRealData3.cpp)
 #add_executable(mainRealData4 scripts/mainRealData4.cpp)
 #add_executable(paramExtract utils/paramExtract.cpp)
-#add_executable(batchSolveX solvers/batchSolveX.cpp)
+add_executable(batchSolveX solvers/batchSolveX.cpp)
 #add_executable(chessboardImgToTF util/chessboardImgToTF.cpp)
-add_executable(ChessBoardPointsImgToTF util/ChessBoardPointsImgToTF.cpp)
+#add_executable(ChessBoardPointsImgToTF util/ChessBoardPointsImgToTF.cpp)
+#add_executable(loadMatricesX util/loadMatricesX.cpp)
 
 # Create a list of libraries to link
 set(LIBRARIES_TO_LINK
@@ -205,9 +206,10 @@ set(LIBRARIES_TO_LINK
 #target_link_libraries(mainRealData1 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData3 ${LIBRARIES_TO_LINK})
 #target_link_libraries(mainRealData4 ${LIBRARIES_TO_LINK})
-#target_link_libraries(batchSolveX ${LIBRARIES_TO_LINK})
+target_link_libraries(batchSolveX ${LIBRARIES_TO_LINK})
 #target_link_libraries(chessboardImgToTF ${LIBRARIES_TO_LINK})
-target_link_libraries(ChessBoardPointsImgToTF ${LIBRARIES_TO_LINK})
+#target_link_libraries(ChessBoardPointsImgToTF ${LIBRARIES_TO_LINK})
+#target_link_libraries(loadMatricesX ${LIBRARIES_TO_LINK})
 
 #option(TARGET_FILE "Specify the target file to compile" "axbyczProb1_v6")
 # Create executable

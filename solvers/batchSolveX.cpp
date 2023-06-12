@@ -6,10 +6,11 @@ Refer Qianli Ma's GitHub repo for original MATLAB code
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <cstdio>
 #include <Eigen/Eigenvalues>
 #include "meanCov.h"
 #include "paramExtract.h"
-#include "loadMatrices.h"
+#include "loadMatricesX.h"
 
 // Sorting function
 void sortEigenVectors(const Eigen::VectorXd& eigenvalues,
@@ -133,21 +134,20 @@ int main()
 {
     std::vector<Eigen::Matrix4d> A, B;
 
-    std::string A_files = {"data/20230418_abb_charuco_10x14/r1_tf.txt"};
-    std::string B_files = {"data/20230418_abb_charuco_10x14/c2b_tf.txt"};
-
-    loadMatrices(A_files, A);
-    loadMatrices(B_files, B);
+    loadMatricesX(A, B);
 
     // Resize the vectors to keep only the first 20 matrices
-    int new_size = 20;
-    A.resize(new_size);
-    B.resize(new_size);
+    //int new_size = 20;
+    //A.resize(new_size);
+    //B.resize(new_size);
 
     Eigen::Matrix4d MeanA, MeanB;
     Eigen::MatrixXd X;
     Eigen::Matrix<double, 6, 6> SigA, SigB;
     Eigen::VectorXd t_error;
+
+    // Redirect standard output to a file
+    freopen("results/log_batchSolveX.txt", "a", stdout);
 
     // Call the batchSolveX function
     batchSolveX(A, B, X, MeanA, MeanB, SigA, SigB, t_error);
@@ -155,6 +155,9 @@ int main()
     // Display results
     std::cout << "X:" << std:: endl;
     std::cout << X << std::endl;
+
+    // Close the file
+    fclose(stdout);
 
     return 0;
 }
