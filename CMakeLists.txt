@@ -133,7 +133,7 @@ set(LIBRARIES_TO_LINK
   Eigen3::Eigen
   ${GTEST_LIBRARIES}
   pthread
-  OpenCV
+  ${OpenCV_LIBRARIES}
   #${PYTHON_LIBRARIES}
   #Python3::NumPy
 )
