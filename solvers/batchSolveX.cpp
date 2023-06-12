@@ -25,7 +25,10 @@ void sortEigenVectors(const Eigen::VectorXd& eigenvalues,
     }
 
     // Sort the eigen_pairs based on eigenvalues
-    std::sort(eigen_pairs.begin(), eigen_pairs.end(), [](const std::pair<double, Eigen::VectorXd>& a, const std::pair<double, Eigen::VectorXd>& b) {
+    std::sort(eigen_pairs.begin(), eigen_pairs.end(), [](const std::pair<double,
+                                                                        Eigen::VectorXd>& a,
+                                                                        const std::pair<double,
+                                                                                Eigen::VectorXd>& b) {
         return a.first < b.first;
     });
 
@@ -114,7 +117,9 @@ void batchSolveX(const std::vector<Eigen::Matrix4d> &A,
     }
 
     // Compute tx
-    Eigen::VectorXd tx_temp = so3Vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() * (SigB.block<3,3>(0,3) - Rx.transpose() * SigA.block<3,3>(0,3) * Rx)).transpose());
+    Eigen::VectorXd tx_temp = so3Vec(((Rx.transpose() * SigA.block<3,3>(0,0) * Rx).inverse() *
+                                (SigB.block<3,3>(0,3) - Rx.transpose() *
+                                SigA.block<3,3>(0,3) * Rx)).transpose());
     Eigen::VectorXd tx = -Rx * tx_temp;
 
     // Compute X
@@ -124,7 +129,8 @@ void batchSolveX(const std::vector<Eigen::Matrix4d> &A,
 
 
     // Compute t_error
-    t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx - Rx * MeanB.block<3,1>(0,3) + MeanA.block<3,1>(0,3);
+    t_error = (MeanA.block<3,3>(0,0) - Eigen::MatrixXd::Identity(3,3)) * tx -
+                Rx * MeanB.block<3,1>(0,3) + MeanA.block<3,1>(0,3);
     double error_norm = t_error.norm();
 
     std::cout << "t_error: " << error_norm << std::endl;
@@ -137,9 +143,9 @@ int main()
     loadMatricesX(A, B);
 
     // Resize the vectors to keep only the first 20 matrices
-    //int new_size = 20;
-    //A.resize(new_size);
-    //B.resize(new_size);
+    int new_size = 20;
+    A.resize(new_size);
+    B.resize(new_size);
 
     Eigen::Matrix4d MeanA, MeanB;
     Eigen::MatrixXd X;
@@ -149,11 +155,13 @@ int main()
     // Redirect standard output to a file
     freopen("results/log_batchSolveX.txt", "a", stdout);
 
+    std::cout << "Number of matrices: " << A.size() << std::endl;
+
     // Call the batchSolveX function
     batchSolveX(A, B, X, MeanA, MeanB, SigA, SigB, t_error);
 
     // Display results
-    std::cout << "X:" << std:: endl;
+    std::cout << "X:" << std::endl;
     std::cout << X << std::endl;
 
     // Close the file
