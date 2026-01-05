@@ -54,20 +54,34 @@ SE3Adinv computes the inverse of the adjoint representation of an element of SE(
 #include <vector>
 #include "metric.h"
 
+// Helper function to extract the vex (vector from skew-symmetric matrix)
+Eigen::Vector3d vex_helper(const Eigen::Matrix3d &m) {
+    Eigen::Vector3d v;
+    v << m(2, 1), m(0, 2), m(1, 0);
+    return v;
+}
+
 void meanCov(const std::vector<Eigen::Matrix4d> &X,
              int N,
              std::vector<Eigen::MatrixXd> &Mean,
              std::vector<Eigen::MatrixXd> &Cov) {
 
-    Mean.resize(N, Eigen::Matrix4d::Identity());
-    Cov.resize(N, Eigen::Matrix<double, 6, 6>::Zero());
+    // Resize output vectors
+    Mean.resize(N);
+    Cov.resize(N);
+
+    int numMatrices = X.size();
+
+    // Compute single mean for all input matrices (matching MATLAB meanCov)
+    Eigen::Matrix4d singleMean = Eigen::Matrix4d::Identity();
+    Eigen::Matrix<double, 6, 6> singleCov = Eigen::Matrix<double, 6, 6>::Zero();
 
     // Initial approximation of Mean
     Eigen::Matrix4d sum_se = Eigen::Matrix4d::Zero();
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < numMatrices; i++) {
         sum_se += X[i].log();
-        Mean[i] = ((1.0 / N) * sum_se).exp();
     }
+    singleMean = ((1.0 / numMatrices) * sum_se).exp();
 
     // Iterative process to calculate the true Mean
     Eigen::Matrix4d diff_se = Eigen::Matrix4d::Ones();
@@ -76,20 +90,27 @@ void meanCov(const std::vector<Eigen::Matrix4d> &X,
     int count = 1;
     while (diff_se.norm() >= tol && count <= max_num) {
         diff_se = Eigen::Matrix4d::Zero();
-        for (int i = 0; i < N; i++) {
-            diff_se += (Mean[i].inverse() * X[i]).log();
-            Mean[i] *= ((1.0 / N)* diff_se).exp();
+        for (int i = 0; i < numMatrices; i++) {
+            diff_se += (singleMean.inverse() * X[i]).log();
         }
+        singleMean *= ((1.0 / numMatrices) * diff_se).exp();
         count++;
     }
 
     // Covariance
-    for (int i = 0; i < N; i++) {
-        diff_se = (Mean[i].inverse() * X[i]).log();
+    for (int i = 0; i < numMatrices; i++) {
+        diff_se = (singleMean.inverse() * X[i]).log();
         Eigen::VectorXd diff_vex(6);
-        diff_vex << Eigen::Map<Eigen::Vector3d>(diff_se.block<3,3>(0,0).data()), diff_se.block<3,1>(0,3);
-        Cov[i] += diff_vex * diff_vex.transpose();
-        Cov[i] /= N;
+        // Extract rotation part using vex (from skew-symmetric block)
+        diff_vex << vex_helper(diff_se.block<3, 3>(0, 0)), diff_se.block<3, 1>(0, 3);
+        singleCov += diff_vex * diff_vex.transpose();
+    }
+    singleCov /= numMatrices;
+
+    // Store the same mean and covariance for all N entries
+    for (int i = 0; i < N; i++) {
+        Mean[i] = singleMean;
+        Cov[i] = singleCov;
     }
 }
 
@@ -126,8 +147,9 @@ Eigen::Matrix<double, 6, 6> SE3Adinv(const Eigen::Matrix4d& X) {
     Eigen::Vector3d t = X.block<3,1>(0,3);
 
     Eigen::Matrix<double, 6, 6> A;
+    // Correct formula: A = [R', zeros(3,3); -skew(R'*t)*R', R']
     A << R.transpose(), Eigen::Matrix3d::Zero(),
-            -(skew(R.transpose() * t)) * R.transpose(), R.transpose();
+            -skew(R.transpose() * t) * R.transpose(), R.transpose();
     return A;
 }
 
@@ -212,25 +234,31 @@ void MbMat_1(Eigen::MatrixXd &M,
     Eigen::Matrix3d M165 = -skew(SigB.block<3,1>(3,5)) + SigB.block<3,3>(3,3) * skew(e3);
     Eigen::Matrix3d M166 = -skew(SigB.block<3,1>(0,5)) + SigB.block<3,3>(3,0) * skew(e3);
 
-    M.conservativeResize(M.rows() + 36, M.cols() + 9);
-    M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M55,  M56,
-                                                Eigen::Matrix3d::Zero(),  M65,  M66,
-                                                Eigen::Matrix3d::Zero(),  M75,  M76,
-                                                Eigen::Matrix3d::Zero(),  M85,  M86,
-                                                Eigen::Matrix3d::Zero(),  M95,  M96,
-                                                Eigen::Matrix3d::Zero(), M105, M106,
-                                                Eigen::Matrix3d::Zero(), M115, M116,
-                                                Eigen::Matrix3d::Zero(), M125, M126,
-                                                Eigen::Matrix3d::Zero(), M135, M136,
-                                                Eigen::Matrix3d::Zero(), M145, M146,
-                                                Eigen::Matrix3d::Zero(), M155, M156,
-                                                Eigen::Matrix3d::Zero(), M165 ,M166;
+    // Append covariance constraint rows to M (36 rows x 18 cols)
+    // First 12 columns are zeros, last 6 columns contain the constraint matrices
+    Eigen::MatrixXd M_cov(36, 18);
+    M_cov << Eigen::MatrixXd::Zero(3, 12),  M55,  M56,
+             Eigen::MatrixXd::Zero(3, 12),  M65,  M66,
+             Eigen::MatrixXd::Zero(3, 12),  M75,  M76,
+             Eigen::MatrixXd::Zero(3, 12),  M85,  M86,
+             Eigen::MatrixXd::Zero(3, 12),  M95,  M96,
+             Eigen::MatrixXd::Zero(3, 12), M105, M106,
+             Eigen::MatrixXd::Zero(3, 12), M115, M116,
+             Eigen::MatrixXd::Zero(3, 12), M125, M126,
+             Eigen::MatrixXd::Zero(3, 12), M135, M136,
+             Eigen::MatrixXd::Zero(3, 12), M145, M146,
+             Eigen::MatrixXd::Zero(3, 12), M155, M156,
+             Eigen::MatrixXd::Zero(3, 12), M165, M166;
 
-    Eigen::MatrixXd RHS2 = SE3Adinv(Z) * SigC * SE3Adinv(Z).transpose() - SigB;
-    RHS2.resize(3, 12);
+    M.conservativeResize(M.rows() + 36, Eigen::NoChange);
+    M.bottomRows(36) = M_cov;
 
-    b.resize(b.rows() + RHS2.size(), 1);
-    b.bottomRows(RHS2.size()) = Eigen::Map<Eigen::VectorXd>(RHS2.data(), RHS2.size());
+    Eigen::Matrix<double, 6, 6> RHS2 = SE3Adinv(Z) * SigC * SE3Adinv(Z).transpose() - SigB;
+    // Reshape RHS2 to column vector (column-major order like MATLAB)
+    Eigen::VectorXd RHS2_vec = Eigen::Map<Eigen::VectorXd>(RHS2.data(), 36);
+
+    b.conservativeResize(b.rows() + 36, Eigen::NoChange);
+    b.bottomRows(36) = RHS2_vec;
 }
 
 void MbMat_2(Eigen::MatrixXd &M,
@@ -316,25 +344,31 @@ void MbMat_2(Eigen::MatrixXd &M,
     Eigen::Matrix3d M161 = -skew(SigBinv.block<3,1>(3,5)) + SigBinv.block<3,3>(3,3) * skew(e3);
     Eigen::Matrix3d M162 = -skew(SigBinv.block<3,1>(0,5)) + SigBinv.block<3,3>(3,0) * skew(e3);
 
-    M.conservativeResize(M.rows() + 36, M.cols() + 9);
-    M.bottomRightCorner(36, 9) << Eigen::Matrix3d::Zero(),  M51,  M52,
-                                                Eigen::Matrix3d::Zero(),  M61,  M62,
-                                                Eigen::Matrix3d::Zero(),  M71,  M72,
-                                                Eigen::Matrix3d::Zero(),  M81,  M82,
-                                                Eigen::Matrix3d::Zero(),  M91,  M92,
-                                                Eigen::Matrix3d::Zero(), M101, M102,
-                                                Eigen::Matrix3d::Zero(), M111, M112,
-                                                Eigen::Matrix3d::Zero(), M121, M122,
-                                                Eigen::Matrix3d::Zero(), M131, M132,
-                                                Eigen::Matrix3d::Zero(), M141, M142,
-                                                Eigen::Matrix3d::Zero(), M151, M152,
-                                                Eigen::Matrix3d::Zero(), M161 ,M162;
+    // Append covariance constraint rows to M (36 rows x 18 cols)
+    // First 6 columns contain the constraint matrices, last 12 columns are zeros
+    Eigen::MatrixXd M_cov(36, 18);
+    M_cov <<  M51,  M52, Eigen::MatrixXd::Zero(3, 12),
+              M61,  M62, Eigen::MatrixXd::Zero(3, 12),
+              M71,  M72, Eigen::MatrixXd::Zero(3, 12),
+              M81,  M82, Eigen::MatrixXd::Zero(3, 12),
+              M91,  M92, Eigen::MatrixXd::Zero(3, 12),
+             M101, M102, Eigen::MatrixXd::Zero(3, 12),
+             M111, M112, Eigen::MatrixXd::Zero(3, 12),
+             M121, M122, Eigen::MatrixXd::Zero(3, 12),
+             M131, M132, Eigen::MatrixXd::Zero(3, 12),
+             M141, M142, Eigen::MatrixXd::Zero(3, 12),
+             M151, M152, Eigen::MatrixXd::Zero(3, 12),
+             M161, M162, Eigen::MatrixXd::Zero(3, 12);
 
-    Eigen::MatrixXd RHS2 = SE3Adinv(X) * SigA * SE3Adinv(X).transpose() - SigBinv;
-    RHS2.resize(3, 12);
+    M.conservativeResize(M.rows() + 36, Eigen::NoChange);
+    M.bottomRows(36) = M_cov;
 
-    b.resize(b.rows() + RHS2.size(), 1);
-    b.bottomRows(RHS2.size()) = Eigen::Map<Eigen::VectorXd>(RHS2.data(), RHS2.size());
+    Eigen::Matrix<double, 6, 6> RHS2 = SE3Adinv(X) * SigA * SE3Adinv(X).transpose() - SigBinv;
+    // Reshape RHS2 to column vector (column-major order like MATLAB)
+    Eigen::VectorXd RHS2_vec = Eigen::Map<Eigen::VectorXd>(RHS2.data(), 36);
+
+    b.conservativeResize(b.rows() + 36, Eigen::NoChange);
+    b.bottomRows(36) = RHS2_vec;
 }
 
 void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
@@ -361,7 +395,7 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     Eigen::Matrix4d Zupdate = Zinit;
     Eigen::VectorXd xi = Eigen::VectorXd::Ones(18);
 
-    int max_num = 2;
+    int max_num = 500;  // MATLAB uses 500 iterations
     double tol = 1e-5;
 
     // Calculate mean and covariance of varying data
