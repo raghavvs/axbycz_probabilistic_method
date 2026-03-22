@@ -341,10 +341,15 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     std::vector<Eigen::Matrix4d> A1_m(Ni), B1_m(Ni), C1_m(Ni);
     std::vector<Eigen::Matrix<double, 6, 6>> SigA1(Ni), SigB1(Ni), SigC1(Ni);
 
+    // In MATLAB, meanCov is called per-cell where each cell has multiple samples.
+    // In C++, the data is flat (1 sample per entry), so mean = element, cov = zero.
     for (int i = 0; i < Ni; ++i) {
-        meanCov(A1, A1_m[i], SigA1[i]);
-        meanCov(B1, B1_m[i], SigB1[i]);
-        meanCov(C1, C1_m[i], SigC1[i]);
+        A1_m[i] = A1[i];
+        SigA1[i] = Eigen::Matrix<double, 6, 6>::Zero();
+        B1_m[i] = B1[i];
+        SigB1[i] = Eigen::Matrix<double, 6, 6>::Zero();
+        C1_m[i] = C1[i];
+        SigC1[i] = Eigen::Matrix<double, 6, 6>::Zero();
     }
 
     // invert B2
@@ -358,10 +363,14 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
     std::vector<Eigen::Matrix<double, 6, 6>> SigA2(Nj), SigB2(Nj), SigB2inv(Nj), SigC2(Nj);
 
     for (int j = 0; j < Nj; ++j) {
-        meanCov(A2, A2_m[j], SigA2[j]);
-        meanCov(B2, B2_m[j], SigB2[j]);
-        meanCov(B2inv, B2inv_m[j], SigB2inv[j]);
-        meanCov(C2, C2_m[j], SigC2[j]);
+        A2_m[j] = A2[j];
+        SigA2[j] = Eigen::Matrix<double, 6, 6>::Zero();
+        B2_m[j] = B2[j];
+        SigB2[j] = Eigen::Matrix<double, 6, 6>::Zero();
+        B2inv_m[j] = B2inv[j];
+        SigB2inv[j] = Eigen::Matrix<double, 6, 6>::Zero();
+        C2_m[j] = C2[j];
+        SigC2[j] = Eigen::Matrix<double, 6, 6>::Zero();
     }
 
     // Calculate M and b matrices when fixing A and C separately
@@ -385,37 +394,40 @@ void axbyczProb3(const std::vector<Eigen::Matrix4d> &A1,
                     SigB2[j], SigA2[j], B2_m[j]);
         }
 
-        Eigen::MatrixXd M;
-        Eigen::MatrixXd b;
-        Eigen::MatrixXd M1;
-        Eigen::MatrixXd M2;
-        Eigen::MatrixXd M3;
-        Eigen::MatrixXd M4;
-
+        // Concatenate M and b matrices (MATLAB: M = [M; MM{k}]; b = [b; bb{k}])
+        int total_rows = 0;
         for (int k = 0; k < Ni + Nj; k++) {
-            M.conservativeResize(M.rows() + MM[k].rows(), MM[k].cols());
-            M.bottomRows(MM[k].rows()) = MM[k];
-            b.conservativeResize(b.rows() + bb[k].rows(), b.cols() + bb[k].cols());
-            b.bottomRightCorner(bb[k].rows(), bb[k].cols()) = bb[k];
+            total_rows += MM[k].rows();
         }
 
+        Eigen::MatrixXd M(total_rows, 18);
+        Eigen::VectorXd b(total_rows);
+        int row_offset = 0;
+        for (int k = 0; k < Ni + Nj; k++) {
+            int r = MM[k].rows();
+            M.middleRows(row_offset, r) = MM[k];
+            b.segment(row_offset, r) = bb[k];
+            row_offset += r;
+        }
+
+        // Split into geometric and covariance blocks (MATLAB: MM{k}(1:12,:) and MM{k}(13:21,:))
+        Eigen::MatrixXd M1(12 * Ni, 18);
+        Eigen::MatrixXd M2(9 * Ni, 18);
         for (int k = 0; k < Ni; k++) {
-            M1.conservativeResize(M1.rows() + MM[k].block(0, 0, 12, MM[k].cols()).rows(), MM[k].cols());
-            M1.bottomRows(MM[k].block(0, 0, 12, MM[k].cols()).rows()) = MM[k].block(0, 0, 12, MM[k].cols());
-            M2.conservativeResize(M2.rows() + MM[k].block(12, 0, 9, MM[k].cols()).rows(), MM[k].cols());
-            M2.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
+            M1.middleRows(k * 12, 12) = MM[k].block(0, 0, 12, 18);
+            M2.middleRows(k * 9, 9) = MM[k].block(12, 0, 9, 18);
         }
 
+        Eigen::MatrixXd M3(12 * Nj, 18);
+        Eigen::MatrixXd M4(9 * Nj, 18);
         for (int k = Ni; k < Ni + Nj; k++) {
-            M3.conservativeResize(M3.rows() + MM[k].block(0, 0, 12, MM[k].cols()).rows(), MM[k].cols());
-            M3.bottomRows(MM[k].block(0, 0, 12, MM[k].cols()).rows()) = MM[k].block(0, 0, 12, MM[k].cols());
-            M4.conservativeResize(M4.rows() + MM[k].block(12, 0, 9, MM[k].cols()).rows(), MM[k].cols());
-            M4.bottomRows(MM[k].block(12, 0, 9, MM[k].cols()).rows()) = MM[k].block(12, 0, 9, MM[k].cols());
+            int j = k - Ni;
+            M3.middleRows(j * 12, 12) = MM[k].block(0, 0, 12, 18);
+            M4.middleRows(j * 9, 9) = MM[k].block(12, 0, 9, 18);
         }
 
-        // Inversion to get xi_X, xi_Y, xi_Z
-        //xi = (M.transpose() * M).ldlt().solve(M.transpose() * b);
-        Eigen::MatrixXd xi_new = (M.transpose() * M).ldlt().solve(M.transpose() * b);
+        // Inversion to get xi_X, xi_Y, xi_Z (MATLAB: xi = (M'*M) \ (M'*b))
+        Eigen::VectorXd xi_new = (M.transpose() * M).ldlt().solve(M.transpose() * b);
 
         double diff1 = 0;
         double diff2 = 0;
